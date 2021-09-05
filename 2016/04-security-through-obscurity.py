@@ -11,16 +11,28 @@ with open('04-input.txt','r') as f:
         rooms += [room]
 
 for i in range(len(rooms)):
-    count_chars = dict()
+    count_chars = []
     for c in rooms[i]["enc_name"]:
-        if c in count_chars.keys():
-            count_chars[c] += 1
+        count_chars_len = len(count_chars)
+        for s in range(count_chars_len):
+            if c == count_chars[s][0]:
+                count_chars[s] = (c,count_chars[s][1]+1)
+                break
         else:
-            count_chars[c] = 1
-   
-    # need better sort, alphabetic if same count
-    sorted_count_chars = dict(sorted(count_chars.items(), key=lambda x:x[1], reverse=True))
-    if "".join(sorted_count_chars.keys())[:5] == rooms[i]["checksum"]:
+            count_chars += [(c,1)]
+
+    char_i = 0
+    count_chars_len = len(count_chars)
+    while char_i < count_chars_len:
+        for s in range(count_chars_len - 1, char_i, -1):
+            if count_chars[char_i][1] < count_chars[s][1] or (count_chars[char_i][1] == count_chars[s][1] and count_chars[char_i][0] > count_chars[s][0]):
+                count_chars.insert(s + 1, count_chars[char_i])
+                del count_chars[char_i]
+                char_i = -1
+                break
+        char_i += 1
+
+    if "".join([x[0] for x in count_chars[:5]]) == rooms[i]["checksum"]:
         rooms[i]["real"] = True
 
 sum_real_id = 0
@@ -29,3 +41,4 @@ for room in rooms:
         sum_real_id += room["id"]
 
 print(f"Part One: {sum_real_id}")
+
