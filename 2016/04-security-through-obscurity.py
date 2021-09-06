@@ -1,9 +1,12 @@
+import string
+
 rooms = []
 with open('04-input.txt','r') as f:
     for line in f.readlines():
         parts = line.strip().split("-")
         room = {
             "enc_name": "".join(parts[:-1]),
+            "dec_name": "",
             "id": int(parts[-1].split("[")[0]),
             "checksum": parts[-1].split("[")[1][:-1],
             "real": False
@@ -41,4 +44,18 @@ for room in rooms:
         sum_real_id += room["id"]
 
 print(f"Part One: {sum_real_id}")
+
+alphabet = string.ascii_lowercase
+for r in range(len(rooms)):
+    if rooms[r]["real"]:
+        dec_name = []
+        for char in rooms[r]["enc_name"]:
+            i = alphabet.index(char)
+            dec_name += [alphabet[(i+rooms[r]["id"])%len(alphabet)]]
+        rooms[r]["dec_name"] = "".join(dec_name)
+
+for room in rooms:
+    if room["real"]:
+        if "northpole" in room["dec_name"]:
+            print(f"Part Two: {room['id']}")
 
