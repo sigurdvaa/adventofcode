@@ -14,7 +14,7 @@ def abba_in_str(string):
 int_tls = 0
 for ip in input_ips:
     ip_parts = re.findall("[a-z]+", ip)
-    ip_others = ip_parts[::2]
+    ip_supernets = ip_parts[::2]
     ip_hypernets = ip_parts[1::2]
 
     abba_in_hypernet = False
@@ -24,8 +24,8 @@ for ip in input_ips:
             break
 
     if not abba_in_hypernet:
-        for other in ip_others:
-            if abba_in_str(other):
+        for supernet in ip_supernets:
+            if abba_in_str(supernet):
                 int_tls += 1
                 break
 
