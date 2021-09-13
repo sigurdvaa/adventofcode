@@ -47,3 +47,7 @@ for row in display:
             int_lit += 1
 
 print(f"Part One: {int_lit}")
+
+print("Part Two:")
+for row in display:
+    print("".join(row))
