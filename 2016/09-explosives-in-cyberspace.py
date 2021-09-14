@@ -1,6 +1,3 @@
-import sys
-sys.setrecursionlimit(10000)
-
 with open('09-input.txt', 'r') as f:
     input_raw = f.readline().strip()
 
@@ -49,12 +46,13 @@ def decompressed_length(string):
                 else:
                     m += 1
 
+            
             marker_split = string[i+1:i+m].split("x")
             seq_length = int(marker_split[0])
             repeat = int(marker_split[1])
         
-            substring = string[i+m+1:i+1+m+seq_length] * repeat
-            decomp_len += decompressed_length(substring)
+            substring = string[i+m+1:i+1+m+seq_length]
+            decomp_len += decompressed_length(substring) * repeat
 
             i += 1 + m + seq_length
 
