@@ -3,16 +3,24 @@ The second floor contains a cobalt generator, a curium generator, a ruthenium ge
 The third floor contains a cobalt-compatible microchip, a curium-compatible microchip, a ruthenium-compatible microchip, and a plutonium-compatible microchip.
 The fourth floor contains nothing relevant."""
 
-floors = [
+floors2 = [
     ["PrG", "PrM"],
     ["CoG", "CuG", "RuG", "PlG"],
     ["CoM", "CuM", "RuM", "PlM"],
     [],
 ]
 
+floors = [
+    ["HM", "LM"],
+    ["HG"],
+    ["LG"],
+    [],
+]
+
 elevator = {
     "floor": 0,
     "items": [],
+    "dir": "up",
 }
 
 # elevator stops at each floor to recharge
@@ -21,4 +29,8 @@ elevator = {
 # min 1 item in elevator
 # how many moves to bring everything to 4th floor
 
+#while True:
+   # if empty, fetch items
+   # move elevator
+   # empty or recharge
 
