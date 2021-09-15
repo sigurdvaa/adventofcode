@@ -1,20 +1,6 @@
 with open('10-input.txt', 'r') as f:
     input_instructions = [x.strip() for x in f.readlines()]
 
-class Bot:
-    def __init__(self, id):
-        self.id = id
-        self.chips = []
-
-    def add_chip(self, value):
-        self.chips += [value]
-        self.chips = sorted(self.chips)
-
-    def give_low(self):
-        low = self.chips[0]
-        del self.chips[0]
-        return low
-
 bots = {}
 inputs = []
 outputs = {}
@@ -61,20 +47,25 @@ while moving_chips:
                 bots[bots[bot]["low_id"]]["chips"] = sorted(bots[bots[bot]["low_id"]]["chips"])
             else:
                 if bots[bot]["low_id"] in outputs:
-                    outputs["low_id"] += [bots[bot]["chips"][0]]
+                    outputs[bots[bot]["low_id"]] += [bots[bot]["chips"][0]]
                 else:
-                    outputs["low_id"] = [bots[bot]["chips"][0]]
+                    outputs[bots[bot]["low_id"]] = [bots[bot]["chips"][0]]
 
             if bots[bot]["high_type"] == "bot":
                 bots[bots[bot]["high_id"]]["chips"] += [bots[bot]["chips"][-1]]
                 bots[bots[bot]["high_id"]]["chips"] = sorted(bots[bots[bot]["high_id"]]["chips"])
             else:
                 if bots[bot]["high_id"] in outputs:
-                    outputs["high_id"] += [bots[bot]["chips"][-1]]
+                    outputs[bots[bot]["high_id"]] += [bots[bot]["chips"][-1]]
                 else:
-                    outputs["high_id"] = [bots[bot]["chips"][-1]]
+                    outputs[bots[bot]["high_id"]] = [bots[bot]["chips"][-1]]
     
             del bots[bot]["chips"][-1]
             del bots[bot]["chips"][0]
             moving_chips = True
 
+product = 1
+for o in range(3):
+    for i in outputs[o]:
+        product *= i
+print(f"Part Two: {product}")
