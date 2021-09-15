@@ -47,10 +47,14 @@ for ins in input_instructions:
 for value in inputs:
     bots[value["botid"]]["chips"] += [value["value"]]
 
+moving_chips = True
+while moving_chips:
+    moving_chips = False
     for bot in bots:
         if len(bots[bot]["chips"]) > 1:
-            if [17, 61] in bots[bot]["chips"]:
-                print(f"Part One: {bot}")
+            if 17 in bots[bot]["chips"]:
+                if 61 in bots[bot]["chips"]:
+                    print(f"Part One: {bot}")
 
             if bots[bot]["low_type"] == "bot":
                 bots[bots[bot]["low_id"]]["chips"] += [bots[bot]["chips"][0]]
@@ -72,4 +76,5 @@ for value in inputs:
     
             del bots[bot]["chips"][-1]
             del bots[bot]["chips"][0]
+            moving_chips = True
 
