@@ -12,7 +12,6 @@ part2_items = ["e", "cog", "com", "cug", "cum", "plg", "plm", "prg", "prm", "rug
 part2_init_state = [0, 1, 2, 1, 2, 1, 2, 0, 0, 1, 2, 0, 0, 0, 0]
 
 def unseen_state(seen_states, state):
-    #state_str = "".join([str(x) for x in state])
     state_str = "".join(map(str, state))
     if state_str in seen_states:
         return False
@@ -69,10 +68,10 @@ def bfs(init_state):
         for state in queue:
             new_states = next_states(state)
             for i in range(len(new_states) - 1, -1, -1):
-                if not unseen_state(seen_states, new_states[i]):
-                    del new_states[i] 
-                elif not valid_state(new_states[i]):
+                if not valid_state(new_states[i]):
                     del new_states[i]
+                elif not unseen_state(seen_states, new_states[i]):
+                    del new_states[i] 
             new_queue += new_states
         queue = new_queue
         for state in queue:
