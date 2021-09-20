@@ -13,7 +13,7 @@ part1_init_state = [0, 1, 2, 1, 2, 1, 2, 0, 0, 1, 2]
 part2_items = ["e", "cog", "com", "cug", "cum", "plg", "plm", "prg", "prm", "rug", "rum", "elg", "elm", "dig", "dim"]
 part2_init_state = [0, 1, 2, 1, 2, 1, 2, 0, 0, 1, 2, 0, 0, 0, 0]
 
-def unseen_state2(seen_states, state):
+def unseen_generalized_state(seen_states, state):
     g_per_f = [0, 0, 0, 0]
     m_per_f = [0, 0, 0, 0]
     state_len = len(state)
@@ -84,7 +84,7 @@ def bfs(init_state):
         print(f"step: {step}, queue: {len(queue)}, seen: {len(seen_states)}")
         for s in range(queue_len):
             state = queue.popleft()
-            if valid_state(state) and unseen_state2(seen_states, state):
+            if valid_state(state) and unseen_generalized_state(seen_states, state):
                 solved = True
                 for n in state:
                     if n < 3:
