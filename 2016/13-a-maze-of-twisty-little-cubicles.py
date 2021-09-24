@@ -34,29 +34,25 @@ def valid(state, fav):
   else:
     return False
 
-def solved(state, maxsteps, end):
-  if maxsteps > 0:
-    if state[0] == maxsteps:
+def solved(state, end):
+  if state[1] == end[0]:
+    if state[2] == end[1]:
       return True
-  else:
-    if state[1] == end[0]:
-      if state[2] == end[1]:
-        return True
   return False
 
-def bfs(init, fav, maxsteps : int = 0, end : tuple = (0, 0)):
+def bfs(init, fav, end : tuple = (0, 0), seen_at_step : int = -1):
   queue = deque()
   queue.append(init)
   seen = set()
 
   while queue:
     state = queue.popleft()
+    if seen_at_step > -1:
+      if state[0] > seen_at_step:
+        return len(seen)
     if valid(state, fav) and unseen(seen, state):
-      if solved(state, maxsteps, end):
-        if maxsteps > 0:
-          return len(seen)
-        else:
-          return state[0]
+      if solved(state, end):
+        return state[0]
       next_states(queue, state)
 
   return "No solution"
@@ -64,4 +60,4 @@ def bfs(init, fav, maxsteps : int = 0, end : tuple = (0, 0)):
 init_state = [0, 1, 1]
 print(f"Part One: {bfs(init_state, int(input_raw), end = (31, 39))}")
 init_state = [0, 1, 1]
-print(f"Part Two: {bfs(init_state, int(input_raw), maxsteps = 50)}")
+print(f"Part Two: {bfs(init_state, int(input_raw), end = (-1, -1), seen_at_step = 50)}")
