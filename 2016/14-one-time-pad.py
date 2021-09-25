@@ -1,9 +1,8 @@
 from hashlib import md5
 
 input_raw = "jlmsuwbz"
-#input_raw = "abc"
 
-def valid_key(keyhashes : list, idx : int, streamlen: int):
+def valid_key(keyhashes:list, idx:int, streamlen:int):
   key = keyhashes[idx]
   for k in range(len(key) - 2):
     if key[k]*3 == key[k:k+3]:
@@ -14,22 +13,21 @@ def valid_key(keyhashes : list, idx : int, streamlen: int):
       return False
   return False
 
-def generate_keys(salt:str, amount:int, stretch:int=1):
+def generate_keys(salt:str, amount:int, stretch:int=0):
   idx = 0
   streamlen = 1000
   keyhashes = []
   validkeys = []
   while len(validkeys) < amount:
-    key = salt + str(idx)
-    for s in range(stretch):
+    key = md5((salt + str(idx)).encode("utf8")).hexdigest()
+    for _ in range(stretch):
       key = md5(key.encode("utf8")).hexdigest()
     keyhashes += [key]
     if len(keyhashes) > streamlen:
       if valid_key(keyhashes, idx - streamlen, streamlen):
         validkeys += [keyhashes[idx - streamlen]]
-    #print(f"idx: {idx}, hashes: {len(keyhashes)}, valid: {len(validkeys)}")
     idx += 1
   return idx - streamlen - 1
 
 print(f"Part One: {generate_keys(input_raw, 64)}")
-print(f"Part Two: {generate_keys(input_raw, 64, 2017)}")
+print(f"Part Two: {generate_keys(input_raw, 64, 2016)}")
