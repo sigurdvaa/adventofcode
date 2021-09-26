@@ -5,12 +5,12 @@ disk_size_p2 = 35651584
 def checksum(data:str):
   consider = list(data)
   while (len(consider) % 2) == 0:
-    new_consider = []
+    new_consider = list()
     for i in range(0, len(consider), 2):
       if consider[i] == consider[i+1]:
-        new_consider += ["1"]
+        new_consider.append("1")
       else:
-        new_consider += ["0"]
+        new_consider.append("0")
     consider = new_consider
   return "".join(consider)
 
