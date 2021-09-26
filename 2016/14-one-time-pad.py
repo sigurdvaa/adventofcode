@@ -22,10 +22,10 @@ def generate_keys(salt:str, amount:int, stretch:int=0):
     key = md5((salt + str(idx)).encode("utf8")).hexdigest()
     for _ in range(stretch):
       key = md5(key.encode("utf8")).hexdigest()
-    keyhashes += [key]
+    keyhashes.append(key)
     if len(keyhashes) > streamlen:
       if valid_key(keyhashes, idx - streamlen, streamlen):
-        validkeys += [keyhashes[idx - streamlen]]
+        validkeys.append(keyhashes[idx - streamlen])
     idx += 1
   return idx - streamlen - 1
 
