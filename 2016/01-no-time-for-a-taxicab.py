@@ -18,7 +18,7 @@ for step in input_steps:
     elif turn == "L":
         direction -= 1
         if direction < 0:
-          direction = 3
+            direction = 3
 
     for walk in range(blocks):
         if direction == 0:
@@ -31,12 +31,11 @@ for step in input_steps:
             x -= 1
 
         if not been_twice:
-            if (x,y) not in been:
-                been.add((x,y))
+            if (x, y) not in been:
+                been.add((x, y))
             else:
                 been_twice = True
-                been_twice_tuple = (x,y) 
+                been_twice_tuple = (x, y)
 
-print("Part One: " + str( abs(x) + abs(y) ))
-print("Part Two: " + str( abs(been_twice_tuple[0]) + abs(been_twice_tuple[1]) ))
-
+print("Part One: " + str(abs(x) + abs(y)))
+print("Part Two: " + str(abs(been_twice_tuple[0]) + abs(been_twice_tuple[1])))

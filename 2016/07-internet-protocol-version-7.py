@@ -1,23 +1,26 @@
 import re
 
-with open('07-input.txt', 'r') as f:
+with open("07-input.txt", "r") as f:
     input_ips = [x.strip() for x in f.readlines()]
 
+
 def abba_in_str(string):
-    for i in range(len(string)-3):
-        if string[i] == string[i+3]:
-            if string[i] != string[i+1]:
-                if string[i+1] == string[i+2]:
+    for i in range(len(string) - 3):
+        if string[i] == string[i + 3]:
+            if string[i] != string[i + 1]:
+                if string[i + 1] == string[i + 2]:
                     return True
     return False
-    
+
+
 def aba_in_str(string):
     aba = []
-    for i in range(len(string)-2):
-        if string[i] == string[i+2]:
-            if string[i] != string[i+1]:
-                aba += [string[i:i+3]]
+    for i in range(len(string) - 2):
+        if string[i] == string[i + 2]:
+            if string[i] != string[i + 1]:
+                aba += [string[i : i + 3]]
     return aba
+
 
 int_tls = 0
 for ip in input_ips:
@@ -50,7 +53,7 @@ for ip in input_ips:
         supernet_aba = aba_in_str(supernet)
         for aba in supernet_aba:
             for hypernet in ip_hypernets:
-                if aba[1]+aba[0]+aba[1] in hypernet:
+                if aba[1] + aba[0] + aba[1] in hypernet:
                     int_ssl += 1
                     break_out = True
                     break

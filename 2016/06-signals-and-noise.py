@@ -1,4 +1,4 @@
-with open('06-input.txt','r') as f:
+with open("06-input.txt", "r") as f:
     input_lines = [x.strip() for x in f.readlines()]
 
 most_message = ["" for x in range(8)]
@@ -21,4 +21,3 @@ for i in range(8):
 
 print("Part One: " + "".join(most_message))
 print("Part Two: " + "".join(less_message))
-

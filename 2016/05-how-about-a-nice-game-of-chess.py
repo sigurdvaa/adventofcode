@@ -28,5 +28,3 @@ while True:
                 print("Part Two: " + "".join(password))
                 break
     i += 1
-
-

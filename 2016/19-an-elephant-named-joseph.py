@@ -1,8 +1,9 @@
 input_raw = "3014603"
-#input_raw = "5"
+# input_raw = "5"
+
 
 def next_elf_with_present(elves: list, idx: int, amount_elves: int):
-    for i in range(idx+1, amount_elves):
+    for i in range(idx + 1, amount_elves):
         if elves[i]:
             return i
     for i in range(idx):
@@ -30,10 +31,10 @@ def elven_ring(amount_elves: int):
             i += 1
             if i == amount_elves:
                 i = 0
-   
+
     for i in range(amount_elves):
         if elves[i]:
-            return i+1
+            return i + 1
 
 
 print(f"Part One: {elven_ring(int(input_raw))}")

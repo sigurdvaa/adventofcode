@@ -5,11 +5,11 @@ LDUURLLULRUURRDLDRUULRDRDDDRULDLURDDRURULLRUURRLRRLDRURRDRLUDRUUUULLDRLURDRLRUDD
 DRRDRRURURUDDDRULRUDLDLDULRLDURURUUURURLURURDDDDRULUDLDDRDDUDULRUUULRDUDULURLRULRDDLDUDLDLULRULDRRLUDLLLLURUDUDLLDLDRLRUUULRDDLUURDRRDLUDUDRULRRDDRRLDUDLLDLURLRDLRUUDLDULURDDUUDDLRDLUURLDLRLRDLLRUDRDUURDDLDDLURRDDRDRURULURRLRLDURLRRUUUDDUUDRDRULRDLURLDDDRURUDRULDURUUUUDULURUDDDDUURULULDRURRDRDURUUURURLLDRDLDLRDDULDRLLDUDUDDLRLLRLRUUDLUDDULRLDLLRLUUDLLLUUDULRDULDLRRLDDDDUDDRRRDDRDDUDRLLLDLLDLLRDLDRDLUDRRRLDDRLUDLRLDRUURUDURDLRDDULRLDUUUDRLLDRLDLLDLDRRRLLULLUDDDLRUDULDDDLDRRLLRDDLDUULRDLRRLRLLRUUULLRDUDLRURRRUULLULLLRRURLRDULLLRLDUUUDDRLRLUURRLUUUDURLRDURRDUDDUDDRDDRUD"""
 input_rows = input_raw.splitlines()
 
-print("Part One: ",end="")
+print("Part One: ", end="")
 keypad = [
-    [1,2,3],
-    [4,5,6],
-    [7,8,9],
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9],
 ]
 # start at 5
 y = 1
@@ -32,16 +32,16 @@ for row in input_rows:
             x -= 1
             if x < 0:
                 x = 0
-    print(keypad[y][x],end="")
+    print(keypad[y][x], end="")
 print()
 
-print("Part Two: ",end="")
+print("Part Two: ", end="")
 manhours_keypad = [
-      ["","","1","",""],
-     ["","2","3","4",""],
-    ["5","6","7","8","9"],
-     ["","A","B","C",""],
-      ["","","D","",""],
+    ["", "", "1", "", ""],
+    ["", "2", "3", "4", ""],
+    ["5", "6", "7", "8", "9"],
+    ["", "A", "B", "C", ""],
+    ["", "", "D", "", ""],
 ]
 # start at 5
 y = 2
@@ -53,24 +53,24 @@ for row in input_rows:
             if y < 0:
                 y = 0
             if manhours_keypad[y][x] == "":
-              y += 1
+                y += 1
         elif direction == "R":
             x += 1
-            if x > len(manhours_keypad[y])-1:
-                x = len(manhours_keypad[y])-1
+            if x > len(manhours_keypad[y]) - 1:
+                x = len(manhours_keypad[y]) - 1
             if manhours_keypad[y][x] == "":
-              x -= 1
+                x -= 1
         elif direction == "D":
             y += 1
-            if y > len(manhours_keypad)-1:
-                y = len(manhours_keypad)-1
+            if y > len(manhours_keypad) - 1:
+                y = len(manhours_keypad) - 1
             if manhours_keypad[y][x] == "":
-              y -= 1
+                y -= 1
         elif direction == "L":
             x -= 1
             if x < 0:
                 x = 0
             if manhours_keypad[y][x] == "":
-              x += 1
-    print(manhours_keypad[y][x],end="")
+                x += 1
+    print(manhours_keypad[y][x], end="")
 print()
