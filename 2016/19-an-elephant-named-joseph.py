@@ -17,21 +17,27 @@ def elven_ring_next(amount_elves: int):
 
 
 def elven_ring_across(amount_elves: int):
-    elves_north = deque()
-    elves_south = deque()
+    elves_right = deque()
+    elves_left = deque()
     for i in range(1, (amount_elves + 1) // 2):
-        elves_north.append((i, 1))
+        elves_right.append((i, 1))
     for i in range((amount_elves + 1) // 2, amount_elves + 1):
-        elves_south.append((i, 1))
+        elves_left.append((i, 1))
+    
+    right_len = len(elves_right)
+    left_len = len(elves_left)
 
-    while len(elves_north) > 0:
-        first = elves_north.popleft()
-        steal = elves_south.popleft()
-        elves_south.append((first[0], first[1] + steal[1]))
-        if len(elves_south) > len(elves_north) + 1:
-            elves_north.append(elves_south.popleft())
+    while right_len > 0:
+        first = elves_right.popleft()
+        elves_left.append((first[0], first[1] + elves_left.popleft()[1]))
 
-    return elves_south[0][0]
+        if left_len > right_len:
+            elves_right.append(elves_left.popleft())
+            left_len -= 1
+        else:
+            right_len -= 1
+
+    return elves_left[0][0]
 
 
 print(f"Part One: {elven_ring_next(int(input_raw))}")
