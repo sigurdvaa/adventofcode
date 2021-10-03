@@ -31,6 +31,7 @@ def run_prog(regs: dict, ins: list, multiply: bool = False):
     iend = len(ins)
     toggled = 0
     while ip < iend:
+        # print(ip, regs)
         if ins[ip][0] == "cpy":
             if ins[ip][1] in regs:
                 regs[ins[ip][2]] = regs[ins[ip][1]]
@@ -39,6 +40,10 @@ def run_prog(regs: dict, ins: list, multiply: bool = False):
         elif ins[ip][0] == "inc":
             if ins[ip][1] in regs:
                 if multiply and ip == 5:
+                    """
+                    Looking at print(ip, regs) you can see that which ip's are repeated in the
+                    long loop. This optimization does a = b * d; c = 0, d = 0, ip + 4.
+                    """
                     regs[ins[ip][1]] = regs["b"] * regs["d"]
                     regs["c"] = 0
                     regs["d"] = 0
