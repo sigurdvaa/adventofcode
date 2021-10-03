@@ -35,7 +35,12 @@ def run_prog(regs, ins):
             else:
                 regs[ins[ip][2]] = int(ins[ip][1])
         elif ins[ip][0] == "inc":
-            regs[ins[ip][1]] += 1
+            if ip == 10:
+                regs[ins[ip][1]] += regs["b"]
+                regs["b"] = 0
+                ip += 2
+            else:
+                regs[ins[ip][1]] += 1
         elif ins[ip][0] == "dec":
             regs[ins[ip][1]] -= 1
         elif ins[ip][0] == "jnz":
