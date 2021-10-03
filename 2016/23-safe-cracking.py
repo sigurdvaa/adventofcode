@@ -24,3 +24,64 @@ inc d
 jnz d -2
 inc c
 jnz c -5"""
+
+
+def run_prog(regs: dict, ins: list, multiply: bool = False):
+    ip = 0
+    iend = len(ins)
+    toggled = 0
+    while ip < iend:
+        if ins[ip][0] == "cpy":
+            if ins[ip][1] in regs:
+                regs[ins[ip][2]] = regs[ins[ip][1]]
+            elif ins[ip][2] in regs:
+                regs[ins[ip][2]] = int(ins[ip][1])
+        elif ins[ip][0] == "inc":
+            if ins[ip][1] in regs:
+                if multiply and ip == 5:
+                    regs[ins[ip][1]] = regs["b"] * regs["d"]
+                    regs["c"] = 0
+                    regs["d"] = 0
+                    ip += 4
+                else:
+                    regs[ins[ip][1]] += 1
+        elif ins[ip][0] == "dec":
+            if ins[ip][1] in regs:
+                regs[ins[ip][1]] -= 1
+        elif ins[ip][0] == "jnz":
+            if ins[ip][1] in regs:
+                jnz = int(regs[ins[ip][1]])
+            else:
+                jnz = int(ins[ip][1])
+            if jnz != 0:
+                if ins[ip][2] in regs:
+                    ip += int(regs[ins[ip][2]]) - 1
+                else:
+                    ip += int(ins[ip][2]) - 1
+        elif ins[ip][0] == "tgl":
+            idx = ip + int(regs[ins[ip][1]])
+            if idx < iend:
+                # one-argument
+                if len(ins[idx]) == 2:
+                    if ins[idx][0] == "inc":
+                        ins[idx][0] = "dec"
+                    else:
+                        ins[idx][0] = "inc"
+                # two-argument
+                elif len(ins[idx]) == 3:
+                    if ins[idx][0] == "jnz":
+                        ins[idx][0] = "cpy"
+                    else:
+                        ins[idx][0] = "jnz"
+                toggled += 1
+        ip += 1
+    return regs["a"]
+
+
+ins = [x.split() for x in input_raw.splitlines()]
+regs = {"a": 7, "b": 0, "c": 0, "d": 0}
+print(f"Part One: {run_prog(regs, ins)}")
+
+ins = [x.split() for x in input_raw.splitlines()]
+regs = {"a": 12, "b": 0, "c": 0, "d": 0}
+print(f"Part Two: {run_prog(regs, ins, True)}")

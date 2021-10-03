@@ -42,7 +42,7 @@ def run_prog(regs, ins):
             if ins[ip][1] in regs:
                 jnz = int(regs[ins[ip][1]])
             else:
-                jnz = int(ins[ip][2])
+                jnz = int(ins[ip][1])
             if jnz != 0:
                 ip += int(ins[ip][2]) - 1
         ip += 1
