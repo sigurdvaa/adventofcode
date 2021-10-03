@@ -1,10 +1,10 @@
-string = '''abcde fghij
+string = """abcde fghij
 abcde xyz ecdab
 a ab abc abd abf abj
 iiii oiii ooii oooi oooo
-oiii ioii iioi iiio'''
+oiii ioii iioi iiio"""
 
-string2 = '''una bokpr ftz ryw nau yknf fguaczl anu
+string2 = """una bokpr ftz ryw nau yknf fguaczl anu
 tvay wvco bcoblpt fwzg sfsys zvuqll mcbhwz ovcw fgdy
 ynsocz vid rfmsy essqt fpbjvvq sldje qfpvjvb
 yvh nxc kla vhy vkbq cxfzgr
@@ -515,7 +515,8 @@ xjbyy mxfxa ogvk nqiy qyni ldqwryj niyq jjixc
 uhbul daccgva xtiz dim uhbul yjmakv yjmakv
 huo esajup ouj oju ujo
 eeeu hwvsk jfkmds okhi pogskfm itdlbll
-lpyubo dylpfb iehwug decj ntidy cuygyg lalkb iutu oxgm imn'''
+lpyubo dylpfb iehwug decj ntidy cuygyg lalkb iutu oxgm imn"""
+
 
 def isAnagram(word1, word2):
     length = len(word1)
@@ -540,6 +541,7 @@ def isAnagram(word1, word2):
                 if i1 >= length:
                     return False
 
+
 print("Part 1")
 numValid = 0
 for string in string2.splitlines():
@@ -547,7 +549,7 @@ for string in string2.splitlines():
     wordList = string.split(" ")
     length = len(wordList)
     for w1 in range(length):
-        for w2 in range(w1+1, length):
+        for w2 in range(w1 + 1, length):
             if wordList[w1] == wordList[w2]:
                 valid = False
     if valid:
@@ -561,7 +563,7 @@ for string in string2.splitlines():
     wordList = string.split(" ")
     length = len(wordList)
     for w1 in range(length):
-        for w2 in range(w1+1, length):
+        for w2 in range(w1 + 1, length):
             if len(wordList[w1]) == len(wordList[w2]):
                 if isAnagram(wordList[w1], wordList[w2]):
                     valid = False

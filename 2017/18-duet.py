@@ -1,4 +1,4 @@
-string = '''set a 1
+string = """set a 1
 add a 2
 mul a a
 mod a 5
@@ -7,9 +7,9 @@ set a 0
 rcv a
 jgz a -1
 set a 1
-jgz a -2'''
+jgz a -2"""
 
-string2 = '''set i 31
+string2 = """set i 31
 set a 1
 mul p 17
 jgz p p
@@ -49,28 +49,28 @@ add i -1
 jgz i -11
 snd a
 jgz f -16
-jgz a -19'''
+jgz a -19"""
 
-string3 = '''snd 1
+string3 = """snd 1
 snd 2
 snd p
 rcv a
 rcv b
 rcv c
-rcv d'''
+rcv d"""
 
 instructions = string2.splitlines()
 REGISTERS = dict([(x, 0) for x in "abcdefghijklmnopqrstuvwxyz"])
 
-def prog1(registers):
 
+def prog1(registers):
     def getValue(val):
         try:
             val = int(val)
         except:
             val = registers[val]
         return val
-    
+
     i = 0
     length = len(instructions)
     played = 0
@@ -98,8 +98,8 @@ def prog1(registers):
         else:
             i += 1
 
-def prog2(registers, send, receive, pid):
 
+def prog2(registers, send, receive, pid):
     def getValue(val):
         try:
             val = int(val)
@@ -141,7 +141,7 @@ def prog2(registers, send, receive, pid):
             with lock:
                 waiting -= 1
                 registers[ins[1]] = receive.pop()
-                
+
         if ins[0] == "jgz":
             if getValue(ins[1]) > 0:
                 i += getValue(ins[2])
@@ -150,19 +150,21 @@ def prog2(registers, send, receive, pid):
         else:
             i += 1
 
+
 print("Part 1")
 reg = dict(REGISTERS)
 prog1(reg)
 
 print("Part 2")
 import threading
+
 lock = threading.Lock()
 mq0 = []
 mq1 = []
 waiting = 0
 t1 = threading.Thread(target=prog2, args=(dict(REGISTERS), mq1, mq0, 0))
 t2 = threading.Thread(target=prog2, args=(dict(REGISTERS), mq0, mq1, 1))
-threads = [t1,t2]
+threads = [t1, t2]
 for t in threads:
     t.start()
 for t in threads:

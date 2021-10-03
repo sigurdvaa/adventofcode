@@ -1,10 +1,10 @@
-string = '''0
+string = """0
 3
 0
 1
--3'''
+-3"""
 
-string2 = '''1
+string2 = """1
 2
 0
 0
@@ -1006,7 +1006,7 @@ string2 = '''1
 -215
 -896
 -216
--477'''
+-477"""
 
 print("Part 1")
 jumps = [int(x) for x in string2.splitlines()]
@@ -1040,7 +1040,7 @@ while i < length:
         else:
             jumps[i] = 2
             steps += 1
-            i += 1        
+            i += 1
     else:
         jumps[i] -= 1
         i += jump

@@ -1,8 +1,8 @@
-string = '''b inc 5 if a > 1
+string = """b inc 5 if a > 1
 a inc 1 if b < 5
 c dec -10 if a >= 1
-c inc -20 if c == 10'''
-string2 = '''smi inc 781 if epx > -2
+c inc -20 if c == 10"""
+string2 = """smi inc 781 if epx > -2
 yrf dec -813 if jzm != 6
 ben dec -383 if sp == 0
 tlj dec -356 if sp <= 4
@@ -1001,14 +1001,15 @@ fdv inc -819 if b != -586
 epx inc 615 if jzm >= -373
 mlp inc -871 if fdv >= -1108
 ih inc -945 if b < -576
-mx dec -934 if w == 4068'''
+mx dec -934 if w == 4068"""
 
 registers = {}
 instructions = string2.splitlines()
-cases = ["<",">","<=",">=","=="]
+cases = ["<", ">", "<=", ">=", "=="]
 for line in instructions:
     r = line.split(" ")[0]
     registers[r] = 0
+
 
 def conditionMet(instruction):
     r = instruction[4]
@@ -1033,6 +1034,7 @@ def conditionMet(instruction):
         if registers[r] != value:
             return True
     return False
+
 
 highestInt = 0
 for instruction in instructions:
@@ -1060,4 +1062,3 @@ for r in registers:
 
 print("Part 1\nHighest value after: " + str(maxAfter))
 print("Part 2\nHighest value during: " + str(highestInt))
-    

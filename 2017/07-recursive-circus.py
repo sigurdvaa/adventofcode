@@ -1,4 +1,4 @@
-string = '''pbga (66)
+string = """pbga (66)
 xhth (57)
 ebii (61)
 havc (66)
@@ -10,9 +10,9 @@ tknk (41) -> ugml, padx, fwft
 jptl (61)
 ugml (68) -> gyxo, ebii, jptl
 gyxo (61)
-cntj (57)'''
+cntj (57)"""
 
-string2 = '''czlmv (78)
+string2 = """czlmv (78)
 fiwbd (57)
 twxnswy (98)
 dhrnu (62)
@@ -1070,7 +1070,7 @@ ieqgh (247) -> zkdwxd, weejuk, yptrqp
 jxevrgz (60)
 mnjirpy (24)
 hufrsq (3110) -> cmouh, vbdycf, seicwz, pwdoio, bhwnch, ozxpbo
-tvhftq (35)'''
+tvhftq (35)"""
 
 weights = {}
 disks = {}
@@ -1095,6 +1095,8 @@ for prog in weights:
 print(bottom)
 
 print("Part 2")
+
+
 def diskWeight(base):
     weight = 0
     if base in disks:
@@ -1103,10 +1105,11 @@ def diskWeight(base):
                 weight += diskWeight(child)
             else:
                 weight += weights[child]
-        return weight + weights[base]                
+        return weight + weights[base]
     else:
         # not a disk, toplevel node
         return weights[base]
+
 
 # Start from bottom and follow the odd one up
 # Assuming only on per disk is wrong
@@ -1123,6 +1126,7 @@ def findWrongWeight(name):
         if match == 1:
             return findWrongWeight(child1)
     return name
+
 
 wrong = findWrongWeight(bottom)
 for disk in disks:

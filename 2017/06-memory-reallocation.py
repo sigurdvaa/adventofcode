@@ -26,7 +26,7 @@ while not seen_before:
             biggest_index = 0
         banks[biggest_index] += 1
         biggest_value -= 1
-    
+
     # State seen before?
     if not banks in seen:
         seen += [banks[:]]

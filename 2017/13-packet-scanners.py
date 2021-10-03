@@ -1,9 +1,9 @@
-string = '''0: 3
+string = """0: 3
 1: 2
 4: 4
-6: 4'''
+6: 4"""
 
-string2 = '''0: 5
+string2 = """0: 5
 1: 2
 2: 3
 4: 4
@@ -46,7 +46,7 @@ string2 = '''0: 5
 80: 12
 90: 30
 92: 17
-94: 18'''
+94: 18"""
 
 scanners = {}
 for line in string2.splitlines():
@@ -65,7 +65,7 @@ skip = []
 for delay in range(10000000):
     fail = False
     for i in scanners:
-        if (i+delay) / (scanners[i] - 1) % 2 == 0:
+        if (i + delay) / (scanners[i] - 1) % 2 == 0:
             fail = True
             break
     if not fail:

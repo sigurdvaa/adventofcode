@@ -1,7 +1,7 @@
-string = '''p=< 3,0,0>, v=< 2,0,0>, a=<-1,0,0>
-p=< 4,0,0>, v=< 0,0,0>, a=<-2,0,0>'''
+string = """p=< 3,0,0>, v=< 2,0,0>, a=<-1,0,0>
+p=< 4,0,0>, v=< 0,0,0>, a=<-2,0,0>"""
 
-string2 = '''p=<-717,-4557,2578>, v=<153,21,30>, a=<-8,8,-7>
+string2 = """p=<-717,-4557,2578>, v=<153,21,30>, a=<-8,8,-7>
 p=<1639,651,-987>, v=<29,-19,129>, a=<-5,0,-6>
 p=<-10482,-248,-491>, v=<4,10,81>, a=<21,0,-4>
 p=<-6607,-2542,1338>, v=<-9,52,-106>, a=<14,2,4>
@@ -1000,14 +1000,15 @@ p=<-2430,1935,-274>, v=<-347,279,-43>, a=<24,-25,10>
 p=<1042,-1844,-1253>, v=<142,-261,-178>, a=<-14,17,10>
 p=<-2337,2080,-901>, v=<-339,301,-128>, a=<18,-22,6>
 p=<776,164,-2398>, v=<112,26,-342>, a=<-4,-3,23>
-p=<60,851,-2490>, v=<8,120,-353>, a=<0,-14,24>'''
+p=<60,851,-2490>, v=<8,120,-353>, a=<0,-14,24>"""
 
-string3 = '''p=<-6,0,0>, v=< 3,0,0>, a=< 0,0,0>
+string3 = """p=<-6,0,0>, v=< 3,0,0>, a=< 0,0,0>
 p=<-4,0,0>, v=< 2,0,0>, a=< 0,0,0>
 p=<-2,0,0>, v=< 1,0,0>, a=< 0,0,0>
-p=< 3,0,0>, v=<-1,0,0>, a=< 0,0,0>'''
+p=< 3,0,0>, v=<-1,0,0>, a=< 0,0,0>"""
 
-class Particle():
+
+class Particle:
     def __init__(self, x, y, z, vx, vy, vz, ax, ay, az):
         self.x = x
         self.y = y
@@ -1022,8 +1023,8 @@ class Particle():
         self.az = az
 
         self.sum = abs(self.x) + abs(self.y) + abs(self.z)
-        #self.vector = (self.vx**2 + self.vy**2 + self.vz**2)**(1/2.0)
-        #self.acceleration = (self.ax**2 + self.ay**2 + self.az**2)**(1/2.0)
+        # self.vector = (self.vx**2 + self.vy**2 + self.vz**2)**(1/2.0)
+        # self.acceleration = (self.ax**2 + self.ay**2 + self.az**2)**(1/2.0)
         self.vector = abs(self.vx) + abs(self.vy) + abs(self.vz)
         self.acceleration = abs(self.ax) + abs(self.ay) + abs(self.az)
 
@@ -1039,11 +1040,14 @@ class Particle():
         self.sum = abs(self.x) + abs(self.y) + abs(self.z)
 
     def copy(self):
-        return Particle(self.x, self.y, self.z, self.vx, self.vy, self.vz, self.ax, self.ay, self.az)
+        return Particle(
+            self.x, self.y, self.z, self.vx, self.vy, self.vz, self.ax, self.ay, self.az
+        )
 
     @property
     def cord(self):
         return (self.x, self.y, self.z)
+
 
 orig_particles = []
 for line in string2.splitlines():
@@ -1059,7 +1063,7 @@ length = len(particles)
 lowacceleration = particles[0].acceleration
 lowvector = particles[0].vector
 lastp = 0
-for p in range(1,length):
+for p in range(1, length):
     if particles[p].acceleration < lowacceleration:
         lowacceleration = particles[p].acceleration
         lowvector = particles[p].vector
@@ -1075,7 +1079,8 @@ particles = [x.copy() for x in orig_particles]
 no_col = 0
 length = len(particles)
 
-def whenCollide(x1, vx1, ax1, x2, vx2, ax2 ):
+
+def whenCollide(x1, vx1, ax1, x2, vx2, ax2):
     # Using the quadratic formula
     a = 0.5 * (ax1 - ax2)
     b = vx1 - vx2
@@ -1083,7 +1088,7 @@ def whenCollide(x1, vx1, ax1, x2, vx2, ax2 ):
 
     if a == 0:
         if b != 0:
-            if -c/b > 0:
+            if -c / b > 0:
                 return True
             else:
                 return False
@@ -1098,29 +1103,49 @@ def whenCollide(x1, vx1, ax1, x2, vx2, ax2 ):
             if -b / (2 * a) > 0:
                 return True
         else:
-            rt = (bb - ac4)**(0.5)
+            rt = (bb - ac4) ** (0.5)
             t1 = (-b + rt) / (2 * a)
             t2 = (-b - rt) / (2 * a)
             if t1 > 0 or t2 > 0:
                 return True
     return False
 
+
 def willCollide(particles):
     currlength = len(particles)
     for p1 in range(currlength):
-        for p2 in range(p1+1,currlength):
+        for p2 in range(p1 + 1, currlength):
 
-            tx = whenCollide(particles[p1].x, particles[p1].vx, particles[p1].ax, 
-                             particles[p2].x, particles[p2].vx, particles[p2].ax)
+            tx = whenCollide(
+                particles[p1].x,
+                particles[p1].vx,
+                particles[p1].ax,
+                particles[p2].x,
+                particles[p2].vx,
+                particles[p2].ax,
+            )
             if tx:
-                ty = whenCollide(particles[p1].y, particles[p1].vy, particles[p1].ay, 
-                                 particles[p2].y, particles[p2].vy, particles[p2].ay)
+                ty = whenCollide(
+                    particles[p1].y,
+                    particles[p1].vy,
+                    particles[p1].ay,
+                    particles[p2].y,
+                    particles[p2].vy,
+                    particles[p2].ay,
+                )
                 if ty:
-                    tz = whenCollide(particles[p1].z, particles[p1].vz, particles[p1].az, 
-                                     particles[p2].z, particles[p2].vz, particles[p2].az)
+                    tz = whenCollide(
+                        particles[p1].z,
+                        particles[p1].vz,
+                        particles[p1].az,
+                        particles[p2].z,
+                        particles[p2].vz,
+                        particles[p2].az,
+                    )
                     if tz:
                         return True
     return False
+
 
 while willCollide(particles):
     no_col += 1

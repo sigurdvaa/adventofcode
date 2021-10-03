@@ -1,13 +1,13 @@
-string = '''0 <-> 2
+string = """0 <-> 2
 1 <-> 1, 7
 2 <-> 0, 3, 4
 3 <-> 2, 4
 4 <-> 2, 3, 6
 5 <-> 6
 6 <-> 4, 5
-7 <-> 7'''
+7 <-> 7"""
 
-string2 = '''0 <-> 889, 1229, 1736
+string2 = """0 <-> 889, 1229, 1736
 1 <-> 1, 480, 793, 1361
 2 <-> 607
 3 <-> 273, 422
@@ -2006,7 +2006,7 @@ string2 = '''0 <-> 889, 1229, 1736
 1996 <-> 1284
 1997 <-> 153, 308, 1351
 1998 <-> 5, 235, 428, 524
-1999 <-> 1407, 1780, 1906, 1910'''
+1999 <-> 1407, 1780, 1906, 1910"""
 
 groups = {}
 for line in string2.splitlines():
@@ -2014,6 +2014,7 @@ for line in string2.splitlines():
     groups[gid] = []
     for member in line.split(" <-> ")[1].split(", "):
         groups[gid] += [int(member)]
+
 
 def findMembers(gid, members):
     for m in groups[gid]:
@@ -2025,6 +2026,7 @@ def findMembers(gid, members):
             members += [i]
             members = findMembers(i, members)
     return members
+
 
 print("Part 1")
 members = []

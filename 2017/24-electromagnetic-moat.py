@@ -1,13 +1,13 @@
-string = '''0/2
+string = """0/2
 2/2
 2/3
 3/4
 3/5
 0/1
 10/1
-9/10'''
+9/10"""
 
-string2 = '''48/5
+string2 = """48/5
 25/10
 35/49
 34/41
@@ -60,7 +60,7 @@ string2 = '''48/5
 24/21
 10/35
 6/21
-14/50'''
+14/50"""
 
 components = {}
 for line in string2.splitlines():
@@ -89,15 +89,16 @@ def buildBridges(components):
             pairs = set(bridge)
             for nextport in components[lastport]:
                 if not ((lastport, nextport) in pairs or (nextport, lastport) in pairs):
-                    bridges += [bridge+[(lastport, nextport)]]
+                    bridges += [bridge + [(lastport, nextport)]]
                     length += 1
         if start == length:
             break
-        start = i+1
+        start = i + 1
     return bridges
 
+
 # Fastest with pypy3
-#def buildBridges(components):
+# def buildBridges(components):
 #    bridges = [[(0, 0)]]
 #    start = 0
 #    length = 1
@@ -115,7 +116,7 @@ def buildBridges(components):
 #        start = i+1
 #    return bridges
 
-#def buildBridges(components, bridge = [(0,0)]):
+# def buildBridges(components, bridge = [(0,0)]):
 #        lastport = bridge[-1][1]
 #        for nextport in components[lastport]:
 #            if not ((lastport, nextport) in bridge or (nextport, lastport) in bridge):
@@ -127,7 +128,7 @@ high = 0
 longesthigh = 0
 longest = 0
 for b in buildBridges(components):
-    
+
     strength = 0
     for c in b:
         strength += c[0] + c[1]

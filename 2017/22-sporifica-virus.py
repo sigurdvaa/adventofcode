@@ -1,8 +1,8 @@
-string = '''..#
+string = """..#
 #..
-...'''
+..."""
 
-string2 = '''.......##.#..####.#....##
+string2 = """.......##.#..####.#....##
 ..###....###.####..##.##.
 #..####.#....#.#....##...
 .#....#.#.#....#######...
@@ -26,7 +26,7 @@ string2 = '''.......##.#..####.#....##
 ##.....#..#.#.#..#.####..
 #####.....###.........#..
 ##...#...####..#####...##
-.....##.#....##...#.....#'''
+.....##.#....##...#.....#"""
 
 orig_grid = {}
 lines = string2.splitlines()
@@ -34,7 +34,7 @@ length = len(lines)
 for y in range(length):
     for x in range(len(lines[y])):
         if lines[y][x] == "#":
-            orig_grid[x,y] = lines[y][x]
+            orig_grid[x, y] = lines[y][x]
 
 print("Part 1")
 grid = dict(orig_grid)
@@ -45,9 +45,9 @@ yv = -1
 infected = 0
 bursts = 10000
 for i in range(bursts):
-    cord = x,y
+    cord = x, y
     node = grid.get(cord, ".")
-    if node == "." :
+    if node == ".":
         grid[cord] = "#"
         infected += 1
         # Turn left
@@ -79,7 +79,7 @@ yv = -1
 infected = 0
 bursts = 10000000
 for i in range(bursts):
-    cord = (x,y)
+    cord = (x, y)
     node = grid.get(cord, ".")
     if node == ".":
         grid[cord] = "W"

@@ -1,8 +1,8 @@
-string = '''Generator A starts with 65
-Generator B starts with 8921'''
+string = """Generator A starts with 65
+Generator B starts with 8921"""
 
-string2 = '''Generator A starts with 699
-Generator B starts with 124'''
+string2 = """Generator A starts with 699
+Generator B starts with 124"""
 
 generators = {}
 for line in string2.splitlines():

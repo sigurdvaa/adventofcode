@@ -1,4 +1,4 @@
-string = '''set b 93
+string = """set b 93
 set c b
 jnz a 2
 jnz 1 5
@@ -29,9 +29,9 @@ sub g c
 jnz g 2
 jnz 1 3
 sub b -17
-jnz 1 -23'''
+jnz 1 -23"""
 
-'''
+"""
 Part 2
 set a 1                         # as per Part 2 instruction
 set b 93                        # b = 93
@@ -66,7 +66,7 @@ set f 1                         # LOOP1, set f = 1
             jnz 1 3                 # THEN done
         sub b -17                   # else, b += 17
     jnz 1 -23                   # LOOP1 while True
-'''
+"""
 
 orig_registers = {}
 for c in "abcdefgh":
@@ -82,14 +82,16 @@ for line in string.splitlines():
     try:
         split[2] = int(split[2])
     except:
-        pass   
+        pass
     instructions.append([split[0], split[1], split[2]])
+
 
 def getValue(value):
     if type(value) == int:
         return value
     else:
         return registers[value]
+
 
 print("Part 1")
 registers = dict(orig_registers)
@@ -120,8 +122,8 @@ b = (93 * 100) + 100000
 c = b + 17000
 step = 17
 h = 0
-for i in range(b, c+1, step):
-    for s in range(2,int(i**(1/2.0))):
+for i in range(b, c + 1, step):
+    for s in range(2, int(i ** (1 / 2.0))):
         if i % s == 0:
             h += 1
             break
