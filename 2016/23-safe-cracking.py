@@ -24,6 +24,3 @@ inc d
 jnz d -2
 inc c
 jnz c -5"""
-
-
-

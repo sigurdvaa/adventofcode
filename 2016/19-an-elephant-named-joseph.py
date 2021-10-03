@@ -22,7 +22,7 @@ def elven_ring_across(amount_elves: int):
         elves_right.append(i)
     for i in range((amount_elves + 1) // 2, amount_elves + 1):
         elves_left.append(i)
-    
+
     right_len = len(elves_right)
     left_len = len(elves_left)
 
