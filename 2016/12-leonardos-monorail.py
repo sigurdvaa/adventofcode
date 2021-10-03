@@ -39,7 +39,7 @@ def run_prog(regs, ins):
             if ip == 10:
                 """
                 By looking at the output of print(ip, regs) you can see which loop (ip's)
-                is taking a long time. This is to optimize ip 11, 12 and 13. a += b; b = 0; ip += 2
+                is taking a long time. This is to optimize ip 10, 11 and 12. a += b; b = 0; ip += 2
                 """
                 regs[ins[ip][1]] += regs["b"]
                 regs["b"] = 0

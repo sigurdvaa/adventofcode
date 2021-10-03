@@ -29,7 +29,6 @@ jnz c -5"""
 def run_prog(regs: dict, ins: list, multiply: bool = False):
     ip = 0
     iend = len(ins)
-    toggled = 0
     while ip < iend:
         # print(ip, regs)
         if ins[ip][0] == "cpy":
@@ -78,7 +77,6 @@ def run_prog(regs: dict, ins: list, multiply: bool = False):
                         ins[idx][0] = "cpy"
                     else:
                         ins[idx][0] = "jnz"
-                toggled += 1
         ip += 1
     return regs["a"]
 
