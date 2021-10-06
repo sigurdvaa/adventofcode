@@ -40,7 +40,7 @@ def run_prog(regs: dict, ins: list, multiply: bool = False):
             if ins[ip][1] in regs:
                 if multiply and ip == 5:
                     """
-                    Looking at print(ip, regs) you can see that which ip's are repeated in the
+                    Looking at print(ip, regs) you can see which ip's are repeated in the
                     long loop. This optimization does a = b * d; c = 0, d = 0, ip + 4.
                     """
                     regs[ins[ip][1]] = regs["b"] * regs["d"]
