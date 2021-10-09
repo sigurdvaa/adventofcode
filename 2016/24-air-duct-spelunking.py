@@ -49,8 +49,9 @@ def bfs_solved(locations: dict):
 def bfs_unseen(seen: set, state: list):
     generalized = [str(state[1][xy]) for xy in state[1]]
     generalized.append(str(state[2]))
-    if not "".join(generalized) in seen:
-        seen.add("".join(generalized))
+    state_generalized = "".join(generalized)
+    if not state_generalized in seen:
+        seen.add(state_generalized)
         return True
     return False
 
@@ -73,6 +74,7 @@ def bfs_next_states(queue: list, validpos: set, state: list):
 
 def bfs_spelunking(maze: list, return_to_start: bool = False):
     from collections import deque
+
     queue = deque()
     seen = set()
 
@@ -89,7 +91,7 @@ def bfs_spelunking(maze: list, return_to_start: bool = False):
                     locations[(x, y)] = 0
             elif maze[y][x] == ".":
                 validpos.add((x, y))
-    
+
     queue.append([0, locations, start])
     while len(queue):
         state = queue.popleft()
