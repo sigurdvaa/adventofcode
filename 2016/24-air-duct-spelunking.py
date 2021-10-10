@@ -49,8 +49,9 @@ def bfs_solved(locations: dict):
 def bfs_unseen(seen: set, state: list):
     generalized = [str(state[1][xy]) for xy in state[1]]
     generalized.append(str(state[2]))
-    if not "".join(generalized) in seen:
-        seen.add("".join(generalized))
+    state_generalized = "".join(generalized)
+    if not state_generalized in seen:
+        seen.add(state_generalized)
         return True
     return False
 
