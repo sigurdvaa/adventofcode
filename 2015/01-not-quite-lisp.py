@@ -20,7 +20,7 @@ def first_basement(instructions: str):
         else:
             floor -= 1
         if floor == -1:
-            return i+1
+            return i + 1
     return -1
 
 
