@@ -73,6 +73,7 @@ def bfs_next_states(queue: list, validpos: set, state: list):
 
 def bfs_spelunking(maze: list, return_to_start: bool = False):
     from collections import deque
+
     queue = deque()
     seen = set()
 
@@ -89,7 +90,7 @@ def bfs_spelunking(maze: list, return_to_start: bool = False):
                     locations[(x, y)] = 0
             elif maze[y][x] == ".":
                 validpos.add((x, y))
-    
+
     queue.append([0, locations, start])
     while len(queue):
         state = queue.popleft()
