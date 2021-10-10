@@ -36,7 +36,7 @@ def run_prog(regs: dict, ins: list, outputlen: int):
     ip = 0
     iend = len(ins)
     while ip < iend:
-        #print(ip, regs)
+        # print(ip, regs)
         if ins[ip][0] == "cpy":
             if ins[ip][1] in regs:
                 regs[ins[ip][2]] = regs[ins[ip][1]]
@@ -65,7 +65,7 @@ i = 0
 while True:
     regs = {"a": i, "b": 0, "c": 0, "d": 0}
     output = run_prog(regs, ins, 8)
-    if output == "01"*4:
+    if output == "01" * 4:
         print(f"Part One: {i}")
         break
     i += 1
