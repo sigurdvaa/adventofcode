@@ -31,29 +31,25 @@ jnz 1 -21"""
 ins = [x.split() for x in input_raw.splitlines()]
 
 
-def run_prog(regs, ins):
+def run_prog(regs: dict, ins: list, outputlen: int):
+    output = list()
     ip = 0
     iend = len(ins)
     while ip < iend:
-        # print(ip, regs)
+        #print(ip, regs)
         if ins[ip][0] == "cpy":
             if ins[ip][1] in regs:
                 regs[ins[ip][2]] = regs[ins[ip][1]]
             else:
                 regs[ins[ip][2]] = int(ins[ip][1])
         elif ins[ip][0] == "inc":
-            if ip == 10:
-                """
-                By looking at the output of print(ip, regs) you can see which loop (ip's)
-                is taking a long time. This is to optimize ip 10, 11 and 12. a += b; b = 0; ip += 2
-                """
-                regs[ins[ip][1]] += regs["b"]
-                regs["b"] = 0
-                ip += 2
-            else:
-                regs[ins[ip][1]] += 1
+            regs[ins[ip][1]] += 1
         elif ins[ip][0] == "dec":
             regs[ins[ip][1]] -= 1
+        elif ins[ip][0] == "out":
+            output.append(regs["b"])
+            if len(output) == outputlen:
+                return "".join(map(str, output))
         elif ins[ip][0] == "jnz":
             if ins[ip][1] in regs:
                 jnz = int(regs[ins[ip][1]])
@@ -65,5 +61,11 @@ def run_prog(regs, ins):
     return regs["a"]
 
 
-regs = {"a": 0, "b": 0, "c": 0, "d": 0}
-print(f"Part One: {run_prog(regs, ins)}")
+i = 0
+while True:
+    regs = {"a": i, "b": 0, "c": 0, "d": 0}
+    output = run_prog(regs, ins, 8)
+    if output == "01"*4:
+        print(f"Part One: {i}")
+        break
+    i += 1
