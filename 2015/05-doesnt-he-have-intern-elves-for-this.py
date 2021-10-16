@@ -4,7 +4,8 @@ with open("05-input.txt", "r") as f:
 
 def is_nice(string: str):
     from re import findall
-    bad_strings = [ "ab", "cd", "pq", "xy" ]
+
+    bad_strings = ["ab", "cd", "pq", "xy"]
 
     found_vowels = findall("[aeiou]", string)
     if len(found_vowels) < 3:
