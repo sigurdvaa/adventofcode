@@ -4,7 +4,7 @@ with open("03-input.txt", "r") as f:
 
 def houses_visited(directions: str, robot: bool = False):
     xy = xy_prev = (0, 0)
-    visited = { xy: 1 }
+    visited = {xy: 1}
     for d in directions:
         if d == "^":
             xy = (xy[0], xy[1] - 1)
@@ -15,8 +15,8 @@ def houses_visited(directions: str, robot: bool = False):
         elif d == ">":
             xy = (xy[0] + 1, xy[1])
         else:
-            raise ValueError(f'Unknown direction: {d}')
-        
+            raise ValueError(f"Unknown direction: {d}")
+
         if not xy in visited:
             visited[xy] = 1
 
