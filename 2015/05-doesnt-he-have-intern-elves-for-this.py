@@ -38,7 +38,7 @@ def find_repeated_pairs(string: str):
             i += 2
         else:
             i += 1
-    
+
     return repeated_pairs
 
 
@@ -47,7 +47,7 @@ def find_repeated_letters(string: str):
     i = 0
     while i < len(string) - 2:
         if string[i] == string[i + 2]:
-            repeated_letters.append(string[i:i + 3])
+            repeated_letters.append(string[i : i + 3])
             i += 3
         else:
             i += 1
