@@ -8,7 +8,7 @@ def run_lights(instructions: list, xsize: int = 1000, ysize: int = 1000):
         if ins[0] == "turn":
             xy_start = tuple(map(int, ins[2].split(",")))
             xy_end = tuple(map(int, ins[4].split(",")))
-            if ins[1]== "on":
+            if ins[1] == "on":
                 state = 1
             else:
                 state = 0
@@ -43,7 +43,7 @@ def run_lights_part2(instructions: list, xsize: int = 1000, ysize: int = 1000):
         if ins[0] == "turn":
             xy_start = tuple(map(int, ins[2].split(",")))
             xy_end = tuple(map(int, ins[4].split(",")))
-            if ins[1]== "on":
+            if ins[1] == "on":
                 state = 1
             else:
                 state = -1
