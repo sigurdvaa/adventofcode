@@ -56,14 +56,14 @@ def get_signal(gates: dict, wire: str):
     elif gates[wire]["logic"] == "RSHIFT":
         signal = input_a >> int(input_b)
     elif gates[wire]["logic"] == "NOT":
-        signal = abs(~ input_a)
+        signal = abs(~input_a)
 
     gates[wire]["signal"] = signal
     return signal
 
 
 gates = parse_gates(input_raw)
-signal_a = get_signal(gates, 'a')
+signal_a = get_signal(gates, "a")
 print(f"Part One: {signal_a}")
 
 gates = parse_gates(input_raw)
