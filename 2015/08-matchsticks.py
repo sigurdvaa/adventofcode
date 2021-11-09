@@ -22,14 +22,8 @@ def encoded_size(string: str):
     size = 6
     i = 0
     while i < len(string):
-        if string[i] == "\\":
-            if string[i + 1] == "x":
-                size += 1
-            elif string[i + 1] == '"':
-                size += 2
-            elif string[i + 1] == "\\":
-                size += 2
-                i += 1
+        if string[i] == "\\" or string[i] == '"':
+            size += 1
         size += 1
         i += 1
 
@@ -50,9 +44,15 @@ def size_diff_encoded(strings: list):
 
     for string in strings:
         sizediff += encoded_size(string) - (len(string) + 2)
+        # print(string, len(string) + 2, encoded_size(string))
 
     return sizediff
 
 
+# input_raw = ["","abc","aaa\\\"aaa","\\x27", "aaa\\\\aaa"]
+
 print(f"Part One: {size_diff_mem(input_raw)}")
 print(f"Part Two: {size_diff_encoded(input_raw)}")
+
+# 2124
+# 2717
