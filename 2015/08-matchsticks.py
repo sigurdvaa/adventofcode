@@ -3,7 +3,7 @@ with open("08-input.txt", "r") as f:
 
 
 def mem_size(string: str):
-    size = 0
+    size = -2
     i = 0
     while i < len(string):
         size += 1
@@ -19,7 +19,7 @@ def mem_size(string: str):
 
 
 def encoded_size(string: str):
-    size = 6
+    size = 2
     i = 0
     while i < len(string):
         if string[i] == "\\" or string[i] == '"':
@@ -34,7 +34,7 @@ def size_diff_mem(strings: list):
     sizediff = 0
 
     for string in strings:
-        sizediff += (len(string) + 2) - mem_size(string)
+        sizediff += len(string) - mem_size(string)
 
     return sizediff
 
@@ -43,16 +43,10 @@ def size_diff_encoded(strings: list):
     sizediff = 0
 
     for string in strings:
-        sizediff += encoded_size(string) - (len(string) + 2)
-        # print(string, len(string) + 2, encoded_size(string))
+        sizediff += encoded_size(string) - len(string)
 
     return sizediff
 
 
-# input_raw = ["","abc","aaa\\\"aaa","\\x27", "aaa\\\\aaa"]
-
 print(f"Part One: {size_diff_mem(input_raw)}")
 print(f"Part Two: {size_diff_encoded(input_raw)}")
-
-# 2124
-# 2717
