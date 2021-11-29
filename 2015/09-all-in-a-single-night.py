@@ -49,7 +49,7 @@ def parse_locations(distances):
 
 def shortest_path_length(locations):
     loc_len = len(locations)
-    paths = list()
+    paths = [{locs: ["Tristram"], distance: 0}]
     for loc in locations:
         pass
 
