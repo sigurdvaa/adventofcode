@@ -26,3 +26,33 @@ Faerun to Arbre = 144
 Norrath to Straylight = 115
 Norrath to Arbre = 135
 Straylight to Arbre = 127"""
+
+
+def parse_locations(distances):
+    locations = dict()
+    for line in distances.splitlines():
+        split = line.split()
+        loc_1 = split[0]
+        loc_2 = split[2]
+        distance = int(split[4])
+
+        if not loc_1 in locations:
+            locations[loc_1] = {"visited": False, "to": dict()}
+        if not loc_2 in locations:
+            locations[loc_2] = {"visited": False, "to": dict()}
+
+        locations[loc_1]["to"][loc_2] = distance
+        locations[loc_2]["to"][loc_1] = distance
+
+    return locations
+
+
+def shortest_path_length(locations):
+    loc_len = len(locations)
+    paths = list()
+    for loc in locations:
+        pass
+
+
+locations = parse_locations(input_raw)
+print(f"Part One: {shortest_path_length(locations)}")
