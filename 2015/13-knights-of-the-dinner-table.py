@@ -36,7 +36,7 @@ def get_relevant_seatings(names: list):
     return seatings
 
 
-def parse_preferences(string):
+def parse_preferences(string: str):
     preferences = {}
     for line in string:
         split = line.split()
@@ -56,7 +56,7 @@ def parse_preferences(string):
     return preferences
 
 
-def seating_happiness(seating, preferences):
+def seating_happiness(seating: list, preferences: dict):
     happiness = 0
     for i in range(1, len(seating) - 1):
         happiness += preferences[seating[i]][seating[i + 1]]
@@ -85,6 +85,7 @@ names = get_names(input_raw)
 seatings = get_relevant_seatings(names)
 preferences = parse_preferences(input_raw)
 print(f"Part One: {optimal_happiness(seatings, preferences)}")
+
 
 names.append("Myself")
 seatings = get_relevant_seatings(names)
