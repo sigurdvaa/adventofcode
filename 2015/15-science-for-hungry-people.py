@@ -22,4 +22,62 @@ def parse_ingredients(string: str):
     return ingredients
 
 
-print(parse_ingredients(input_test))
+def all_recipes(ingredients: dict, amount: int):
+    recipes = [{}]
+    for item in ingredients:
+        next_recipes = []
+        for recipe in recipes:
+            for i in range(amount + 1 - sum(recipe.values())):
+                next_recipe = recipe.copy()
+                next_recipe[item] = i
+                next_recipes.append(next_recipe)
+
+        recipes = next_recipes
+
+    valid_recipes = []
+    for recipe in recipes:
+        if sum(recipe.values()) == 100:
+            valid_recipes.append(recipe)
+
+    return valid_recipes
+
+
+def recipe_score(ingredients: dict, recipe: dict, calories: int = -1):
+    score = {}
+    for item in recipe:
+        for prop in ingredients[item]:
+            if prop in score:
+                score[prop] += recipe[item] * ingredients[item][prop]
+            else:
+                score[prop] = recipe[item] * ingredients[item][prop]
+
+    if calories != -1:
+        if score["calories"] != calories:
+            return 0
+
+    total_score = 1
+    for prop in score:
+        if prop != "calories":
+            if score[prop] < 1:
+                return 0
+            else:
+                total_score *= score[prop]
+
+    return total_score
+
+
+def find_highest_score(ingredients: dict, recipes: list, calories: int = -1):
+    highest_score = 0
+    for recipe in recipes:
+        score = recipe_score(ingredients, recipe, calories)
+        if highest_score < score:
+            highest_score = score
+
+    return highest_score
+
+
+ingredients = parse_ingredients(input_raw)
+recipes = all_recipes(ingredients, 100)
+
+print(f"Part One: {find_highest_score(ingredients, recipes)}")
+print(f"Part Two: {find_highest_score(ingredients, recipes, 500)}")
