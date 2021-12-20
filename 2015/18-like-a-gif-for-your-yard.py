@@ -2,9 +2,8 @@ with open("18_input.txt", "r") as f:
     input_raw = f.read()
 
 
-def num_neighbors_on(grid: list, y: int, x: int):
+def num_neighbors_on(grid: list, size: int, y: int, x: int):
     num = 0
-    size = len(grid)
 
     if y > 0:
         if x > 0:
@@ -49,9 +48,9 @@ def game_of_life(start_grid: str, steps: int, stuck: bool = False):
         next_grid = [["."] * size for _ in range(size)]
         for y in range(size):
             for x in range(size):
-                neighbors_on = num_neighbors_on(grid, y, x)
+                neighbors_on = num_neighbors_on(grid, size, y, x)
                 if grid[y][x] == "#":
-                    if neighbors_on in [2, 3]:
+                    if neighbors_on == 2 or neighbors_on == 3:
                         next_grid[y][x] = "#"
                 else:
                     if neighbors_on == 3:
