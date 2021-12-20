@@ -2,10 +2,6 @@ with open("18_input.txt", "r") as f:
     input_raw = f.read()
 
 
-def parse_grid(string: str):
-    return [list(x) for x in string.splitlines()]
-
-
 def num_neighbors_on(grid: list, y: int, x: int):
     num = 0
     size = len(grid)
@@ -43,6 +39,12 @@ def num_neighbors_on(grid: list, y: int, x: int):
 def game_of_life(start_grid: str, steps: int, stuck: bool = False):
     grid = [list(x) for x in start_grid.splitlines()]
     size = len(grid)
+    if stuck:
+        grid[0][0] = "#"
+        grid[0][size - 1] = "#"
+        grid[size - 1][0] = "#"
+        grid[size - 1][size - 1] = "#"
+
     for _ in range(steps):
         next_grid = [["."] * size for _ in range(size)]
         for y in range(size):
@@ -73,5 +75,3 @@ def game_of_life(start_grid: str, steps: int, stuck: bool = False):
 
 print(f"Part One: {game_of_life(input_raw, 100)}")
 print(f"Part Two: {game_of_life(input_raw, 100, True)}")
-
-# 861
