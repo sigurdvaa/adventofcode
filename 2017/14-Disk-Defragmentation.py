@@ -1,5 +1,4 @@
-string = "flqrgnkx"
-string2 = "oundnydw"
+input_raw = "oundnydw"
 
 
 def knothash(string):
@@ -90,7 +89,7 @@ def fillRegion(x, y, region):
 used = 0
 disk = []
 for i in range(128):
-    binary = hextobin(knothash(string2 + "-" + str(i)))
+    binary = hextobin(knothash(input_raw + "-" + str(i)))
     disk += [[int(x) for x in binary]]
     used += sum([1 for n in binary if n == "1"])
 

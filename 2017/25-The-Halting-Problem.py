@@ -1,88 +1,6 @@
-string = """Begin in state A.
-Perform a diagnostic checksum after 6 steps.
+with open("25_input.txt", "r") as f:
+    input_raw = f.read()
 
-In state A:
-  If the current value is 0:
-    - Write the value 1.
-    - Move one slot to the right.
-    - Continue with state B.
-  If the current value is 1:
-    - Write the value 0.
-    - Move one slot to the left.
-    - Continue with state B.
-
-In state B:
-  If the current value is 0:
-    - Write the value 1.
-    - Move one slot to the left.
-    - Continue with state A.
-  If the current value is 1:
-    - Write the value 1.
-    - Move one slot to the right.
-    - Continue with state A."""
-
-string2 = """Begin in state A.
-Perform a diagnostic checksum after 12794428 steps.
-
-In state A:
-  If the current value is 0:
-    - Write the value 1.
-    - Move one slot to the right.
-    - Continue with state B.
-  If the current value is 1:
-    - Write the value 0.
-    - Move one slot to the left.
-    - Continue with state F.
-
-In state B:
-  If the current value is 0:
-    - Write the value 0.
-    - Move one slot to the right.
-    - Continue with state C.
-  If the current value is 1:
-    - Write the value 0.
-    - Move one slot to the right.
-    - Continue with state D.
-
-In state C:
-  If the current value is 0:
-    - Write the value 1.
-    - Move one slot to the left.
-    - Continue with state D.
-  If the current value is 1:
-    - Write the value 1.
-    - Move one slot to the right.
-    - Continue with state E.
-
-In state D:
-  If the current value is 0:
-    - Write the value 0.
-    - Move one slot to the left.
-    - Continue with state E.
-  If the current value is 1:
-    - Write the value 0.
-    - Move one slot to the left.
-    - Continue with state D.
-
-In state E:
-  If the current value is 0:
-    - Write the value 0.
-    - Move one slot to the right.
-    - Continue with state A.
-  If the current value is 1:
-    - Write the value 1.
-    - Move one slot to the right.
-    - Continue with state C.
-
-In state F:
-  If the current value is 0:
-    - Write the value 1.
-    - Move one slot to the left.
-    - Continue with state A.
-  If the current value is 1:
-    - Write the value 1.
-    - Move one slot to the right.
-    - Continue with state A."""
 
 tape = ["0"]
 tapelength = 1
@@ -93,7 +11,7 @@ states = {}
 steps = 0
 i = 0
 
-lines = string2.splitlines()
+lines = input_raw.splitlines()
 state = lines[0][-2]
 steps = int(lines[1].split(" ")[-2])
 

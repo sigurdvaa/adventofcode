@@ -1,11 +1,8 @@
-string = """Generator A starts with 65
-Generator B starts with 8921"""
-
-string2 = """Generator A starts with 699
+input_raw = """Generator A starts with 699
 Generator B starts with 124"""
 
 generators = {}
-for line in string2.splitlines():
+for line in input_raw.splitlines():
     split = line.split(" ")
     generators[split[1]] = int(split[4])
 factora = 16807

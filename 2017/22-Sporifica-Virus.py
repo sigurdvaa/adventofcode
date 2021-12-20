@@ -1,8 +1,4 @@
-string = """..#
-#..
-..."""
-
-string2 = """.......##.#..####.#....##
+input_raw = """.......##.#..####.#....##
 ..###....###.####..##.##.
 #..####.#....#.#....##...
 .#....#.#.#....#######...
@@ -29,83 +25,56 @@ string2 = """.......##.#..####.#....##
 .....##.#....##...#.....#"""
 
 orig_grid = {}
-lines = string2.splitlines()
+lines = input_raw.splitlines()
 length = len(lines)
-for y in range(length):
-    for x in range(len(lines[y])):
-        if lines[y][x] == "#":
-            orig_grid[x, y] = lines[y][x]
+for x, r in enumerate(lines):
+    for y, c in enumerate(r):
+        if c == "#":
+            orig_grid[y - x * 1j] = "#"  # up = decrease in x; right = increase in y
 
 print("Part 1")
 grid = dict(orig_grid)
-x = length // 2
-y = x
-xv = 0
-yv = -1
+h = length // 2
+dirc = 0 + 1j  # up
+posc = h - h * 1j
 infected = 0
 bursts = 10000
 for i in range(bursts):
-    cord = x, y
-    node = grid.get(cord, ".")
+    node = grid.get(posc, ".")
     if node == ".":
-        grid[cord] = "#"
+        grid[posc] = "#"
         infected += 1
         # Turn left
-        if xv != 0:
-            yv = xv * -1
-            xv = 0
-        else:
-            xv = yv
-            yv = 0
+        dirc *= 1j
     elif node == "#":
-        grid[cord] = "."
+        grid[posc] = "."
         # Turn right
-        if xv != 0:
-            yv = xv
-            xv = 0
-        else:
-            xv = yv * -1
-            yv = 0
-    x += xv
-    y += yv
+        dirc *= -1j
+    posc += dirc
 print(infected)
 
 print("Part 2")
 grid = dict(orig_grid)
-x = length // 2
-y = x
-xv = 0
-yv = -1
+h = length // 2
+dirc = 0 + 1j  # up
+posc = h - h * 1j
 infected = 0
 bursts = 10000000
 for i in range(bursts):
-    cord = (x, y)
-    node = grid.get(cord, ".")
+    node = grid.get(posc, ".")
     if node == ".":
-        grid[cord] = "W"
+        grid[posc] = "W"
         # Turn left
-        if xv != 0:
-            yv = xv * -1
-            xv = 0
-        else:
-            xv = yv
-            yv = 0
+        dirc *= 1j
     elif node == "W":
-        grid[cord] = "#"
+        grid[posc] = "#"
         infected += 1
     elif node == "#":
-        grid[cord] = "F"
+        grid[posc] = "F"
         # Turn right
-        if xv != 0:
-            yv = xv
-            xv = 0
-        else:
-            xv = yv * -1
-            yv = 0
+        dirc *= -1j
     elif node == "F":
-        grid[cord] = "."
-        xv *= -1
-        yv *= -1
-    x += xv
-    y += yv
+        grid[posc] = "."
+        dirc *= -1
+    posc += dirc
 print(infected)

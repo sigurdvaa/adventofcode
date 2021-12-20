@@ -1,9 +1,4 @@
-string = """0: 3
-1: 2
-4: 4
-6: 4"""
-
-string2 = """0: 5
+input_raw = """0: 5
 1: 2
 2: 3
 4: 4
@@ -48,10 +43,12 @@ string2 = """0: 5
 92: 17
 94: 18"""
 
+
 scanners = {}
-for line in string2.splitlines():
+for line in input_raw.splitlines():
     depth, scanrange = [int(x) for x in line.split(": ")]
     scanners[depth] = scanrange
+
 
 print("Part 1")
 severity = 0

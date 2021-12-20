@@ -1,15 +1,4 @@
-string = """set a 1
-add a 2
-mul a a
-mod a 5
-snd a
-set a 0
-rcv a
-jgz a -1
-set a 1
-jgz a -2"""
-
-string2 = """set i 31
+input_raw = """set i 31
 set a 1
 mul p 17
 jgz p p
@@ -51,15 +40,8 @@ snd a
 jgz f -16
 jgz a -19"""
 
-string3 = """snd 1
-snd 2
-snd p
-rcv a
-rcv b
-rcv c
-rcv d"""
 
-instructions = string2.splitlines()
+instructions = input_raw.splitlines()
 REGISTERS = dict([(x, 0) for x in "abcdefghijklmnopqrstuvwxyz"])
 
 

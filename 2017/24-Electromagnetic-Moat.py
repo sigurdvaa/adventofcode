@@ -1,13 +1,4 @@
-string = """0/2
-2/2
-2/3
-3/4
-3/5
-0/1
-10/1
-9/10"""
-
-string2 = """48/5
+input_raw = """48/5
 25/10
 35/49
 34/41
@@ -63,7 +54,7 @@ string2 = """48/5
 14/50"""
 
 components = {}
-for line in string2.splitlines():
+for line in input_raw.splitlines():
     a, b = [int(x) for x in line.split("/")]
     if not a in components:
         components[a] = set()
