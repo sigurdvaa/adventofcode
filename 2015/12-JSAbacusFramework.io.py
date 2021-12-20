@@ -2,7 +2,7 @@ import json
 from re import findall
 
 
-with open("12-input.txt", "r") as f:
+with open("12_input.txt", "r") as f:
     input_raw = f.readline()
 
 

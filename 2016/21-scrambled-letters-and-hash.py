@@ -1,4 +1,4 @@
-with open("21-input.txt", "r") as f:
+with open("21_input.txt", "r") as f:
     scramble_instructions = f.readlines()
 
 

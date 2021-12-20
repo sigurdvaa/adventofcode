@@ -1,4 +1,4 @@
-with open("10-input.txt", "r") as f:
+with open("10_input.txt", "r") as f:
     input_instructions = [x.strip() for x in f.readlines()]
 
 bots = {}

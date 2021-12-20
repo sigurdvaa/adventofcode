@@ -1,4 +1,4 @@
-with open("08-input.txt", "r") as f:
+with open("08_input.txt", "r") as f:
     input_instructions = [x.strip() for x in f.readlines()]
 
 display = [["." for x in range(50)] for y in range(6)]

@@ -1,6 +1,6 @@
 import re
 
-with open("07-input.txt", "r") as f:
+with open("07_input.txt", "r") as f:
     input_ips = [x.strip() for x in f.readlines()]
 
 

@@ -1,4 +1,4 @@
-with open("02-input.txt", "r") as f:
+with open("02_input.txt", "r") as f:
     input_sizes = [
         list(map(int, x)) for x in [x.strip().split("x") for x in f.readlines()]
     ]

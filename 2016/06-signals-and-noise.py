@@ -1,4 +1,4 @@
-with open("06-input.txt", "r") as f:
+with open("06_input.txt", "r") as f:
     input_lines = [x.strip() for x in f.readlines()]
 
 most_message = ["" for x in range(8)]

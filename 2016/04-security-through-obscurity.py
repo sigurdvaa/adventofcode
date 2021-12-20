@@ -1,7 +1,7 @@
 import string
 
 rooms = []
-with open("04-input.txt", "r") as f:
+with open("04_input.txt", "r") as f:
     for line in f.readlines():
         parts = line.strip().split("-")
         room = {

@@ -1,5 +1,5 @@
 triangles = []
-with open("03-input.txt", "r") as f:
+with open("03_input.txt", "r") as f:
     for line in f.readlines():
         triangles += [[int(x) for x in line.strip().split()]]
 
@@ -14,7 +14,7 @@ print(f"Part One: {possible}")
 
 triangles_row = []
 triangles_column = []
-with open("03-input.txt", "r") as f:
+with open("03_input.txt", "r") as f:
     for line in f.readlines():
         triangles_row += [[int(x) for x in line.strip().split()]]
 

@@ -1,6 +1,6 @@
 from collections import deque
 
-with open("22-input.txt", "r") as f:
+with open("22_input.txt", "r") as f:
     input_raw = f.readlines()[2:]
 
 

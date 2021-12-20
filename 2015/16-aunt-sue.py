@@ -1,4 +1,4 @@
-with open("16-input.txt", "r") as f:
+with open("16_input.txt", "r") as f:
     input_raw = f.read()
 
 

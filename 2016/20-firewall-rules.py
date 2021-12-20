@@ -1,5 +1,5 @@
 with open(
-    "20-input.txt",
+    "20_input.txt",
     "r",
 ) as f:
     input_blacklist = [

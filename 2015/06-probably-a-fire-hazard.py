@@ -1,4 +1,4 @@
-with open("06-input.txt", "r") as f:
+with open("06_input.txt", "r") as f:
     input_raw = [x.strip().split() for x in f.readlines()]
 
 
