@@ -26,7 +26,31 @@ def possible_replacements(replacements: dict, molecule: str):
     return possible
 
 
+def steps_to_molecule(replacements: dict, molecule: str):
+    steps = {}
+    token = []
+    last = len(molecule) - 1
+    for i, v in enumerate(molecule):
+        token.append(v)
+        if i == last or molecule[i + 1].isupper():
+            curr_token = "".join(token)
+            token = []
+            if curr_token in steps:
+                steps[curr_token] += 1
+            else:
+                steps[curr_token] = 1
+
+    num_steps = -1
+    for k in steps:
+        if k in replacements:
+            num_steps += steps[k]
+        elif k == "Y":
+            num_steps -= steps[k]
+
+    return num_steps
+
+
 replacements = parse_replacements(input_raw[:-2])
 molecule = input_raw[-1].strip()
 print(f"Part One: {len(possible_replacements(replacements, molecule))}")
-# 506
+print(f"Part Two: {steps_to_molecule(replacements, molecule)}")
