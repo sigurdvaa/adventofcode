@@ -31,7 +31,7 @@ def parse_stats(strings: list) -> list:
     return tuple(stats)
 
 
-def win_fight(me, boss) -> bool:
+def win_fight(me: tuple, boss: tuple) -> bool:
     me_dmg = me[1] - boss[2]
     if me_dmg < 1:
         me_dmg = 1
@@ -48,36 +48,33 @@ def win_fight(me, boss) -> bool:
     return False
 
 
-def all_shopping_options(shop):
+def get_shop_options(shop: dict) -> list:
     options = []
     for item in shop["Weapons"]:
         options.append([item])
 
     next_options = options.copy()
-    for item in shop["Armor"]:
-        for option in options:
+    for option in options:
+        for item in shop["Armor"]:
             next_options.append(option + [item])
     options = next_options
 
     next_options = options.copy()
-    for item1 in shop["Rings"]:
-        for option in options:
+    for option in options:
+        for i, item1 in enumerate(shop["Rings"]):
             next_options.append(option + [item1])
-        for item2 in shop["Rings"]:
-            if item1 != item2:
-                for option in options:
+            if i < len(shop["Rings"]):
+                for item2 in shop["Rings"][i + 1 :]:
                     next_options.append(option + [item1, item2])
     options = next_options
 
     return options
 
 
-def cost_of_fight(
-    boss: tuple, me: tuple, shopping_options: list, win: bool = True
-) -> int:
+def cost_of_fight(boss: tuple, me: tuple, shop_options: list, win: bool = True) -> int:
     costs_win = []
     costs_lose = []
-    for option in shopping_options:
+    for option in shop_options:
         cost = dmg = armor = 0
         for item in option:
             cost += item[0]
@@ -99,7 +96,7 @@ def cost_of_fight(
 
 shop = parse_shop(input_raw.splitlines()[:-10])
 boss = parse_stats(input_raw.splitlines()[23:26])
-me = parse_stats(input_raw.splitlines()[28:31])
-shopping_options = all_shopping_options(shop)
-print(f"Part One: {cost_of_fight(boss, me, shopping_options)}")
-print(f"Part Two: {cost_of_fight(boss, me, shopping_options, False)}")
+me = parse_stats(input_raw.splitlines()[28:])
+shop_options = get_shop_options(shop)
+print(f"Part One: {cost_of_fight(boss, me, shop_options)}")
+print(f"Part Two: {cost_of_fight(boss, me, shop_options, False)}")
