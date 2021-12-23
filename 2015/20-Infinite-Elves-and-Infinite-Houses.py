@@ -1,35 +1,36 @@
 input_raw = "29000000"
 
 
-def lowest_house_number_with_presents_ten(target: int) -> int:
+def lowest_house_with_presents(target: int) -> int:
     target = target // 10
-    for house in range(0, target, 20160):
-        presents = 0
-        for elf in range(house, 0, -2):
-            if house % elf == 0:
-                presents += elf
+    max_houses = target // 2
+    houses = [0] * max_houses
+    for house in range(1, max_houses, 1):
+        for elf in range(house, max_houses, house):
+            houses[elf] += house
 
-        if presents >= target:
+        if houses[house] >= target:
             return house
 
     return -1
 
 
-def lowest_house_number_with_presents_eleven(target: int) -> int:
-    for house in range(0, target // 10, 20160):
-        presents = 0
-        for elf in range(house, 0, -2):
-            if house % elf == 0:
-                if elf * 50 >= house:
-                    presents += elf
-                else:
-                    break
+def lowest_house_with_presents_max_visits(target: int, max_visits: int = 50) -> int:
+    max_houses = target // (11 * 2)
+    houses = [0] * max_houses
+    for house in range(1, max_houses, 1):
+        visits = 0
+        for elf in range(house, max_houses, house):
+            houses[elf] += house
+            visits += 1
+            if visits == 50:
+                break
 
-        if presents * 11 >= target:
+        if houses[house] * 11 >= target:
             return house
 
     return -1
 
 
-print(f"Part One: {lowest_house_number_with_presents_ten(int(input_raw))}")
-print(f"Part Two: {lowest_house_number_with_presents_eleven(int(input_raw))}")
+print(f"Part One: {lowest_house_with_presents(int(input_raw))}")
+print(f"Part Two: {lowest_house_with_presents_max_visits(int(input_raw))}")
