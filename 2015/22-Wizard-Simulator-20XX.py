@@ -17,15 +17,16 @@ Recharge: cost 229, mana 101, lasts 5"""
 def next_spells(queue: list, state: list, spells: dict) -> None:
     for spell in spells:
         if spell not in state[3]:
-            if spells[spell]["cost"] <= state[2]:
+            next_spell = spells[spell]
+            if next_spell["cost"] <= state[2]:
                 queue.append(
                     [
                         state[0],
                         state[1],
-                        state[2] - spells[spell]["cost"],
+                        state[2] - next_spell["cost"],
                         state[3].copy(),
                         spell,
-                        state[5] + spells[spell]["cost"],
+                        state[5] + next_spell["cost"],
                     ]
                 )
 
@@ -54,10 +55,11 @@ def player_turn(state: list, spells: dict) -> None:
 def update_active_spells(state: list, spells: dict) -> None:
     still_active = {}
     for active_spell in state[3]:
-        if "dmg" in spells[active_spell]:
-            state[0] -= spells[active_spell]["dmg"]
-        if "mana" in spells[active_spell]:
-            state[2] += spells[active_spell]["mana"]
+        spell = spells[active_spell]
+        if "dmg" in spell:
+            state[0] -= spell["dmg"]
+        if "mana" in spell:
+            state[2] += spell["mana"]
         if state[3][active_spell] > 1:
             still_active[active_spell] = state[3][active_spell] - 1
     state[3] = still_active
