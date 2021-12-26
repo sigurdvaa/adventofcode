@@ -26,13 +26,16 @@ def next_spells(queue: list, state: list, spells: dict) -> None:
                         state[3].copy(),
                         spell,
                         state[5] + spells[spell]["cost"],
-                        0,
                     ]
                 )
 
 
-def boss_turn(state: list, damage: int):
-    boss_dmg = damage - state[6]
+def boss_turn(state: list, damage: int, spells: dict) -> None:
+    player_armor = 0
+    for active_spell in state[3]:
+        if "armor" in spells[active_spell]:
+            player_armor += spells[active_spell]["armor"]
+    boss_dmg = damage - player_armor
     boss_dmg = boss_dmg if boss_dmg > 0 else 1
     state[1] -= boss_dmg
 
@@ -50,14 +53,11 @@ def player_turn(state: list, spells: dict) -> None:
 
 def update_active_spells(state: list, spells: dict) -> None:
     still_active = {}
-    state[6] = 0
     for active_spell in state[3]:
         if "dmg" in spells[active_spell]:
             state[0] -= spells[active_spell]["dmg"]
         if "mana" in spells[active_spell]:
             state[2] += spells[active_spell]["mana"]
-        if "armor" in spells[active_spell]:
-            state[6] += spells[active_spell]["armor"]
         if state[3][active_spell] > 1:
             still_active[active_spell] = state[3][active_spell] - 1
     state[3] = still_active
@@ -68,8 +68,8 @@ def search_least_mana(
 ) -> int:
     from collections import deque
 
-    init_state = [boss[0], player[0], player[1], {}, "", 0, 0]
     queue = deque()
+    init_state = [boss[0], player[0], player[1], {}, "", 0]
     next_spells(queue, init_state, spells)
     least_mana = -1
     while len(queue):
@@ -81,18 +81,13 @@ def search_least_mana(
                 continue
 
         player_turn(state, spells)
-        if state[0] < 1:
-            if least_mana == -1 or least_mana > state[5]:
-                least_mana = state[5]
-            continue
-
         update_active_spells(state, spells)
         if state[0] < 1:
             if least_mana == -1 or least_mana > state[5]:
                 least_mana = state[5]
             continue
 
-        boss_turn(state, boss[1])
+        boss_turn(state, boss[1], spells)
         if state[1] < 1:
             continue
 
