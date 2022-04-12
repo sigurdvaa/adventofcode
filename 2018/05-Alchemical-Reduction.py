@@ -5,7 +5,7 @@ with open("05_input.txt", "r") as f:
 class Unit:
     def __init__(self, prev, data):
         self.prev = prev
-        self.data = data
+        self.data = ord(data)
         self.next = None
 
     def __repr__(self):
@@ -56,8 +56,8 @@ def polymer_len_after_react(polymer: str) -> int:
 
     unit = polymer.head
     while unit.next is not None:
-        if unit.data.lower() == unit.next.data.lower() and unit.data != unit.next.data:
-            reacting = True
+        # Data is ord(), diff between "a" and "A" is 32
+        if abs(unit.data - unit.next.data) == 32:
             unit = polymer.react(unit)
         else:
             unit = unit.next
