@@ -53,7 +53,7 @@ class Polymer:
 
 def polymer_len_after_react(polymer: str) -> int:
     polymer = Polymer(polymer)
- 
+
     unit = polymer.head
     while unit.next is not None:
         if unit.data.lower() == unit.next.data.lower() and unit.data != unit.next.data:
