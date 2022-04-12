@@ -2,34 +2,11 @@ with open("05_input.txt", "r") as f:
     input_raw = f.readline().strip()
 
 
-def polymer_len_after_react(polymer: str) -> int:
-    polymer = list(polymer)
-
-    reacting = True
-    while reacting:
-        reacting = False
-        i = 0
-        polymer_len = len(polymer)
-        while i < polymer_len - 1:
-            if (
-                polymer[i].lower() == polymer[i + 1].lower()
-                and polymer[i] != polymer[i + 1]
-            ):
-                reacting = True
-                del polymer[i]
-                del polymer[i]
-                polymer_len -= 2
-                i -= 1
-            i += 1
-
-    return len(polymer)
-
-
 class Unit:
     def __init__(self, prev, data):
         self.prev = prev
-        self.next = None
         self.data = data
+        self.next = None
 
     def __repr__(self):
         return self.data
@@ -37,6 +14,7 @@ class Unit:
 
 class Polymer:
     def __init__(self, units):
+        self._len = 0
         self.head = None
         for u in units:
             if self.head == None:
@@ -45,6 +23,7 @@ class Polymer:
             else:
                 unit.next = Unit(unit, u)
                 unit = unit.next
+            self._len += 1
 
     def __repr__(self):
         unit = self.head
@@ -55,31 +34,26 @@ class Polymer:
         return " <-> ".join(units)
 
     def __len__(self):
-        if self.head == None:
-            return 0
-        else:
-            i = 0
-            unit = self.head
-            while unit is not None:
-                i += 1
-                unit = unit.next
-            return i
+        return self._len
 
     def react(self, unit):
-        next_unit = unit.next.next
+        self._len -= 2
         if unit.prev == None:
-            self.head = next_unit
-            next_unit.prev = None
-            return next_unit
+            self.head = unit.next.next
+            self.head.prev = None
+            return self.head
+        elif unit.next.next == None:
+            unit.prev.next = None
+            return unit.prev
         else:
-            next_unit.prev = unit.prev
-            unit.prev.next = next_unit
+            unit.prev.next = unit.next.next
+            unit.next.next.prev = unit.prev
             return unit.prev
 
 
-def polymer_len_after_react2(polymer: str) -> int:
+def polymer_len_after_react(polymer: str) -> int:
     polymer = Polymer(polymer)
-
+ 
     unit = polymer.head
     while unit.next is not None:
         if unit.data.lower() == unit.next.data.lower() and unit.data != unit.next.data:
@@ -106,5 +80,5 @@ def polymer_len_after_best_react(polymer: str) -> int:
     return min_polymer_len
 
 
-print(f"Part One: { polymer_len_after_react2(input_raw) }")
+print(f"Part One: { polymer_len_after_react(input_raw) }")
 print(f"Part Two: { polymer_len_after_best_react(input_raw) }")
