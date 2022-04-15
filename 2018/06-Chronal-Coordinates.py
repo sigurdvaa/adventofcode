@@ -50,7 +50,7 @@ input_raw = """124, 262
 248, 271"""
 
 
-input_raw = """1, 1
+_input_raw = """1, 1
 1, 6
 8, 3
 3, 4
@@ -58,38 +58,83 @@ input_raw = """1, 1
 8, 9"""
 
 
-def noninfinite_index(coords: list) -> list:
-    x_coords = [x[0] for x in coords]
-    y_coords = [x[1] for x in coords]
-    x_max = max(x_coords)
-    x_min = min(x_coords)
-    y_max = max(y_coords)
-    y_min = min(y_coords)
+def finite_indexes(coords: list) -> list:
+    finite = []
+    for i1 in range(len(coords)):
+        finite_x_pos = False
+        finite_x_neg = False
+        finite_y_pos = False
+        finite_y_neg = False
+        for i2 in range(len(coords)):
+            x_diff = abs(coords[i1][0] - coords[i2][0])
+            y_diff = abs(coords[i1][1] - coords[i2][1])
 
-    non_infinite = []
-    for i in range(len(coords)):
-        if x_min < coords[i][0] < x_max and y_min < coords[i][1] < y_max:
-            non_infinite.append(i)
+            # x axis
+            if x_diff >= y_diff:
+                if coords[i1][0] < coords[i2][0]:
+                    finite_x_pos = True
+                if coords[i1][0] > coords[i2][0]:
+                    finite_x_neg = True
 
-    return non_infinite
+            # y axis
+            if x_diff <= y_diff:
+                if coords[i1][1] < coords[i2][1]:
+                    finite_y_pos = True
+                if coords[i1][1] > coords[i2][1]:
+                    finite_y_neg = True
+
+        if finite_x_neg and finite_x_pos and finite_y_neg and finite_y_pos:
+            finite.append(i1)
+
+    return finite
 
 
-def largest_noninfinite_area(coords: str) -> int:
+def largest_finite_area(coords: str) -> int:
     coords = [
         (int(y[0]), int(y[1])) for y in [x.split(", ") for x in coords.splitlines()]
     ]
-    max_coord = 0
-    for coord in coords:
-        if max(coord) > max_coord:
-            max_coord = max(coord)
-    max_coord *= 2
-    locations = [[-1] * max_coord for x in range(max_coord)]
-    non_infinite_index = noninfinite(coords)
+    finite = finite_indexes(coords)
 
-    searching = True
-    while searching:
-        for c in coords:
-            pass
+    areas = []
+    for i, xy in enumerate(coords):
+        area = {
+            "finite": True if i in finite else False,
+            "visited": 0,
+            "next": set([(xy[0], xy[1])]),
+        }
+        areas.append(area)
+
+    seen_coords = dict()
+    step = 0
+    expanding = True
+    while expanding:
+        expanding = False
+        for i, area in enumerate(areas):
+            new_coords = set()
+            for next_coord in area["next"]:
+                if next_coord not in seen_coords:
+                    area["visited"] += 1
+                    seen_coords[next_coord] = (step, i)
+                    new_coords.add((next_coord[0] + 1, next_coord[1]))
+                    new_coords.add((next_coord[0] - 1, next_coord[1]))
+                    new_coords.add((next_coord[0], next_coord[1] + 1))
+                    new_coords.add((next_coord[0], next_coord[1] - 1))
+                else:
+                    if seen_coords[next_coord][0] == step:
+                        areas[seen_coords[next_coord][1]]["visited"] -= 1
+                        seen_coords[next_coord] = (-1, -1)
+
+            area["next"] = new_coords
+            if area["finite"] and len(area["next"]):
+                expanding = True
+
+        step += 1
+
+    max_size = 0
+    for area in areas:
+        if area["finite"] and area["visited"] > max_size:
+            max_size = area["visited"]
+    return max_size
 
 
-print(f"Part One: { largest_noninfinite_area(input_raw) }")
+print(f"Part One: { largest_finite_area(input_raw) }")
