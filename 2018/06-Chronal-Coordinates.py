@@ -87,9 +87,13 @@ def finite_coord(coords: list, xy: tuple) -> bool:
 
 def largest_finite_area(coords: str) -> int:
     areas = []
+    finite_areas = 0
     for i, xy in enumerate(coords):
+        finite = finite_coord(coords, xy)
+        if finite:
+            finite_areas += 1
         area = {
-            "finite": finite_coord(coords, xy),
+            "finite": finite,
             "visited": 0,
             "next": set([(xy[0], xy[1])]),
         }
@@ -97,27 +101,26 @@ def largest_finite_area(coords: str) -> int:
 
     seen_coords = dict()
     step = 0
-    expanding = True
-    while expanding:
-        expanding = False
+    while finite_areas > 0:
         for i, area in enumerate(areas):
-            new_coords = set()
-            for next_coord in area["next"]:
-                if next_coord not in seen_coords:
-                    area["visited"] += 1
-                    seen_coords[next_coord] = (step, i)
-                    new_coords.add((next_coord[0] + 1, next_coord[1]))
-                    new_coords.add((next_coord[0] - 1, next_coord[1]))
-                    new_coords.add((next_coord[0], next_coord[1] + 1))
-                    new_coords.add((next_coord[0], next_coord[1] - 1))
-                else:
-                    if seen_coords[next_coord][0] == step:
-                        areas[seen_coords[next_coord][1]]["visited"] -= 1
-                        seen_coords[next_coord] = (-1, -1)
+            if len(area["next"]) > 0:
+                new_coords = set()
+                for next_coord in area["next"]:
+                    if next_coord not in seen_coords:
+                        area["visited"] += 1
+                        seen_coords[next_coord] = (step, i)
+                        new_coords.add((next_coord[0] + 1, next_coord[1]))
+                        new_coords.add((next_coord[0] - 1, next_coord[1]))
+                        new_coords.add((next_coord[0], next_coord[1] + 1))
+                        new_coords.add((next_coord[0], next_coord[1] - 1))
+                    else:
+                        if seen_coords[next_coord][0] == step:
+                            areas[seen_coords[next_coord][1]]["visited"] -= 1
+                            seen_coords[next_coord] = (-1, -1)
 
-            area["next"] = new_coords
-            if area["finite"] and len(area["next"]):
-                expanding = True
+                area["next"] = new_coords
+                if area["finite"] and len(area["next"]) == 0:
+                    finite_areas -= 1
 
         step += 1
 
@@ -129,9 +132,9 @@ def largest_finite_area(coords: str) -> int:
 
 
 def nearest_region_size(coords: list, max_distance: int = 10000) -> int:
+    region_size = 0
     x_max = max([xy[0] for xy in coords])
     y_max = max([xy[1] for xy in coords])
-    region_size = 0
     for x in range(x_max):
         for y in range(y_max):
             total_distance = 0
