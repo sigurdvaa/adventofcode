@@ -50,55 +50,46 @@ input_raw = """124, 262
 248, 271"""
 
 
-_input_raw = """1, 1
-1, 6
-8, 3
-3, 4
-5, 5
-8, 9"""
+def parse_coords(string: str) -> list:
+    return [
+        (int(y[0]), int(y[1])) for y in [x.split(", ") for x in string.splitlines()]
+    ]
 
 
-def finite_indexes(coords: list) -> list:
-    finite = []
-    for i1 in range(len(coords)):
-        finite_x_pos = False
-        finite_x_neg = False
-        finite_y_pos = False
-        finite_y_neg = False
-        for i2 in range(len(coords)):
-            x_diff = abs(coords[i1][0] - coords[i2][0])
-            y_diff = abs(coords[i1][1] - coords[i2][1])
+def finite_coord(coords: list, xy: tuple) -> bool:
+    finite_x_pos = False
+    finite_x_neg = False
+    finite_y_pos = False
+    finite_y_neg = False
+    for c in coords:
+        x_diff = abs(xy[0] - c[0])
+        y_diff = abs(xy[1] - c[1])
 
-            # x axis
-            if x_diff >= y_diff:
-                if coords[i1][0] < coords[i2][0]:
-                    finite_x_pos = True
-                if coords[i1][0] > coords[i2][0]:
-                    finite_x_neg = True
+        # x axis
+        if x_diff >= y_diff:
+            if xy[0] < c[0]:
+                finite_x_pos = True
+            if xy[0] > c[0]:
+                finite_x_neg = True
 
-            # y axis
-            if x_diff <= y_diff:
-                if coords[i1][1] < coords[i2][1]:
-                    finite_y_pos = True
-                if coords[i1][1] > coords[i2][1]:
-                    finite_y_neg = True
+        # y axis
+        if x_diff <= y_diff:
+            if xy[1] < c[1]:
+                finite_y_pos = True
+            if xy[1] > c[1]:
+                finite_y_neg = True
 
-        if finite_x_neg and finite_x_pos and finite_y_neg and finite_y_pos:
-            finite.append(i1)
+    if finite_x_neg and finite_x_pos and finite_y_neg and finite_y_pos:
+        return True
 
-    return finite
+    return False
 
 
 def largest_finite_area(coords: str) -> int:
-    coords = [
-        (int(y[0]), int(y[1])) for y in [x.split(", ") for x in coords.splitlines()]
-    ]
-    finite = finite_indexes(coords)
-
     areas = []
     for i, xy in enumerate(coords):
         area = {
-            "finite": True if i in finite else False,
+            "finite": finite_coord(coords, xy),
             "visited": 0,
             "next": set([(xy[0], xy[1])]),
         }
@@ -137,4 +128,21 @@ def largest_finite_area(coords: str) -> int:
     return max_size
 
 
-print(f"Part One: { largest_finite_area(input_raw) }")
+def nearest_region_size(coords: list, max_distance: int = 10000) -> int:
+    x_max = max([xy[0] for xy in coords])
+    y_max = max([xy[1] for xy in coords])
+    region_size = 0
+    for x in range(x_max):
+        for y in range(y_max):
+            total_distance = 0
+            for coord in coords:
+                total_distance += abs(x - coord[0]) + abs(y - coord[1])
+            if total_distance < max_distance:
+                region_size += 1
+
+    return region_size
+
+
+coords = parse_coords(input_raw)
+print(f"Part One: { largest_finite_area(coords) }")
+print(f"Part Two: { nearest_region_size(coords) }")
