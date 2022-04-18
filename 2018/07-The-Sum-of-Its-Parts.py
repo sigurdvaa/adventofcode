@@ -2,18 +2,11 @@ with open("07_input.txt", "r") as f:
     input_raw = f.read()
 
 
-_input_raw = """Step C must be finished before step A can begin.
-Step C must be finished before step F can begin.
-Step A must be finished before step B can begin.
-Step A must be finished before step D can begin.
-Step B must be finished before step E can begin.
-Step D must be finished before step E can begin.
-Step F must be finished before step E can begin."""
-
-
-def parse_steps(string: str) -> dict:
+def parse_steps(string: str, duration: int = 60) -> dict:
     from collections import namedtuple
-    Step = namedtuple("Step", ["parents", "children"])
+    from string import ascii_uppercase
+
+    Step = namedtuple("Step", ["parents", "children", "duration"])
     steps = {}
     for line in string.splitlines():
         split = line.split()
@@ -21,15 +14,19 @@ def parse_steps(string: str) -> dict:
         child = split[7]
 
         if parent not in steps:
-            steps[parent] = Step([], [child])
+            steps[parent] = Step(
+                [], [child], duration + ascii_uppercase.index(parent) + 1
+            )
         else:
             steps[parent].children.append(child)
 
         if child not in steps:
-            steps[child] = Step([parent], [])
+            steps[child] = Step(
+                [parent], [], duration + ascii_uppercase.index(child) + 1
+            )
         else:
             steps[child].parents.append(parent)
-    
+
     return steps
 
 
@@ -62,5 +59,50 @@ def steps_order(steps: dict) -> str:
     return "".join(order)
 
 
+def add_worker(steps: dict, next_steps: list, order: list) -> tuple:
+    for s in next_steps:
+        if step_available(steps[s], order):
+            next_steps.remove(s)
+            return (steps[s].duration, s)
+    return None
+
+
+def steps_duration(steps: dict, int_workers: int = 5) -> int:
+    next_steps = []
+    for s in steps:
+        if len(steps[s].parents) == 0:
+            next_steps.append(s)
+    next_steps.sort()
+
+    order = []
+    workers = []
+    total_duration = 0
+    while True:
+        if len(workers) < int_workers:
+            new_worker = add_worker(steps, next_steps, order)
+            if new_worker:
+                workers.append(new_worker)
+                continue
+
+            if len(workers) == 0:
+                break
+
+        for i in reversed(range(len(workers))):
+            workers[i] = (workers[i][0] - 1, workers[i][1])
+            if workers[i][0] == 0:
+                step = workers[i][1]
+                order.append(step)
+                for child in steps[step].children:
+                    if child not in next_steps:
+                        next_steps.append(child)
+                next_steps.sort()
+                del workers[i]
+
+        total_duration += 1
+
+    return total_duration
+
+
 steps = parse_steps(input_raw)
 print(f"Part One: { steps_order(steps) }")
+print(f"Part Two: { steps_duration(steps) }")
