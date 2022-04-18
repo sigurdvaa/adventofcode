@@ -1,11 +1,14 @@
+from string import ascii_uppercase
+from collections import namedtuple
+
+Step = namedtuple("Step", ["parents", "children", "duration"])
+Worker = namedtuple("Worker", ["duration", "step"])
+
 with open("07_input.txt", "r") as f:
     input_raw = f.read()
 
 
 def parse_steps(string: str, duration: int = 60) -> dict:
-    from collections import namedtuple
-    from string import ascii_uppercase
-
     Step = namedtuple("Step", ["parents", "children", "duration"])
     steps = {}
     for line in string.splitlines():
@@ -63,7 +66,7 @@ def add_worker(steps: dict, next_steps: list, order: list) -> tuple:
     for s in next_steps:
         if step_available(steps[s], order):
             next_steps.remove(s)
-            return (steps[s].duration, s)
+            return Worker(steps[s].duration, s)
     return None
 
 
@@ -88,9 +91,9 @@ def steps_duration(steps: dict, int_workers: int = 5) -> int:
                 break
 
         for i in reversed(range(len(workers))):
-            workers[i] = (workers[i][0] - 1, workers[i][1])
-            if workers[i][0] == 0:
-                step = workers[i][1]
+            workers[i] = Worker(workers[i].duration - 1, workers[i].step)
+            if workers[i].duration == 0:
+                step = workers[i].step
                 order.append(step)
                 for child in steps[step].children:
                     if child not in next_steps:
