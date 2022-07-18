@@ -46,9 +46,9 @@ def sum_nodes_value(node: Node) -> int:
 
 
 with open("08_input.txt", "r") as fp:
-    raw_input = [int(x) for x in fp.read().strip().split(" ")]
+    input_raw = [int(x) for x in fp.read().strip().split(" ")]
 
-rootnode: Node = parse_nodes(raw_input)[0][0]
+rootnode: Node = parse_nodes(input_raw)[0][0]
 
 print(f"Part One: {sum_nodes_meta(rootnode)}")
 print(f"Part Two: {sum_nodes_value(rootnode)}")
