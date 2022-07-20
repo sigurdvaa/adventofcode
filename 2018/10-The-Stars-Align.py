@@ -2,7 +2,7 @@ with open("10_input.txt", "r") as fp:
     input_raw = fp.read()
 
 
-input_raw = """position=< 9,  1> velocity=< 0,  2>
+_input_raw = """position=< 9,  1> velocity=< 0,  2>
 position=< 7,  0> velocity=<-1,  0>
 position=< 3, -2> velocity=<-1,  1>
 position=< 6, 10> velocity=<-2, -1>
@@ -62,17 +62,27 @@ def parse_points(string: str) -> list[Point]:
 
 def search_message(points: list[Point]):
     s: int = 0
+    threshold: int = 5
     while True:
+        print(s,end="\r")
+        for p1 in points:
+            y_len: int = 1
+            checking: bool = True
+            while checking:
+                checking = False
+                for p2 in points:
+                    if p1 != p2:
+                        if p1.x == p2.x:
+                            if p1.y == p2.y + y_len:
+                                y_len += 1
+                                checking = True
+            if y_len >= threshold:
+                print(s, p1, y_len)
+                input("Pause...")
         for p in points:
             p.update()
-
-        for p1 in range(len(points)):
-            for p2 in range(p1 + 1, len(points)):
-                
-
         s += 1
 
 
 points = parse_points(input_raw)
 search_message(points)
-
