@@ -42,22 +42,14 @@ def points_xy_edge(points: list[Point]) -> tuple[int, int, int, int]:
 
 
 def points_to_str(points: list[Point]) -> str:
-    output: list[str] = []
     x_min, x_max, y_min, y_max = points_xy_edge(points)
-    for y in range(y_min, y_max + 1):
-        row: list[str] = []
-        for x in range(x_min, x_max + 1):
-            printed = False
-            for p in points:
-                if p.x == x and p.y == y:
-                    row.append("#")
-                    printed = True
-                    break
-            if not printed:
-                row.append(".")
-        output.append("".join(row))
+    output: list[list[str]] = [
+        ["."] * (x_max - x_min + 1) for _ in range(y_max - y_min + 1)
+    ]
+    for p in points:
+        output[p.y - y_min][p.x - x_min] = "#"
 
-    return "\n".join(output)
+    return "\n".join(["".join(x) for x in output])
 
 
 def search_msg(points: list[Point]) -> tuple[str, int]:
