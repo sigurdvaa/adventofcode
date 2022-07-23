@@ -1,40 +1,3 @@
-with open("10_input.txt", "r") as fp:
-    input_raw = fp.read()
-
-
-_input_raw = """position=< 9,  1> velocity=< 0,  2>
-position=< 7,  0> velocity=<-1,  0>
-position=< 3, -2> velocity=<-1,  1>
-position=< 6, 10> velocity=<-2, -1>
-position=< 2, -4> velocity=< 2,  2>
-position=<-6, 10> velocity=< 2, -2>
-position=< 1,  8> velocity=< 1, -1>
-position=< 1,  7> velocity=< 1,  0>
-position=<-3, 11> velocity=< 1, -2>
-position=< 7,  6> velocity=<-1, -1>
-position=<-2,  3> velocity=< 1,  0>
-position=<-4,  3> velocity=< 2,  0>
-position=<10, -3> velocity=<-1,  1>
-position=< 5, 11> velocity=< 1, -2>
-position=< 4,  7> velocity=< 0, -1>
-position=< 8, -2> velocity=< 0,  1>
-position=<15,  0> velocity=<-2,  0>
-position=< 1,  6> velocity=< 1,  0>
-position=< 8,  9> velocity=< 0, -1>
-position=< 3,  3> velocity=<-1,  1>
-position=< 0,  5> velocity=< 0, -1>
-position=<-2,  2> velocity=< 2,  0>
-position=< 5, -2> velocity=< 1,  2>
-position=< 1,  4> velocity=< 2,  1>
-position=<-2,  7> velocity=< 2, -2>
-position=< 3,  6> velocity=<-1, -1>
-position=< 5,  0> velocity=< 1,  0>
-position=<-6,  0> velocity=< 2,  0>
-position=< 5,  9> velocity=< 1, -2>
-position=<14,  7> velocity=<-2,  0>
-position=<-3,  6> velocity=< 2, -1>"""
-
-
 class Point:
     def __init__(self, x: int, y: int, vel_x: int, vel_y: int):
         self.x: int = x
@@ -42,12 +5,13 @@ class Point:
         self.vel_x: int = vel_x
         self.vel_y: int = vel_y
 
-    def __repr__(self):
-        return f"({self.x},{self.y}) <{self.vel_x},{self.vel_y}>"
-
     def update(self):
         self.x += self.vel_x
         self.y += self.vel_y
+
+    def reverse(self):
+        self.x -= self.vel_x
+        self.y -= self.vel_y
 
 
 def parse_points(string: str) -> list[Point]:
@@ -60,29 +24,76 @@ def parse_points(string: str) -> list[Point]:
     return points
 
 
-def search_message(points: list[Point]):
+def points_xy_edge(points: list[Point]) -> tuple[int, int, int, int]:
+    x_min: int = points[0].x
+    x_max: int = x_min
+    y_min: int = points[0].y
+    y_max: int = y_min
+    for p in points:
+        if p.x < x_min:
+            x_min = p.x
+        if p.x > x_max:
+            x_max = p.x
+        if p.y < y_min:
+            y_min = p.y
+        if p.y > y_max:
+            y_max = p.y
+    return (x_min, x_max, y_min, y_max)
+
+
+def points_to_str(points: list[Point]) -> str:
+    output: list[str] = []
+    x_min, x_max, y_min, y_max = points_xy_edge(points)
+    for y in range(y_min, y_max + 1):
+        row: list[str] = []
+        for x in range(x_min, x_max + 1):
+            printed = False
+            for p in points:
+                if p.x == x and p.y == y:
+                    row.append("#")
+                    printed = True
+                    break
+            if not printed:
+                row.append(".")
+        output.append("".join(row))
+
+    return "\n".join(output)
+
+
+def search_msg(points: list[Point]) -> tuple[str, int]:
     s: int = 0
-    threshold: int = 5
+    x_min, x_max, y_min, y_max = points_xy_edge(points)
+    prev_delta_x: int = x_max - x_min
+    prev_delta_y: int = y_max - y_min
+    prev_delta: int = prev_delta_x + prev_delta_y
+
     while True:
-        print(s,end="\r")
-        for p1 in points:
-            y_len: int = 1
-            checking: bool = True
-            while checking:
-                checking = False
-                for p2 in points:
-                    if p1 != p2:
-                        if p1.x == p2.x:
-                            if p1.y == p2.y + y_len:
-                                y_len += 1
-                                checking = True
-            if y_len >= threshold:
-                print(s, p1, y_len)
-                input("Pause...")
+        x_min, x_max, y_min, y_max = points_xy_edge(points)
+        delta_x: int = x_max - x_min
+        delta_y: int = y_max - y_min
+        delta: int = delta_x + delta_y
+
+        if delta_x < prev_delta_x:
+            prev_delta_x = delta_x
+        if delta_y < prev_delta_y:
+            prev_delta_y = delta_y
+        if delta <= prev_delta:
+            prev_delta = delta
+        else:
+            for p in points:
+                p.reverse()
+            s -= 1
+            return (points_to_str(points), s)
+
         for p in points:
             p.update()
         s += 1
 
 
+with open("10_input.txt", "r") as fp:
+    input_raw = fp.read()
+
 points = parse_points(input_raw)
-search_message(points)
+msg, s = search_msg(points)
+print(f"Part One: \n{msg}")
+print(f"Part Two: {s}")
