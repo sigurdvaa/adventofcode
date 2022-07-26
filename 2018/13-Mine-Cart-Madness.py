@@ -5,12 +5,7 @@ with open("13_input.txt", "r") as fp:
 class Cart:
     dir_str: list[str] = ["^", ">", "v", "<"]
     dir_track: list[str] = ["|", "-", "-", "|"]
-    dir_int: list[tuple[int, int]] = [
-        (0, -1),
-        (1, 0),
-        (0, 1),
-        (-1, 0)
-    ]
+    dir_int: list[tuple[int, int]] = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 
     def __init__(self, x: int, y: int, d: str):
         self.x: int = x
@@ -32,28 +27,25 @@ class Cart:
     def move(self, tracks: list[list[str]]):
         self.x += Cart.dir_int[self.d][0]
         self.y += Cart.dir_int[self.d][1]
+        self.turn(tracks)
 
+    def turn(self, tracks: list[list[str]]):
         if tracks[self.y][self.x] == "+":
-            self.turn()
+            self.d += self.i
+            self.i += 1
+            if self.i > 1:
+                self.i = -1
         elif tracks[self.y][self.x] == "\\":
             if Cart.dir_int[self.d][0] == 0:
                 self.d -= 1
-            elif Cart.dir_int[self.d][1] == 0:
+            else:
                 self.d += 1
-            self.d %= len(Cart.dir_str)
         elif tracks[self.y][self.x] == "/":
             if Cart.dir_int[self.d][0] == 0:
                 self.d += 1
-            elif Cart.dir_int[self.d][1] == 0:
+            else:
                 self.d -= 1
-            self.d %= len(Cart.dir_str)
-
-    def turn(self):
-        self.d = (self.d + self.i) % len(Cart.dir_str)
-
-        self.i += 1
-        if self.i > 1:
-            self.i = -1
+        self.d %= len(Cart.dir_str)
 
 
 def parse_tracks(string_map: str) -> list[list[str]]:
@@ -63,7 +55,7 @@ def parse_tracks(string_map: str) -> list[list[str]]:
     return tracks
 
 
-def locate_carts(tracks: list[list[str]]) -> list[Cart]:
+def find_and_replace_carts(tracks: list[list[str]]) -> list[Cart]:
     carts: list[Cart] = []
     for y in range(len(tracks)):
         for x in range(len(tracks[y])):
@@ -109,11 +101,11 @@ def find_last_cart(tracks: list[list[str]], carts: list[Cart]) -> tuple[int, int
 
 
 tracks = parse_tracks(input_raw)
-carts = locate_carts(tracks)
+carts = find_and_replace_carts(tracks)
 first_crach = find_first_crash(tracks, carts)
 print(f"Part One: {first_crach[0]},{first_crach[1]}")
 
 tracks = parse_tracks(input_raw)
-carts = locate_carts(tracks)
+carts = find_and_replace_carts(tracks)
 last_cart = find_last_cart(tracks, carts)
 print(f"Part Two: {last_cart[0]},{last_cart[1]}")
