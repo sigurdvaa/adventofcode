@@ -2,6 +2,40 @@ with open("15_input.txt", "r") as fp:
     input_raw = fp.read()
 
 
+input_raw1 = """#######
+#.G...#
+#...EG#
+#.#.#G#
+#..G#E#
+#.....#
+#######"""
+
+input_raw2 = """#######
+#G..#E#
+#E#E.E#
+#G.##.#
+#...#E#
+#...E.#
+#######"""
+
+input_raw3 = """#######
+#E..EG#
+#.#G.E#
+#E.##E#
+#G..#.#
+#..E#.#
+#######"""
+
+input_raw4 = """#########
+#G......#
+#.E.#...#
+#..##..G#
+#...##..#
+#...#...#
+#.G...G.#
+#.....G.#
+#########"""
+
 class Unit:
     def __init__(self, x: int, y: int, typ: str):
         self.hp: int = 200
@@ -32,9 +66,33 @@ class State:
 
 
 class Battle:
-    def __init__(self):
+    def __init__(self, x_max: int, y_max: int):
         self.area: set[tuple[int, int]] = set()
         self.units: list[Unit] = []
+        self.x_max = x_max
+        self.y_max = y_max
+
+    def print_map(self):
+        print("-"*5, "Battle map", "-"*5)
+        unit_locs = set()
+        for u in self.units:
+            unit_locs.add((u.x, u.y))
+        for y in range(self.y_max):
+            for x in range(self.x_max):
+                curr_loc = (x, y)
+                if curr_loc in unit_locs:
+                    printed = False
+                    for u in self.units:
+                        if not u.dead and curr_loc == u.loc():
+                            printed = True
+                            print(u.type, end="")
+                    if not printed:
+                        print(".", end="")
+                elif curr_loc in self.area:
+                    print(".", end="")
+                else:
+                    print("#", end="")
+            print()
 
     def attack(self, attacker: Unit) -> bool:
         targets: list[Unit] = []
@@ -43,46 +101,48 @@ class Battle:
                 if unit.x == attacker.x:
                     if unit.y == attacker.y - 1 or unit.y == attacker.y + 1:
                         targets.append(unit)
-                if unit.y == attacker.y:
+                elif unit.y == attacker.y:
                     if unit.x == attacker.x - 1 or unit.x == attacker.x + 1:
                         targets.append(unit)
         if len(targets):
             targets.sort()
-            targets[0].hp -= attacker.dmg
-            if targets[0].hp < 1:
-                targets[0].dead = True
+            target: Unit = targets[0]
+            for t in reversed(targets):
+                if t.hp <= target.hp:
+                    target = t
+            target.hp -= attacker.dmg
+            if target.hp < 1:
+                target.dead = True
             return True
         return False
 
     def next_states(self, state: State) -> State:
-        for i in range(-1, 2, 2):
-            loc1 = (state.path[-1][0], state.path[-1][1] + i)
-            loc2 = (state.path[-1][0] + i, state.path[-1][1])
-            for loc in [loc1, loc2]:
-                if loc in state.options:
-                    next_options = state.options.copy()
-                    next_options.remove(loc)
-                    next_path = state.path.copy()
-                    next_path.append(loc)
-                    yield State(next_options, next_path)
+        loc1 = (state.path[-1][0], state.path[-1][1] - 1)
+        loc2 = (state.path[-1][0] - 1, state.path[-1][1])
+        loc3 = (state.path[-1][0] + 1, state.path[-1][1])
+        loc4 = (state.path[-1][0], state.path[-1][1] + 1)
+        for loc in [loc1, loc2, loc3, loc4]:
+            if loc in state.options:
+                next_options = state.options.copy()
+                next_options.remove(loc)
+                next_path = state.path.copy()
+                next_path.append(loc)
+                yield State(next_options, next_path)
 
-    def shortest_path(self, src: Unit, target: tuple[int, int], unit_locs: list[tuple[int, int]]) -> tuple[int, int]:
+    def shortest_path(self, src: Unit, targets: set[tuple[int, int]], unit_locs: set[tuple[int, int]]) -> tuple[int, int]:
         options = self.area.copy()
         for loc in unit_locs:
             options.remove(loc)
-        state: State = State(options.copy(), [src.loc()])
+        state: State = State(options, [src.loc()])
         states: list[State] = [state]
         while len(states):
             state = states.pop(0)
             for next_state in self.next_states(state):
-                if next_state.path[-1] == target:
-                    print("-"*40)
-                    print("return", src, target, len(next_state.path) - 1, next_state.path[1:])
-                    input("pause...")
-                    return (len(next_state.path) - 1, next_state.path[1:])
+                if next_state.path[-1] in targets:
+                    return next_state.path[1:]
                 states.append(next_state)
 
-        return -1, []
+        return []
 
     def move(self, mover: Unit) -> bool:
         unit_locs: set[tuple[int, int]] = set()
@@ -90,37 +150,29 @@ class Battle:
             if not unit.dead:
                 unit_locs.add((unit.x, unit.y))
 
-        in_range: list[tuple[int, int]] = []
+        in_range: set[tuple[int, int]] = set()
         for unit in self.units:
             if not unit.dead and unit != mover and unit.type != mover.type:
                 for i in range(-1, 2, 2):
                     loc1 = (unit.x, unit.y + i)
                     loc2 = (unit.x + i, unit.y)
                     if loc1 in self.area and loc1 not in unit_locs:
-                        in_range.append(loc1)
+                        in_range.add(loc1)
                     if loc2 in self.area and loc2 not in unit_locs:
-                        in_range.append(loc2)
+                        in_range.add(loc2)
 
         if len(in_range):
-            nearest_dist: int = -1
-            nearest_path: list[tuple[int, int]]
-            for loc in in_range:
-                loc_dist, loc_path = self.shortest_path(mover, loc, unit_locs)
-                if loc_dist > 0:
-                    if nearest_dist == -1 or loc_dist < nearest_dist:
-                        nearest_dist = loc_dist
-                        nearest_path = loc_path
-        else:
-            return False
-
-        move_to: tuple[int, int] = self.shortest_path(mover, nearest)
-        mover.move(move_to[1])
-        return True
+            shortest_path = self.shortest_path(mover, in_range, unit_locs)
+            if len(shortest_path):
+                mover.x = shortest_path[0][0]
+                mover.y = shortest_path[0][1]
+                return True
+        return False
 
 
 def parse_map(area_map: str) -> Battle:
-    battle: Battle = Battle()
     lines = area_map.splitlines()
+    battle: Battle = Battle(len(lines[0]), len(lines))
     for y in range(len(lines)):
         for x in range(len(lines[y])):
             if lines[y][x] != "#":
@@ -131,15 +183,31 @@ def parse_map(area_map: str) -> Battle:
 
 
 def combat_score(battle: Battle) -> int:
-    #while True:
-    battle.units.sort()
-    for unit in battle.units:
-        if not battle.attack(unit):
-            if battle.move(unit):
-                battle.attack(unit)
-            else:
-                return "score"
+    rounds: int = 0
+    while True:
+        rounds += 1
+        battle.units.sort()
+        for unit in battle.units:
+            if not unit.dead:
+                if not battle.attack(unit):
+                    if battle.move(unit):
+                        battle.attack(unit)
+        print(rounds)
+        battle.print_map()
+        for u in battle.units:
+            if not u.dead:
+                print(u)
+        types_left: set[str] = set()
+        for unit in battle.units:
+            if not unit.dead:
+                types_left.add(unit.type)
+        if len(types_left) < 2:
+            score: int = 0
+            for u in battle.units:
+                if not u.dead:
+                    score += u.hp
+            return score * rounds
 
 
-battle = parse_map(input_raw)
-combat_score(battle)
+battle = parse_map(input_raw2)
+print(f"Part One: {combat_score(battle)}")
