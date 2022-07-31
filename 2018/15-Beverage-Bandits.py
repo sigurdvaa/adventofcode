@@ -105,9 +105,9 @@ class Battle:
                     if unit.x == attacker.x - 1 or unit.x == attacker.x + 1:
                         targets.append(unit)
         if len(targets):
-            targets.sort()
-            target: Unit = targets[0]
-            for t in reversed(targets):
+            targets.sort(reverse=True)
+            target: Unit = targets[-1]
+            for t in targets:
                 if t.hp <= target.hp:
                     target = t
             target.hp -= attacker.dmg
@@ -185,29 +185,34 @@ def parse_map(area_map: str) -> Battle:
 def combat_score(battle: Battle) -> int:
     rounds: int = 0
     while True:
-        rounds += 1
         battle.units.sort()
         for unit in battle.units:
             if not unit.dead:
                 if not battle.attack(unit):
                     if battle.move(unit):
                         battle.attack(unit)
-        print(rounds)
-        battle.print_map()
-        for u in battle.units:
-            if not u.dead:
-                print(u)
-        types_left: set[str] = set()
-        for unit in battle.units:
-            if not unit.dead:
-                types_left.add(unit.type)
-        if len(types_left) < 2:
-            score: int = 0
-            for u in battle.units:
-                if not u.dead:
-                    score += u.hp
-            return score * rounds
+                    else:
+                        target_remaining: bool = False
+                        for other_unit in battle.units:
+                            if not other_unit.dead and other_unit.type != unit.type:
+                                target_remaining = True
+                                break
+                        if not target_remaining:
+                            score: int = 0
+                            for u in battle.units:
+                                if not u.dead:
+                                    score += u.hp
+                            return score * rounds
+        rounds += 1
 
 
+#battle = parse_map(input_raw)
+#print(f"Part One: {combat_score(battle)}")
+battle = parse_map(input_raw1)
+print(f"27730: {combat_score(battle)}")
 battle = parse_map(input_raw2)
-print(f"Part One: {combat_score(battle)}")
+print(f"36334: {combat_score(battle)}")
+battle = parse_map(input_raw3)
+print(f"39514: {combat_score(battle)}")
+#battle = parse_map(input_raw4)
+#print(f"18740: {combat_score(battle)}")
