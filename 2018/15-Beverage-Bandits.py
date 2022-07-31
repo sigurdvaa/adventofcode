@@ -36,10 +36,26 @@ input_raw4 = """#########
 #.....G.#
 #########"""
 
+input_raw5 = """#######
+#E.G#.#
+#.#G..#
+#G.#.G#
+#G..#.#
+#...E.#
+#######"""
+
+input_raw6 = """#######
+#.E...#
+#.#..G#
+#.###.#
+#E#G#G#
+#...#G#
+#######"""
+
 class Unit:
-    def __init__(self, x: int, y: int, typ: str):
+    def __init__(self, x: int, y: int, typ: str, dmg: int = 3):
         self.hp: int = 200
-        self.dmg: int = 3
+        self.dmg: int = dmg
         self.x: int = x
         self.y: int = y
         self.type: str = typ
@@ -54,9 +70,6 @@ class Unit:
         if self.y == other.y and self.x < other.x:
             return True
         return False
-
-    def loc(self) -> tuple[int, int]:
-        return (self.x, self.y)
 
 
 class State:
@@ -83,7 +96,7 @@ class Battle:
                 if curr_loc in unit_locs:
                     printed = False
                     for u in self.units:
-                        if not u.dead and curr_loc == u.loc():
+                        if not u.dead and curr_loc == (u.x, u.y):
                             printed = True
                             print(u.type, end="")
                     if not printed:
@@ -123,24 +136,36 @@ class Battle:
         loc4 = (state.path[-1][0], state.path[-1][1] + 1)
         for loc in [loc1, loc2, loc3, loc4]:
             if loc in state.options:
-                next_options = state.options.copy()
-                next_options.remove(loc)
+                state.options.remove(loc)
                 next_path = state.path.copy()
                 next_path.append(loc)
-                yield State(next_options, next_path)
+                yield State(state.options, next_path)
 
     def shortest_path(self, src: Unit, targets: set[tuple[int, int]], unit_locs: set[tuple[int, int]]) -> tuple[int, int]:
         options = self.area.copy()
         for loc in unit_locs:
             options.remove(loc)
-        state: State = State(options, [src.loc()])
+        state: State = State(options, [(src.x, src.y)])
         states: list[State] = [state]
+        reachable: list[State] = []
         while len(states):
             state = states.pop(0)
+            if len(reachable):
+                if len(state.path) > len(reachable[0]):
+                    break
+            if state.path[-1] in targets:
+                reachable.append(state.path)
             for next_state in self.next_states(state):
-                if next_state.path[-1] in targets:
-                    return next_state.path[1:]
                 states.append(next_state)
+
+        if len(reachable):
+            chosen = reachable[0]
+            for path in reachable:
+                if path[-1][1] < chosen[-1][1]:
+                    chosen = path
+                elif path[-1][1] == chosen[-1][1] and path[-1][0] < chosen[-1][0]:
+                    chosen = path
+            return chosen[1]
 
         return []
 
@@ -153,24 +178,24 @@ class Battle:
         in_range: set[tuple[int, int]] = set()
         for unit in self.units:
             if not unit.dead and unit != mover and unit.type != mover.type:
-                for i in range(-1, 2, 2):
-                    loc1 = (unit.x, unit.y + i)
-                    loc2 = (unit.x + i, unit.y)
-                    if loc1 in self.area and loc1 not in unit_locs:
-                        in_range.add(loc1)
-                    if loc2 in self.area and loc2 not in unit_locs:
-                        in_range.add(loc2)
+                loc1 = (unit.x, unit.y - 1)
+                loc2 = (unit.x - 1, unit.y)
+                loc3 = (unit.x + 1, unit.y)
+                loc4 = (unit.x, unit.y + 1)
+                for loc in [loc1, loc2, loc3, loc4]:
+                    if loc in self.area and loc not in unit_locs:
+                        in_range.add(loc)
 
         if len(in_range):
             shortest_path = self.shortest_path(mover, in_range, unit_locs)
             if len(shortest_path):
-                mover.x = shortest_path[0][0]
-                mover.y = shortest_path[0][1]
+                mover.x = shortest_path[0]
+                mover.y = shortest_path[1]
                 return True
         return False
 
 
-def parse_map(area_map: str) -> Battle:
+def parse_map(area_map: str, elf_dmg: int = 3) -> Battle:
     lines = area_map.splitlines()
     battle: Battle = Battle(len(lines[0]), len(lines))
     for y in range(len(lines)):
@@ -178,19 +203,32 @@ def parse_map(area_map: str) -> Battle:
             if lines[y][x] != "#":
                 battle.area.add((x,y))
                 if lines[y][x] != ".":
-                    battle.units.append(Unit(x, y, lines[y][x]))
+                    if lines[y][x] == "E":
+                        battle.units.append(Unit(x, y, lines[y][x], elf_dmg))
+                    else:
+                        battle.units.append(Unit(x, y, lines[y][x]))
     return battle
 
 
-def combat_score(battle: Battle) -> int:
+def combat_score(battle_map: str, elf_dmg: int = 3, no_elf_death: bool = False) -> int:
+    battle: Battle = parse_map(battle_map, elf_dmg)
     rounds: int = 0
     while True:
         battle.units.sort()
         for unit in battle.units:
             if not unit.dead:
-                if not battle.attack(unit):
+                if battle.attack(unit):
+                    if no_elf_death:
+                        for other_unit in battle.units:
+                            if other_unit.dead and other_unit.type == "E":
+                                return 0
+                else:
                     if battle.move(unit):
-                        battle.attack(unit)
+                        if battle.attack(unit):
+                            if no_elf_death:
+                                for other_unit in battle.units:
+                                    if other_unit.dead and other_unit.type == "E":
+                                        return 0
                     else:
                         target_remaining: bool = False
                         for other_unit in battle.units:
@@ -206,13 +244,15 @@ def combat_score(battle: Battle) -> int:
         rounds += 1
 
 
-#battle = parse_map(input_raw)
-#print(f"Part One: {combat_score(battle)}")
-battle = parse_map(input_raw1)
-print(f"27730: {combat_score(battle)}")
-battle = parse_map(input_raw2)
-print(f"36334: {combat_score(battle)}")
-battle = parse_map(input_raw3)
-print(f"39514: {combat_score(battle)}")
-#battle = parse_map(input_raw4)
-#print(f"18740: {combat_score(battle)}")
+def elves_no_loss(battle_map: str) -> int:
+    elf_dmg: int = 4
+    while elf_dmg < 201:
+        score = combat_score(battle_map, elf_dmg, no_elf_death=True)
+        if score > 0:
+            return score
+        elf_dmg += 1
+    return 0
+
+
+print(f"Part One: {combat_score(input_raw)}")
+print(f"Part Two: {elves_no_loss(input_raw)}")
