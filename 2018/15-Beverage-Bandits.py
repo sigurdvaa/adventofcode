@@ -27,6 +27,16 @@ class State:
         self.options: set[tuple[int, int]] = options
         self.path: list[tuple[int, int]] = path
 
+    def __lt__(self, other) -> bool:
+        if self.path[-1][1] < other.path[-1][1]:
+            return True
+        if (
+            self.path[-1][1] == other.path[-1][1]
+            and self.path[-1][0] < other.path[-1][0]
+        ):
+            return True
+        return False
+
 
 class Battle:
     def __init__(self, x_max: int, y_max: int):
@@ -110,26 +120,22 @@ class Battle:
         while len(states):
             state = states.pop(0)
             if len(reachable):
-                if len(state.path) > len(reachable[0]):
+                if len(state.path) > len(reachable[0].path):
                     break
             if state.path[-1] in targets:
-                reachable.append(state.path)
-            for next_state in self.next_states(state):
-                states.append(next_state)
+                reachable.append(state)
+            else:
+                for next_state in self.next_states(state):
+                    states.append(next_state)
 
         if len(reachable):
-            chosen = reachable[0]
-            for path in reachable:
-                if path[-1][1] < chosen[-1][1]:
-                    chosen = path
-                elif path[-1][1] == chosen[-1][1] and path[-1][0] < chosen[-1][0]:
-                    chosen = path
-            return chosen[1]
+            reachable.sort()
+            return reachable[0].path[1]
 
         return []
 
     def move(self, mover: Unit) -> bool:
-        in_range: set[tuple[int, int]] = set()
+        targets: set[tuple[int, int]] = set()
         for unit in self.units:
             if not unit.dead and unit != mover and unit.type != mover.type:
                 locs = [
@@ -140,10 +146,10 @@ class Battle:
                 ]
                 for loc in locs:
                     if loc in self.area and loc not in self.unit_locs:
-                        in_range.add(loc)
+                        targets.add(loc)
 
-        if len(in_range):
-            shortest_path = self.shortest_path(mover, in_range)
+        if len(targets):
+            shortest_path = self.shortest_path(mover, targets)
             if len(shortest_path):
                 self.unit_locs.remove((mover.x, mover.y))
                 mover.x = shortest_path[0]
@@ -174,26 +180,21 @@ def combat_score(battle_map: str, elf_dmg: int = 3, no_elf_death: bool = False) 
     while True:
         battle.units.sort()
         for unit in battle.units:
-            if not unit.dead:
-                if not battle.attack(unit):
-                    if battle.move(unit):
-                        battle.attack(unit)
-                    else:
-                        target_remaining: bool = False
-                        for other_unit in battle.units:
-                            if not other_unit.dead and other_unit.type != unit.type:
-                                target_remaining = True
-                                break
-                        if not target_remaining:
-                            score: int = 0
-                            for u in battle.units:
-                                if not u.dead:
-                                    score += u.hp
-                            return score * rounds
-                if no_elf_death:
+            if not unit.dead and not battle.attack(unit):
+                if battle.move(unit):
+                    battle.attack(unit)
+                else:
+                    target_remaining: bool = False
                     for other_unit in battle.units:
-                        if other_unit.dead and other_unit.type == "E":
-                            return 0
+                        if not other_unit.dead and other_unit.type != unit.type:
+                            target_remaining = True
+                            break
+                    if not target_remaining:
+                        return sum(u.hp for u in battle.units if not u.dead) * rounds
+            if no_elf_death:
+                for other_unit in battle.units:
+                    if other_unit.dead and other_unit.type == "E":
+                        return 0
         rounds += 1
 
 
@@ -209,22 +210,3 @@ def elves_no_loss(battle_map: str) -> int:
 
 print(f"Part One: {combat_score(input_raw)}")
 print(f"Part Two: {elves_no_loss(input_raw)}")
-
-input_raw = """#######
-#.G...#
-#...EG#
-#.#.#G#
-#..G#E#
-#.....#
-#######"""
-assert 27730 == combat_score(input_raw)
-assert 4988 == elves_no_loss(input_raw)
-input_raw = """#######
-#E..EG#
-#.#G.E#
-#E.##E#
-#G..#.#
-#..E#.#
-#######"""
-assert 39514 == combat_score(input_raw)
-assert 31284 == elves_no_loss(input_raw)
