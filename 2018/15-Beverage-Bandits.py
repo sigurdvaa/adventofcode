@@ -2,56 +2,6 @@ with open("15_input.txt", "r") as fp:
     input_raw = fp.read()
 
 
-input_raw1 = """#######
-#.G...#
-#...EG#
-#.#.#G#
-#..G#E#
-#.....#
-#######"""
-
-input_raw2 = """#######
-#G..#E#
-#E#E.E#
-#G.##.#
-#...#E#
-#...E.#
-#######"""
-
-input_raw3 = """#######
-#E..EG#
-#.#G.E#
-#E.##E#
-#G..#.#
-#..E#.#
-#######"""
-
-input_raw4 = """#########
-#G......#
-#.E.#...#
-#..##..G#
-#...##..#
-#...#...#
-#.G...G.#
-#.....G.#
-#########"""
-
-input_raw5 = """#######
-#E.G#.#
-#.#G..#
-#G.#.G#
-#G..#.#
-#...E.#
-#######"""
-
-input_raw6 = """#######
-#.E...#
-#.#..G#
-#.###.#
-#E#G#G#
-#...#G#
-#######"""
-
 class Unit:
     def __init__(self, x: int, y: int, typ: str, dmg: int = 3):
         self.hp: int = 200
@@ -84,16 +34,14 @@ class Battle:
         self.units: list[Unit] = []
         self.x_max = x_max
         self.y_max = y_max
+        self.unit_locs: set[tuple[int, int]] = set()
 
     def print_map(self):
         print("-"*5, "Battle map", "-"*5)
-        unit_locs = set()
-        for u in self.units:
-            unit_locs.add((u.x, u.y))
         for y in range(self.y_max):
             for x in range(self.x_max):
                 curr_loc = (x, y)
-                if curr_loc in unit_locs:
+                if curr_loc in self.unit_locs:
                     printed = False
                     for u in self.units:
                         if not u.dead and curr_loc == (u.x, u.y):
@@ -106,6 +54,10 @@ class Battle:
                 else:
                     print("#", end="")
             print()
+
+    def add_unit(self, unit: Unit):
+        self.units.append(unit)
+        self.unit_locs.add((unit.x, unit.y))
 
     def attack(self, attacker: Unit) -> bool:
         targets: list[Unit] = []
@@ -126,6 +78,7 @@ class Battle:
             target.hp -= attacker.dmg
             if target.hp < 1:
                 target.dead = True
+                self.unit_locs.remove((target.x, target.y))
             return True
         return False
 
@@ -141,9 +94,9 @@ class Battle:
                 next_path.append(loc)
                 yield State(state.options, next_path)
 
-    def shortest_path(self, src: Unit, targets: set[tuple[int, int]], unit_locs: set[tuple[int, int]]) -> tuple[int, int]:
+    def shortest_path(self, src: Unit, targets: set[tuple[int, int]]) -> tuple[int, int]:
         options = self.area.copy()
-        for loc in unit_locs:
+        for loc in self.unit_locs:
             options.remove(loc)
         state: State = State(options, [(src.x, src.y)])
         states: list[State] = [state]
@@ -170,11 +123,6 @@ class Battle:
         return []
 
     def move(self, mover: Unit) -> bool:
-        unit_locs: set[tuple[int, int]] = set()
-        for unit in self.units:
-            if not unit.dead:
-                unit_locs.add((unit.x, unit.y))
-
         in_range: set[tuple[int, int]] = set()
         for unit in self.units:
             if not unit.dead and unit != mover and unit.type != mover.type:
@@ -183,14 +131,16 @@ class Battle:
                 loc3 = (unit.x + 1, unit.y)
                 loc4 = (unit.x, unit.y + 1)
                 for loc in [loc1, loc2, loc3, loc4]:
-                    if loc in self.area and loc not in unit_locs:
+                    if loc in self.area and loc not in self.unit_locs:
                         in_range.add(loc)
 
         if len(in_range):
-            shortest_path = self.shortest_path(mover, in_range, unit_locs)
+            shortest_path = self.shortest_path(mover, in_range)
             if len(shortest_path):
+                self.unit_locs.remove((mover.x, mover.y))
                 mover.x = shortest_path[0]
                 mover.y = shortest_path[1]
+                self.unit_locs.add((mover.x, mover.y))
                 return True
         return False
 
@@ -204,9 +154,9 @@ def parse_map(area_map: str, elf_dmg: int = 3) -> Battle:
                 battle.area.add((x,y))
                 if lines[y][x] != ".":
                     if lines[y][x] == "E":
-                        battle.units.append(Unit(x, y, lines[y][x], elf_dmg))
+                        battle.add_unit(Unit(x, y, lines[y][x], elf_dmg))
                     else:
-                        battle.units.append(Unit(x, y, lines[y][x]))
+                        battle.add_unit(Unit(x, y, lines[y][x]))
     return battle
 
 
@@ -217,12 +167,7 @@ def combat_score(battle_map: str, elf_dmg: int = 3, no_elf_death: bool = False) 
         battle.units.sort()
         for unit in battle.units:
             if not unit.dead:
-                if battle.attack(unit):
-                    if no_elf_death:
-                        for other_unit in battle.units:
-                            if other_unit.dead and other_unit.type == "E":
-                                return 0
-                else:
+                if not battle.attack(unit):
                     if battle.move(unit):
                         if battle.attack(unit):
                             if no_elf_death:
