@@ -30,14 +30,14 @@ class State:
 
 class Battle:
     def __init__(self, x_max: int, y_max: int):
+        self.unit_locs: set[tuple[int, int]] = set()
         self.area: set[tuple[int, int]] = set()
         self.units: list[Unit] = []
         self.x_max = x_max
         self.y_max = y_max
-        self.unit_locs: set[tuple[int, int]] = set()
 
     def print_map(self):
-        print("-"*5, "Battle map", "-"*5)
+        print("-" * 5, "Battle map", "-" * 5)
         for y in range(self.y_max):
             for x in range(self.x_max):
                 curr_loc = (x, y)
@@ -83,23 +83,29 @@ class Battle:
         return False
 
     def next_states(self, state: State) -> State:
-        loc1 = (state.path[-1][0], state.path[-1][1] - 1)
-        loc2 = (state.path[-1][0] - 1, state.path[-1][1])
-        loc3 = (state.path[-1][0] + 1, state.path[-1][1])
-        loc4 = (state.path[-1][0], state.path[-1][1] + 1)
-        for loc in [loc1, loc2, loc3, loc4]:
+        next_locs = [
+            (state.path[-1][0], state.path[-1][1] - 1),
+            (state.path[-1][0] - 1, state.path[-1][1]),
+            (state.path[-1][0] + 1, state.path[-1][1]),
+            (state.path[-1][0], state.path[-1][1] + 1),
+        ]
+        for loc in next_locs:
             if loc in state.options:
                 state.options.remove(loc)
                 next_path = state.path.copy()
                 next_path.append(loc)
                 yield State(state.options, next_path)
 
-    def shortest_path(self, src: Unit, targets: set[tuple[int, int]]) -> tuple[int, int]:
+    def shortest_path(
+        self, src: Unit, targets: set[tuple[int, int]]
+    ) -> tuple[int, int]:
+
         options = self.area.copy()
         for loc in self.unit_locs:
             options.remove(loc)
         state: State = State(options, [(src.x, src.y)])
         states: list[State] = [state]
+
         reachable: list[State] = []
         while len(states):
             state = states.pop(0)
@@ -126,11 +132,13 @@ class Battle:
         in_range: set[tuple[int, int]] = set()
         for unit in self.units:
             if not unit.dead and unit != mover and unit.type != mover.type:
-                loc1 = (unit.x, unit.y - 1)
-                loc2 = (unit.x - 1, unit.y)
-                loc3 = (unit.x + 1, unit.y)
-                loc4 = (unit.x, unit.y + 1)
-                for loc in [loc1, loc2, loc3, loc4]:
+                locs = [
+                    (unit.x, unit.y - 1),
+                    (unit.x - 1, unit.y),
+                    (unit.x + 1, unit.y),
+                    (unit.x, unit.y + 1),
+                ]
+                for loc in locs:
                     if loc in self.area and loc not in self.unit_locs:
                         in_range.add(loc)
 
@@ -151,7 +159,7 @@ def parse_map(area_map: str, elf_dmg: int = 3) -> Battle:
     for y in range(len(lines)):
         for x in range(len(lines[y])):
             if lines[y][x] != "#":
-                battle.area.add((x,y))
+                battle.area.add((x, y))
                 if lines[y][x] != ".":
                     if lines[y][x] == "E":
                         battle.add_unit(Unit(x, y, lines[y][x], elf_dmg))
@@ -169,11 +177,7 @@ def combat_score(battle_map: str, elf_dmg: int = 3, no_elf_death: bool = False) 
             if not unit.dead:
                 if not battle.attack(unit):
                     if battle.move(unit):
-                        if battle.attack(unit):
-                            if no_elf_death:
-                                for other_unit in battle.units:
-                                    if other_unit.dead and other_unit.type == "E":
-                                        return 0
+                        battle.attack(unit)
                     else:
                         target_remaining: bool = False
                         for other_unit in battle.units:
@@ -186,6 +190,10 @@ def combat_score(battle_map: str, elf_dmg: int = 3, no_elf_death: bool = False) 
                                 if not u.dead:
                                     score += u.hp
                             return score * rounds
+                if no_elf_death:
+                    for other_unit in battle.units:
+                        if other_unit.dead and other_unit.type == "E":
+                            return 0
         rounds += 1
 
 
@@ -201,3 +209,22 @@ def elves_no_loss(battle_map: str) -> int:
 
 print(f"Part One: {combat_score(input_raw)}")
 print(f"Part Two: {elves_no_loss(input_raw)}")
+
+input_raw = """#######
+#.G...#
+#...EG#
+#.#.#G#
+#..G#E#
+#.....#
+#######"""
+assert 27730 == combat_score(input_raw)
+assert 4988 == elves_no_loss(input_raw)
+input_raw = """#######
+#E..EG#
+#.#G.E#
+#E.##E#
+#G..#.#
+#..E#.#
+#######"""
+assert 39514 == combat_score(input_raw)
+assert 31284 == elves_no_loss(input_raw)
