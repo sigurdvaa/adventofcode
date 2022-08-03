@@ -20,7 +20,8 @@ class Opcode:
         regs[ins[3]] = self.op(regs, ins)
 
     def add_id(self, idx: int):
-        self.ids.add(idx)
+        if not idx in self.ids:
+            self.ids.add(idx)
 
     def remove_id(self, idx: int) -> bool:
         if idx in self.ids:
@@ -45,7 +46,7 @@ class Sample:
         return f"ins: {self.ins}, before: {self.before}, after: {self.after}"
 
 
-def parse_input(string: str) -> list[Sample]:
+def parse_input(string: str) -> tuple[list[Sample], list[tuple[int]]]:
     samples: list[Sample] = []
     test_prog: list[tuple[int]] = []
     lines: list[str] = string.splitlines()
@@ -74,14 +75,14 @@ def samples_matching_opcodes(
 ) -> int:
     matches: int = 0
     for sample in samples:
-        after_match: int = 0
+        op_match: int = 0
         for op in ops:
             after = sample.before.copy()
             op.exec(after, sample.ins)
             if after == sample.after:
-                after_match += 1
+                op_match += 1
                 op.add_id(sample.ins[0])
-        if after_match >= threshold:
+        if op_match >= threshold:
             matches += 1
             continue
     return matches
@@ -92,10 +93,11 @@ def find_opcode_id(ops: list[Opcode]):
     while change:
         change = False
         for op in ops:
-            if op.get_id() != -1:
+            op_id = op.get_id()
+            if op_id != -1:
                 for other in ops:
                     if op != other:
-                        if other.remove_id(op.get_id()):
+                        if other.remove_id(op_id):
                             change = True
     ops.sort()
 
