@@ -16,9 +16,8 @@ class Opcode:
     def __repr__(self) -> str:
         return f"{self.name}: {self.ids}"
 
-    def exec(self, regs: list[int], ins: list[int]) -> list[int]:
+    def exec(self, regs: list[int], ins: list[int]):
         regs[ins[3]] = self.op(regs, ins)
-        return regs
 
     def add_id(self, idx: int):
         self.ids.add(idx)
@@ -77,7 +76,9 @@ def samples_matching_opcodes(
     for sample in samples:
         after_match: int = 0
         for op in ops:
-            if sample.after == op.exec(sample.before.copy(), sample.ins):
+            after = sample.before.copy()
+            op.exec(after, sample.ins)
+            if after == sample.after:
                 after_match += 1
                 op.add_id(sample.ins[0])
         if after_match >= threshold:
