@@ -1,7 +1,7 @@
 with open("17_input.txt", "r") as fp:
     input_raw = fp.read()
 
-input_raw = """x=495, y=2..7
+input_test = """x=495, y=2..7
 y=7, x=495..501
 x=501, y=3..7
 x=498, y=2..4
@@ -27,4 +27,48 @@ def parse_scan(string: str) -> set[tuple[int]]:
     return scan
 
 
-print(parse_scan(input_raw))
+def flow_side(flow, y_limit, clay, reached, step):
+    next_flow = (flow[-1][0] + step, flow[-1][1])
+    if next_flow in clay or next_flow in reached:
+        return len(flow) - 1, 0
+
+    flow.append(next_flow)
+    reached.add(next_flow)
+
+    down_flow = (next_flow[0], next_flow[1] + 1)
+    if down_flow in clay or down_flow in reached:
+        return flow_side(flow, y_limit, clay, reached, step)
+    return len(flow) - 1, flow_down([next_flow], y_limit, clay, reached)
+
+
+def flow_down(flow, y_limit, clay, reached=None):
+    if reached == None:
+        reached = set()
+    next_flow = (flow[-1][0], flow[-1][1] + 1)
+    if next_flow[1] > y_limit:
+        return len(flow) - 1
+    if next_flow in clay or next_flow in reached:
+        i = len(flow) - 1
+        sides = 0
+        while i >= 0:
+            left, left_down = flow_side([flow[i]], y_limit, clay, reached, -1)
+            right, right_down = flow_side([flow[i]], y_limit, clay, reached, 1)
+            sides += left + left_down + right + right_down
+            if left_down + right_down != 0:
+                break
+            i -= 1
+        return len(flow) - 1 + sides
+    flow.append(next_flow)
+    reached.add(next_flow)
+    return flow_down(flow, y_limit, clay, reached)
+
+
+clay: set[tuple[int]] = parse_scan(input_raw)
+y_limit: int = max(clay, key=lambda x: x[1])[1]
+print(f"Part One: {flow_down([(500, 0)], y_limit, clay)}")
+
+clay: set[tuple[int]] = parse_scan(input_test)
+y_limit: int = max(clay, key=lambda x: x[1])[1]
+print(f"Test (57): {flow_down([(500, 0)], y_limit, clay)}")
+
+# 957 low
