@@ -1,4 +1,4 @@
-from typing import Iterator
+from typing import Iterator, Union
 
 with open("15_input.txt", "r") as fp:
     input_raw = fp.read()
@@ -110,7 +110,7 @@ class Battle:
 
     def shortest_path(
         self, src: Unit, targets: set[tuple[int, int]]
-    ) -> tuple[int, int]:
+    ) -> Union[tuple[int, int], tuple]:
 
         options = self.area.copy()
         for loc in self.unit_locs:
@@ -134,7 +134,7 @@ class Battle:
             reachable.sort()
             return reachable[0].path[1]
 
-        return []
+        return tuple()
 
     def move(self, mover: Unit) -> bool:
         targets: set[tuple[int, int]] = set()
