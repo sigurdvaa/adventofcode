@@ -7,7 +7,7 @@ class Cart:
     dir_track: list[str] = ["|", "-", "-", "|"]
     dir_int: list[tuple[int, int]] = [(0, -1), (1, 0), (0, 1), (-1, 0)]
 
-    def __init__(self, x: int, y: int, d: str):
+    def __init__(self, x: int, y: int, d: int):
         self.x: int = x
         self.y: int = y
         self.d: int = d
@@ -60,7 +60,7 @@ def find_and_replace_carts(tracks: list[list[str]]) -> list[Cart]:
     for y in range(len(tracks)):
         for x in range(len(tracks[y])):
             if tracks[y][x] in Cart.dir_str:
-                dir_index = Cart.dir_str.index(tracks[y][x])
+                dir_index: int = Cart.dir_str.index(tracks[y][x])
                 carts.append(Cart(x, y, dir_index))
                 tracks[y][x] = Cart.dir_track[dir_index]
     return carts
