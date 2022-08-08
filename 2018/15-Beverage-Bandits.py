@@ -1,3 +1,5 @@
+from typing import Iterator
+
 with open("15_input.txt", "r") as fp:
     input_raw = fp.read()
 
@@ -92,7 +94,7 @@ class Battle:
             return True
         return False
 
-    def next_states(self, state: State) -> State:
+    def next_states(self, state: State) -> Iterator[State]:
         next_locs = [
             (state.path[-1][0], state.path[-1][1] - 1),
             (state.path[-1][0] - 1, state.path[-1][1]),
