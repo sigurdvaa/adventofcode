@@ -1,3 +1,6 @@
+from typing import Callable
+
+
 with open("16_input.txt", "r") as fp:
     input_raw = fp.read()
 
@@ -5,9 +8,9 @@ with open("16_input.txt", "r") as fp:
 class Opcode:
     ops: list["Opcode"] = []
 
-    def __init__(self, name: str, op: "lambda"):
+    def __init__(self, name: str, op: Callable):
         self.name: str = name
-        self.op: "lambda" = op
+        self.op: Callable = op
         self.ids: set[int] = set()
 
     def __lt__(self, other) -> bool:
@@ -46,9 +49,9 @@ class Sample:
         return f"ins: {self.ins}, before: {self.before}, after: {self.after}"
 
 
-def parse_input(string: str) -> tuple[list[Sample], list[tuple[int]]]:
+def parse_input(string: str) -> tuple[list[Sample], list[list[int]]]:
     samples: list[Sample] = []
-    test_prog: list[tuple[int]] = []
+    test_prog: list[list[int]] = []
     lines: list[str] = string.splitlines()
     i: int = 0
     while lines[i].startswith("Before: "):
@@ -63,7 +66,7 @@ def parse_input(string: str) -> tuple[list[Sample], list[tuple[int]]]:
 
     i += 2
     while i < len(lines):
-        ins = tuple(map(int, lines[i].split()))
+        ins = list(map(int, lines[i].split()))
         test_prog.append(ins)
         i += 1
 
@@ -102,7 +105,7 @@ def find_opcode_id(ops: list[Opcode]):
     ops.sort()
 
 
-def run_test(ops: list[Opcode], ins: list[tuple[int]]) -> int:
+def run_test(ops: list[Opcode], ins: list[list[int]]) -> int:
     find_opcode_id(ops)
     regs = [0, 0, 0, 0]
     for i in ins:
