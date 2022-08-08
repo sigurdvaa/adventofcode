@@ -23,12 +23,7 @@ def parse_scan(string: str) -> Points:
 
 
 def flow_side(
-    stream: Stream,
-    y_max: int,
-    clay: Points,
-    flow: Points,
-    pool: Points,
-    step: int,
+    stream: Stream, y_max: int, clay: Points, flow: Points, pool: Points, step: int
 ) -> tuple[Stream, bool]:
     next_side: Point = (stream[-1][0] + step, stream[-1][1])
     while next_side not in clay:
