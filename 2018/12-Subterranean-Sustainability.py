@@ -11,7 +11,7 @@ def parse_combos(strings: list[str]) -> dict[str, str]:
 
 
 def pot_gens(state: str, combos: dict[str, str], target_gen: int) -> int:
-    states: dict[str, str] = {}
+    states: dict[str, tuple[str, int]] = {}
     zero_index: int = 0
     while state[:3] != "...":
         state = "." + state
@@ -22,11 +22,11 @@ def pot_gens(state: str, combos: dict[str, str], target_gen: int) -> int:
     gen: int = 0
     while gen < target_gen:
         if state in states:
-            next_state, zero_index_diff = states[state]
-            if state == next_state:
+            seen_state, zero_index_diff = states[state]
+            if state == seen_state:
                 zero_index += zero_index_diff * (target_gen - gen)
                 break
-            state = next_state
+            state = seen_state
             zero_index += zero_index_diff
         else:
             prev_zero_index = zero_index
