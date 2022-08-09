@@ -1,5 +1,7 @@
 from collections import namedtuple
 
+Subgrid: tuple[int, int, int, int] = namedtuple("Subgrid", ["x", "y", "size", "power"])
+
 
 def calc_power_level(x: int, y: int, serial: int) -> int:
     power: int = 0
@@ -31,18 +33,16 @@ def get_coord_power(serial: int, grid: int, xindexed: bool = False) -> list[list
 
 def largest_subgrid_power(
     serial: int, subgrid: int = 0, grid: int = 300
-) -> tuple[int, int, int, int]:
+) -> Subgrid:
     coord_power_yindexed = get_coord_power(serial, grid)
     coord_power_xindexed = get_coord_power(serial, grid, xindexed=True)
     subgrid_power = [[0] * grid for _ in range(grid)]
 
-    Subgrid = namedtuple("Subgrid", ["x", "y", "size", "power"])
     max_subgrid = Subgrid(0, 0, 0, 0)
 
+    sub_end: int = grid
     if subgrid > 0:
-        sub_end: int = subgrid
-    else:
-        sub_end: int = grid
+        sub_end = subgrid
 
     for sub in range(sub_end):
         for y in range(grid - sub):
