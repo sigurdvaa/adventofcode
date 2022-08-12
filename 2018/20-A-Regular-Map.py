@@ -2,25 +2,6 @@ with open("20_input.txt", "r") as fp:
     input_raw = fp.read().strip()
 
 
-def expand_pattern(pattern: str) -> set[str]:
-    paths: set[str] = set([pattern[1:-1]])
-    while True:
-        print(len(paths))
-        expand: bool = False
-        new_paths: set[str] = set()
-        for p in paths:
-            exp_end = p.find(")")
-            if exp_end > -1:
-                expand = True
-                exp_start = p[:exp_end].rfind("(")
-                for s in p[exp_start + 1:exp_end].split("|"):
-                    new_paths.add(p[:exp_start] + s + p[exp_end + 1:])
-        if not expand:
-            break
-        paths = new_paths
-    return paths
-
-
 def expand_longest_path(pattern: str) -> int:
     pattern = pattern[1:-1]
     exp_end: int = pattern.find(")")
@@ -34,7 +15,6 @@ def expand_longest_path(pattern: str) -> int:
         pattern = pattern[:exp_start] + replace + pattern[exp_end + 1:]
         exp_end = pattern.find(")")
     return len(pattern)
-
 
 
 input_test1 = "^WNE$"
