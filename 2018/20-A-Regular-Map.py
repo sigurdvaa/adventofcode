@@ -7,12 +7,12 @@ def expand_longest_path(pattern: str) -> int:
     exp_end: int = pattern.find(")")
     while exp_end != -1:
         exp_start = pattern[:exp_end].rfind("(")
-        split = pattern[exp_start + 1:exp_end].split("|")
+        split = pattern[exp_start + 1 : exp_end].split("|")
         split.sort(key=len)
         replace: str = ""
         if split[0] != "":
             replace = split[-1]
-        pattern = pattern[:exp_start] + replace + pattern[exp_end + 1:]
+        pattern = pattern[:exp_start] + replace + pattern[exp_end + 1 :]
         exp_end = pattern.find(")")
     return len(pattern)
 
