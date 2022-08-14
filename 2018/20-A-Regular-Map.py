@@ -17,13 +17,12 @@ def expand_longest_path(pattern: str) -> int:
     return len(pattern)
 
 
-def rooms_over_min_dist(pattern: str, min_dist: int):
+def rooms_over_min_dist(pattern: str, min_dist: int) -> int:
     Loc = tuple[int, int]
-    heads: list[tuple[int, Loc]] = []
-    loc: Loc = (0, 0)
+    heads: list[tuple[int, Loc]] = [(0, (0, 0))]
+    dist, loc = heads.pop()
     rooms: set[Loc] = set([loc])
     rooms_min_dist: int = 0
-    dist: int = 0
     i: int = 0
     for c in pattern:
         if c in "NSWE":
