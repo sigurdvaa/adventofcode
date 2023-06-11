@@ -51,5 +51,5 @@ opcode: dict[str, Callable] = {
 }
 ip, prog = parse_prog(input_raw)
 
-regs: list[int] = [0, 0, 0, 0, 0, 0]
+regs: list[int] = [1, 0, 0, 0, 0, 0]
 print(f"Part One: {run_prog(opcode, regs, ip, prog)}")
