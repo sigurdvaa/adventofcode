@@ -23,11 +23,16 @@ def run_prog(
     prog: list[Ins],
 ) -> int:
     prog_len = len(prog)
+    seen = []
     while regs[ipx] < prog_len:
         ins = prog[regs[ipx]]
         regs[ins[3]] = opcode[ins[0]](regs, ins)
         regs[ipx] += 1
-        print(regs)
+        if ins[0] == "eqrr":
+            if not regs[ins[1]] in seen:
+                seen.append(regs[ins[1]])
+            else:
+                return seen[0], seen[-1]
     return regs[0]
 
 
@@ -51,5 +56,7 @@ opcode: dict[str, Callable] = {
 }
 ip, prog = parse_prog(input_raw)
 
-regs: list[int] = [1, 0, 0, 0, 0, 0]
-print(f"Part One: {run_prog(opcode, regs, ip, prog)}")
+regs: list[int] = [0, 0, 0, 0, 0, 0]
+vals = run_prog(opcode, regs, ip, prog)
+print(f"Part One: {vals[0]}")
+print(f"Part Two: {vals[1]}")
