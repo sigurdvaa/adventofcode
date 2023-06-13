@@ -68,4 +68,5 @@ assert area_risk(depth, target) == 114
 
 depth = 8112
 target = Point(13, 743)
+print(f"Part One: {area_risk(depth, target)}")
 # priority queue?
