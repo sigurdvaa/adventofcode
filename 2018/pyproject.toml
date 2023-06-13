@@ -3,9 +3,8 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "adventofcode"
+name = "adventofcode_2018"
 version = "0.1.0"
-readme = "README.md"
 dependencies = [
   "black",
   "mypy",
@@ -20,6 +19,7 @@ strict = true
 
 [tool.ruff]
 line-length = 99
+fix = true
 select = [
   "E",
   "F",
