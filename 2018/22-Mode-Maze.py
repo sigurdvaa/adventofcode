@@ -9,6 +9,12 @@ class Erosion(Enum):
     NARROW: int = 2
 
 
+class Equipment(Enum):
+    NONE: int = 0
+    CLIMBING_GEAR: int = 1
+    TORCH: int = 2
+
+
 @dataclass
 class Point:
     x: int
@@ -62,4 +68,4 @@ assert area_risk(depth, target) == 114
 
 depth = 8112
 target = Point(13, 743)
-print(f"Part One: {area_risk(depth, target)}")
+# priority queue?
