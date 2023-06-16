@@ -54,30 +54,7 @@ def bots_in_range(bots: list[Bot], source: Bot) -> int:
 
 
 def best_range(bots: list[Bot]) -> int:
-    max_x = max(bots, key=lambda i: i.p.x).p.x + 1
-    max_y = max(bots, key=lambda i: i.p.y).p.y + 1
-    max_z = max(bots, key=lambda i: i.p.z).p.z + 1
-    start = Pos(0, 0, 0)
-
-    best: tuple[int, int] = (0, 0)
-    for x in range(max_x):
-        for y in range(max_y):
-            for z in range(max_z):
-                p = Pos(x, y, z)
-                in_range = 0
-
-                for b in bots:
-                    d = p.distance(b.p)
-                    if d <= b.r:
-                        in_range += 1
-
-                if in_range > best[0]:
-                    best = (in_range, start.distance(p))
-                elif in_range == best[0]:
-                    if d < best[1]:
-                        best = (in_range, start.distance(p))
-
-    return best[1]
+    pass
 
 
 # test
@@ -112,4 +89,4 @@ with open("23_input.txt") as fp:
     input_raw = [x.strip() for x in fp.readlines()]
 bots = parse_bots(input_raw)
 print(f"Part One: {bots_in_range(bots, max(bots))}")
-print(f"Part Two: {best_range(bots)}")
+# print(f"Part Two: {best_range(bots)}")
