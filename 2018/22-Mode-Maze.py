@@ -25,6 +25,7 @@ class Point:
     time: int = 0
     equipped: Equipment = Equipment.TORCH
     r_type: Erosion = Erosion.ROCKY
+    switch: int = 0
 
     def __hash__(self) -> int:
         return hash((self.x, self.y, self.equipped))
@@ -45,7 +46,7 @@ class Point:
         return self.time > other.time
 
     def copy(self) -> Point:
-        return Point(self.x, self.y, self.time, self.equipped, self.r_type)
+        return Point(self.x, self.y, self.time, self.equipped, self.r_type, self.switch)
 
     def next_points(self, target: Point, depth: int) -> Iterator[Point]:
         points = []
@@ -59,24 +60,16 @@ class Point:
 
         for new in points:
             if new.x > -1 and new.y > -1:
+                new.time += 1
                 new.r_type = region_type(new, target, depth)
                 for item in Equipment:
                     out = new.copy()
                     out.equipped = item
                     if item != self.equipped:
-                        out.time += 8
-                    else:
-                        out.time += 1
+                        out.time += 7
+                        out.switch += 7
                     if out.valid_equipment(self):
                         yield out
-
-        for item in Equipment:
-            out = self.copy()
-            out.equipped = item
-            if item != self.equipped:
-                out.time += 7
-            if out.valid_equipment(self):
-                yield out
 
     def valid_equipment(self, prev: Point) -> bool:
         if self.equipped == Equipment.NONE:
@@ -195,7 +188,7 @@ class MinHeap:
 
 
 def fastest_time(depth: int, target: Point) -> int:
-    seen: set[Point] = set()
+    seen: dict[Point, Point] = {}
     minheap = MinHeap()
     minheap.insert(Point(0, 0))
     while minheap.length:
@@ -207,10 +200,10 @@ def fastest_time(depth: int, target: Point) -> int:
             return curr.time
 
         for new in curr.next_points(target, depth):
-            if new in seen:
+            if new in seen and new.time >= seen[new].time:
                 continue
             minheap.insert(new)
-            seen.add(new)
+            seen[new] = new
 
     return 0
 
@@ -224,14 +217,10 @@ assert region_type(Point(0, 1), target, depth) == Erosion.ROCKY
 assert region_type(Point(1, 1), target, depth) == Erosion.NARROW
 assert region_type(Point(10, 10), target, depth) == Erosion.ROCKY
 assert area_risk(depth, target) == 114
-print(fastest_time(depth, target))
-# assert fastest_time(depth, target) == 45
+assert fastest_time(depth, target) == 45
 
 
 depth = 8112
-target = Point(13, 743)
+target = Point(13, 743, equipped=Equipment.TORCH)
 print(f"Part One: {area_risk(depth, target)}")
-# print(f"Part Two: {fastest_time(depth, target)}")
-
-# 1064 high
-# 1038 high
+print(f"Part Two: {fastest_time(depth, target)}")
