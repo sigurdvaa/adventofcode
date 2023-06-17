@@ -54,7 +54,17 @@ def bots_in_range(bots: list[Bot], source: Bot) -> int:
 
 
 def best_range(bots: list[Bot]) -> int:
-    pass
+    in_range = {}
+    for b in bots:
+        num = bots_in_range(bots, b)
+        if num in in_range:
+            in_range[num].append(b)
+        else:
+            in_range[num] = [b]
+    n_max = max(in_range)
+    print(in_range)
+    bot = min(in_range[n_max], key=lambda x: Pos(0, 0, 0).distance(x.p))
+    return Pos(0, 0, 0).distance(bot.p) - bot.r
 
 
 # test
@@ -81,6 +91,7 @@ example2 = [
     "pos=<10,10,10>, r=5",
 ]
 bots = parse_bots(example2)
+print(best_range(bots))
 assert best_range(bots) == 36
 
 
