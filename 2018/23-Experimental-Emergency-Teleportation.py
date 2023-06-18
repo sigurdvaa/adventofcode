@@ -45,26 +45,56 @@ def parse_bots(lines: list[str]) -> list[Bot]:
     return bots
 
 
-def bots_in_range(bots: list[Bot], source: Bot) -> int:
-    in_range = 0
+def bots_in_range_of_bot(bots: list[Bot], source: Bot) -> int:
+    in_range = []
     for bot in bots:
         if bot.p.distance(source.p) <= source.r:
-            in_range += 1
+            in_range.append(bot)
+    return in_range
+
+
+def bots_in_range_of_pos(bots: list[Bot], pos: Pos) -> int:
+    in_range = []
+    for bot in bots:
+        if bot.p.distance(pos) <= bot.r:
+            in_range.append(bot)
     return in_range
 
 
 def best_range(bots: list[Bot]) -> int:
-    in_range = {}
+    s = Pos(0, 0, 0)
+    # biggest group
+    group = {}
     for b in bots:
-        num = bots_in_range(bots, b)
-        if num in in_range:
-            in_range[num].append(b)
+        in_range = bots_in_range_of_bot(bots, b)
+        if len(in_range) in group:
+            group[len(in_range)].append(in_range)
         else:
-            in_range[num] = [b]
-    n_max = max(in_range)
-    print(in_range)
-    bot = min(in_range[n_max], key=lambda x: Pos(0, 0, 0).distance(x.p))
-    return Pos(0, 0, 0).distance(bot.p) - bot.r
+            group[len(in_range)] = [in_range]
+    ds = {}
+    for g in group[max(group)]:
+        # bot with smallest range, coord must be within
+        smallest_r = min(g, key=lambda x: x.r).r
+        print(smallest_r)
+        smallest = [x for x in g if x.r == smallest_r]
+        for b in smallest:
+            seen = set()
+            # for x, y, z, check bot.p.distance in group,
+            for x in range(abs(b.p.x - b.r), abs(b.p.x + b.r + 1)):
+                for y in range(abs(b.p.y - b.r), abs(b.p.y + b.r + 1)):
+                    for z in range(abs(b.p.z - b.r), abs(b.p.z + b.r + 1)):
+                        # if d < b.r, in range
+                        p = Pos(x, y, z)
+                        d = s.distance(p)
+                        if d in seen:
+                            continue
+                        in_range = len(bots_in_range_of_pos(bots, p))
+                        if in_range in ds:
+                            if d < ds[in_range]:
+                                ds[in_range] = d
+                        else:
+                            ds[in_range] = d
+    return ds[max(ds)]
 
 
 # test
@@ -81,7 +111,7 @@ example1 = [
 ]
 bots = parse_bots(example1)
 assert len(bots) == 9
-assert bots_in_range(bots, max(bots)) == 7
+assert len(bots_in_range_of_bot(bots, max(bots))) == 7
 example2 = [
     "pos=<10,12,12>, r=2",
     "pos=<12,14,12>, r=2",
@@ -91,7 +121,6 @@ example2 = [
     "pos=<10,10,10>, r=5",
 ]
 bots = parse_bots(example2)
-print(best_range(bots))
 assert best_range(bots) == 36
 
 
@@ -99,5 +128,5 @@ assert best_range(bots) == 36
 with open("23_input.txt") as fp:
     input_raw = [x.strip() for x in fp.readlines()]
 bots = parse_bots(input_raw)
-print(f"Part One: {bots_in_range(bots, max(bots))}")
-# print(f"Part Two: {best_range(bots)}")
+print(f"Part One: {len(bots_in_range_of_bot(bots, max(bots)))}")
+print(f"Part Two: {best_range(bots)}")
