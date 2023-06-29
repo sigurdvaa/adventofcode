@@ -33,9 +33,12 @@ def parse_group(line: str) -> Group:
     dmg_type = split[-5]
     init = int(split[-1])
 
-    attr_start = line.index("(")
-    attr_end = line.index(")")
-    weak, immune = parse_attr(line[attr_start + 1 : attr_end])
+    if "(" in line:
+        attr_start = line.index("(")
+        attr_end = line.index(")")
+        weak, immune = parse_attr(line[attr_start + 1 : attr_end])
+    else:
+        weak, immune = [], []
 
     return Group(units, hp, dmg, dmg_type, init, weak, immune)
 
@@ -65,3 +68,4 @@ assert len(infection) == 2
 # answer
 with open("24_input.txt") as fp:
     input_raw = [x.strip() for x in fp.readlines()]
+immune_system, infection = parse_groups(input_raw)
