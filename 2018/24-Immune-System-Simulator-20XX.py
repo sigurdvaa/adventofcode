@@ -12,7 +12,7 @@ class Group:
     immune: list[str]
 
 
-def parse_attr(line: str) -> tuple[list[str], list[str]]:
+def parse_weakness_and_immune(line: str) -> tuple[list[str], list[str]]:
     weak = []
     immune = []
     split = line.split("; ")
@@ -36,14 +36,14 @@ def parse_group(line: str) -> Group:
     if "(" in line:
         attr_start = line.index("(")
         attr_end = line.index(")")
-        weak, immune = parse_attr(line[attr_start + 1 : attr_end])
+        weak, immune = parse_weakness_and_immune(line[attr_start + 1 : attr_end])
     else:
         weak, immune = [], []
 
     return Group(units, hp, dmg, dmg_type, init, weak, immune)
 
 
-def parse_groups(lines: list[str]) -> tuple[list[Group], list[Group]]:
+def parse_all_groups(lines: list[str]) -> tuple[list[Group], list[Group]]:
     immune_start = lines.index("Immune System:")
     infection_start = lines.index("Infection:")
     immune_system = []
@@ -60,7 +60,7 @@ def parse_groups(lines: list[str]) -> tuple[list[Group], list[Group]]:
 # test
 with open("24_test.txt") as fp:
     input_test = [x.strip() for x in fp.readlines()]
-immune_system, infection = parse_groups(input_test)
+immune_system, infection = parse_all_groups(input_test)
 assert len(immune_system) == 2
 assert len(infection) == 2
 
@@ -68,4 +68,4 @@ assert len(infection) == 2
 # answer
 with open("24_input.txt") as fp:
     input_raw = [x.strip() for x in fp.readlines()]
-immune_system, infection = parse_groups(input_raw)
+immune_system, infection = parse_all_groups(input_raw)
