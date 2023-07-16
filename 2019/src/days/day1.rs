@@ -1,4 +1,3 @@
-// The Tyranny of the Rocket Equation
 use std::fs;
 
 fn fuel_required(mass: u32) -> u32 {
