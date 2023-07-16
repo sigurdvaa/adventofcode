@@ -4,7 +4,7 @@ use std::fs;
 fn parse_path(wire_path: &str) -> HashMap<(i32, i32), i32> {
     let mut path = HashMap::new();
     let mut pos = (0, 0);
-    let mut i = 1;
+    let mut s = 1;
     for step in wire_path.split(",") {
         let d = step.chars().next().unwrap();
         let n = step[1..].parse::<usize>().unwrap();
@@ -17,8 +17,8 @@ fn parse_path(wire_path: &str) -> HashMap<(i32, i32), i32> {
         };
         for _ in 0..n {
             pos = (pos.0 + add.0, pos.1 + add.1);
-            path.insert(pos.clone(), i);
-            i += 1;
+            path.insert(pos.clone(), s);
+            s += 1;
         }
     }
     path
@@ -30,18 +30,15 @@ fn closest_and_shortest_intersection(
 ) -> (i32, i32) {
     let mut closest = i32::MAX;
     let mut shortest = i32::MAX;
-    for (pos1, i1) in path1 {
-        match path2.get(pos1) {
-            None => continue,
-            Some(i2) => {
-                let steps = i1 + i2;
-                if steps < shortest {
-                    shortest = steps;
-                }
-                let dist = pos1.0.abs() + pos1.1.abs();
-                if dist < closest {
-                    closest = dist;
-                }
+    for (pos1, s1) in path1 {
+        if let Some(s2) = path2.get(pos1) {
+            let steps = s1 + s2;
+            if steps < shortest {
+                shortest = steps;
+            }
+            let dist = pos1.0.abs() + pos1.1.abs();
+            if dist < closest {
+                closest = dist;
             }
         }
     }
