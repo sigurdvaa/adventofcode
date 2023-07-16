@@ -1,4 +1,3 @@
-// The Tyranny of the Rocket Equation
 use std::fs;
 
 fn run_intcode(intcode: &mut Vec<u32>) -> () {
@@ -27,7 +26,23 @@ fn run_intcode(intcode: &mut Vec<u32>) -> () {
     }
 }
 
+fn find_noun_verb(intcode: &Vec<u32>) -> u32 {
+    for noun in 0..100 {
+        for verb in 0..100 {
+            let mut curr_intcode = intcode.clone();
+            curr_intcode[1] = noun;
+            curr_intcode[2] = verb;
+            run_intcode(&mut curr_intcode);
+            if curr_intcode[0] == 19690720 {
+                return 100 * noun + verb;
+            }
+        }
+    }
+    0
+}
+
 pub fn run() {
+    println!("Day 2: 1202 Program Alarm");
     let file_path = "inputs/day2.txt";
     let input_raw =
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
@@ -41,6 +56,14 @@ pub fn run() {
     intcode[2] = 2;
     run_intcode(&mut intcode);
     println!("Part One: {}", intcode[0]);
+
+    let intcode: Vec<u32> = input_raw
+        .split(",")
+        .map(|x| x.trim().parse().unwrap())
+        .collect();
+
+    let noun_verb = find_noun_verb(&intcode);
+    println!("Part Two: {noun_verb}");
 }
 
 #[cfg(test)]
