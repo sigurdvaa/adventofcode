@@ -6,8 +6,15 @@ fn fuel_required(mass: u32) -> u32 {
 }
 
 pub fn run() {
-    let contents = fs::read_to_string("inputs/day1.txt").unwrap();
-    println!("{contents}");
+    let file_path = "inputs/day1.txt";
+    let input_raw =
+        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let sum_fuel: u32 = input_raw
+        .lines()
+        .map(|x| x.parse::<u32>().unwrap())
+        .map(|x| fuel_required(x))
+        .sum();
+    println!("Part One: {}", sum_fuel);
 }
 
 #[cfg(test)]
