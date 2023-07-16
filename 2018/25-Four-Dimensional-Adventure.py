@@ -35,94 +35,81 @@ def find_in_range(points: list[Point], dst: int = 3) -> None:
                 p1.in_range.append(p2)
 
 
-def constellation(point: Point) -> frozenset[Point]:
-    const = {point}
-    searching = True
-    while searching:
-        searching = False
-        new = set()
-        for p1 in const:
-            for p2 in p1.in_range:
-                if p2 not in const:
-                    new.add(p2)
-                    searching = True
-        const.update(new)
-    return frozenset(const)
+def constellation(point: Point, chain: set[Point]) -> set[Point]:
+    if point in chain:
+        return chain
+    chain.add(point)
+    for p in point.in_range:
+        chain = constellation(p, chain)
+    return chain
 
 
 def num_constellation(points: list[Point]) -> int:
     find_in_range(points)
-    constellations: set[frozenset[Point]] = set()
+    constellations: list[set[Point]] = []
+    seen: set[Point] = set()
     for p in points:
-        const = constellation(p)
-        if const not in constellations:
-            constellations.add(const)
+        if p in seen:
+            continue
+        const = constellation(p, set())
+        constellations.append(const)
+        seen.update(const)
     return len(constellations)
 
 
 # test
 input_tests = [
-    (
-        2,
-        [
-            Point(0, 0, 0, 0),
-            Point(3, 0, 0, 0),
-            Point(0, 3, 0, 0),
-            Point(0, 0, 3, 0),
-            Point(0, 0, 0, 3),
-            Point(0, 0, 0, 6),
-            Point(9, 0, 0, 0),
-            Point(12, 0, 0, 0),
-        ],
-    ),
-    (
-        4,
-        [
-            Point(-1, 2, 2, 0),
-            Point(0, 0, 2, -2),
-            Point(0, 0, 0, -2),
-            Point(-1, 2, 0, 0),
-            Point(-2, -2, -2, 2),
-            Point(3, 0, 2, -1),
-            Point(-1, 3, 2, 2),
-            Point(-1, 0, -1, 0),
-            Point(0, 2, 1, -2),
-            Point(3, 0, 0, 0),
-        ],
-    ),
-    (
-        3,
-        [
-            Point(1, -1, 0, 1),
-            Point(2, 0, -1, 0),
-            Point(3, 2, -1, 0),
-            Point(0, 0, 3, 1),
-            Point(0, 0, -1, -1),
-            Point(2, 3, -2, 0),
-            Point(-2, 2, 0, 0),
-            Point(2, -2, 0, -1),
-            Point(1, -1, 0, -1),
-            Point(3, 2, 0, 2),
-        ],
-    ),
-    (
-        8,
-        [
-            Point(1, -1, -1, -2),
-            Point(-2, -2, 0, 1),
-            Point(0, 2, 1, 3),
-            Point(-2, 3, -2, 1),
-            Point(0, 2, 3, -2),
-            Point(-1, -1, 1, -2),
-            Point(0, -2, -1, 0),
-            Point(-2, 2, 3, -1),
-            Point(1, 2, 2, 0),
-            Point(-1, -2, 0, -2),
-        ],
-    ),
+    [
+        Point(0, 0, 0, 0),
+        Point(3, 0, 0, 0),
+        Point(0, 3, 0, 0),
+        Point(0, 0, 3, 0),
+        Point(0, 0, 0, 3),
+        Point(0, 0, 0, 6),
+        Point(9, 0, 0, 0),
+        Point(12, 0, 0, 0),
+    ],
+    [
+        Point(-1, 2, 2, 0),
+        Point(0, 0, 2, -2),
+        Point(0, 0, 0, -2),
+        Point(-1, 2, 0, 0),
+        Point(-2, -2, -2, 2),
+        Point(3, 0, 2, -1),
+        Point(-1, 3, 2, 2),
+        Point(-1, 0, -1, 0),
+        Point(0, 2, 1, -2),
+        Point(3, 0, 0, 0),
+    ],
+    [
+        Point(1, -1, 0, 1),
+        Point(2, 0, -1, 0),
+        Point(3, 2, -1, 0),
+        Point(0, 0, 3, 1),
+        Point(0, 0, -1, -1),
+        Point(2, 3, -2, 0),
+        Point(-2, 2, 0, 0),
+        Point(2, -2, 0, -1),
+        Point(1, -1, 0, -1),
+        Point(3, 2, 0, 2),
+    ],
+    [
+        Point(1, -1, -1, -2),
+        Point(-2, -2, 0, 1),
+        Point(0, 2, 1, 3),
+        Point(-2, 3, -2, 1),
+        Point(0, 2, 3, -2),
+        Point(-1, -1, 1, -2),
+        Point(0, -2, -1, 0),
+        Point(-2, 2, 3, -1),
+        Point(1, 2, 2, 0),
+        Point(-1, -2, 0, -2),
+    ],
 ]
-for t in input_tests:
-    assert num_constellation(t[1]) == t[0]
+assert num_constellation(input_tests[0]) == 2
+assert num_constellation(input_tests[1]) == 4
+assert num_constellation(input_tests[2]) == 3
+assert num_constellation(input_tests[3]) == 8
 
 
 # answer
