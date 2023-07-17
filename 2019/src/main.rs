@@ -1,4 +1,5 @@
 mod days;
+mod intcode;
 
 fn main() {
     let arg = std::env::args()
