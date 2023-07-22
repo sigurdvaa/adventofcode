@@ -13,6 +13,7 @@ fn main() {
         "day5" => days::day5::run(),
         "day6" => days::day6::run(),
         "day7" => days::day7::run(),
+        "day8" => days::day8::run(),
         _ => panic!("invalid day"),
     }
 }
