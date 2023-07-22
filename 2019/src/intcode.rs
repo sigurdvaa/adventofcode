@@ -41,7 +41,7 @@ impl Program {
             _ => (self.relative_base + param) as usize,
         };
         if addr >= self.intcode.len() {
-            return *self.memory.get(&param).unwrap_or(&0);
+            return *self.memory.get(&(addr as i64)).unwrap_or(&0);
         }
         self.intcode[addr]
     }
