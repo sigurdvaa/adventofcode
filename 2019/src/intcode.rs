@@ -1,9 +1,6 @@
-use std::collections::HashMap;
-
 #[derive(Clone, Debug)]
 pub struct Program {
     pub intcode: Vec<i64>,
-    memory: HashMap<i64, i64>,
     pub input: Vec<i64>,
     pub output: Vec<i64>,
     ip: usize,
@@ -20,7 +17,6 @@ impl Program {
     pub fn new(code: &str) -> Program {
         Program {
             intcode: Program::parse(code),
-            memory: HashMap::new(),
             input: vec![],
             output: vec![],
             ip: 0,
@@ -41,7 +37,7 @@ impl Program {
             _ => (self.relative_base + param) as usize,
         };
         if addr >= self.intcode.len() {
-            return *self.memory.get(&(addr as i64)).unwrap_or(&0);
+            return 0;
         }
         self.intcode[addr]
     }
@@ -52,10 +48,9 @@ impl Program {
             _ => param as usize,
         };
         if addr >= self.intcode.len() {
-            self.memory.insert(addr as i64, value);
-        } else {
-            self.intcode[addr] = value;
+            self.intcode.resize(addr + 1, 0);
         }
+        self.intcode[addr] = value;
     }
 
     pub fn run(&mut self) -> ExitCode {
