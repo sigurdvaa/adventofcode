@@ -1,7 +1,7 @@
 use crate::intcode::{ExitCode, Program};
 use std::fs;
 
-fn permutations(items: &Vec<i32>) -> Vec<Vec<i32>> {
+fn permutations(items: &Vec<i64>) -> Vec<Vec<i64>> {
     let mut perms = vec![vec![]];
     for _ in 0..items.len() {
         let mut next_perms = vec![];
@@ -19,7 +19,7 @@ fn permutations(items: &Vec<i32>) -> Vec<Vec<i32>> {
     perms
 }
 
-fn run_amp(prog: &Program, input: &mut Vec<i32>) -> i32 {
+fn run_amp(prog: &Program, input: &mut Vec<i64>) -> i64 {
     let mut progs = vec![prog.clone(); input.len()];
     for i in 0..progs.len() {
         if i == 0 {
@@ -35,7 +35,7 @@ fn run_amp(prog: &Program, input: &mut Vec<i32>) -> i32 {
     *progs.last().unwrap().output.last().unwrap()
 }
 
-fn run_amp_feedback(prog: &Program, input: &mut Vec<i32>) -> i32 {
+fn run_amp_feedback(prog: &Program, input: &mut Vec<i64>) -> i64 {
     let mut progs = vec![prog.clone(); input.len()];
     let mut exitcode = ExitCode::Input;
     loop {
@@ -64,7 +64,7 @@ fn run_amp_feedback(prog: &Program, input: &mut Vec<i32>) -> i32 {
     *progs[progs.len() - 1].output.last().unwrap_or(&0)
 }
 
-fn max_thrust_signal(prog: &Program, input: &Vec<i32>, feedback: bool) -> i32 {
+fn max_thrust_signal(prog: &Program, input: &Vec<i64>, feedback: bool) -> i64 {
     let mut max = 0;
     for mut perm in permutations(input) {
         let thrust_signal = match feedback {

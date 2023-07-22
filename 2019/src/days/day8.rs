@@ -44,11 +44,9 @@ fn fewest_zero_layer_num(layers: &Vec<Vec<Vec<u32>>>) -> usize {
 }
 
 fn decode_layers(layers: &Vec<Vec<Vec<u32>>>) -> Vec<Vec<u32>> {
-    let total = layers.len();
     let height = layers[0].len();
     let width = layers[0][0].len();
     let mut decoded = vec![vec![0; width]; height];
-
     for y in 0..height {
         for x in 0..width {
             for layer in layers {

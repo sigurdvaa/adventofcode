@@ -1,7 +1,7 @@
 use crate::intcode::Program;
 use std::fs;
 
-fn find_noun_verb(prog: &Program) -> i32 {
+fn find_noun_verb(prog: &Program) -> i64 {
     for noun in 0..100 {
         for verb in 0..100 {
             let mut curr_prog = prog.clone();

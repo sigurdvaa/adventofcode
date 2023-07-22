@@ -1,4 +1,4 @@
-use crate::intcode::{ExitCode, Program};
+use crate::intcode::Program;
 use std::fs;
 
 pub fn run() {
@@ -8,6 +8,10 @@ pub fn run() {
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 
     let mut prog = Program::new(&input_raw);
+    prog.input.push(1);
+    prog.run();
+    println!("Part One: {:?}", prog.output);
+    // 203 low
 }
 
 #[cfg(test)]
@@ -15,7 +19,64 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_part_one() {}
+    fn test_part_one() {
+        // relative_base
+        let mut prog = Program::new("109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99");
+        prog.run();
+        assert_eq!(
+            prog.output,
+            vec![109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99]
+        );
+
+        // large number
+        let mut prog = Program::new("1102,34915192,34915192,7,4,7,99,0");
+        prog.run();
+        assert_eq!(prog.output, vec![1219070632396864]);
+
+        let mut prog = Program::new("104,1125899906842624,99");
+        prog.run();
+        assert_eq!(prog.output, vec![1125899906842624]);
+
+        let mut prog = Program::new("109,-2,203,8,99,0,0");
+        prog.input.push(69);
+        prog.run();
+        assert_eq!(prog.intcode, vec![109, -2, 203, 8, 99, 0, 69]);
+
+        // extra tests
+        let mut prog = Program::new("109,-1,4,1,99");
+        prog.run();
+        assert_eq!(prog.output, vec![-1]);
+
+        let mut prog = Program::new("109,-1,104,1,99");
+        prog.run();
+        assert_eq!(prog.output, vec![1]);
+
+        let mut prog = Program::new("109,-1,204,1,99");
+        prog.run();
+        assert_eq!(prog.output, vec![109]);
+
+        let mut prog = Program::new("109, 1, 9, 2, 204, -6, 99");
+        prog.run();
+        assert_eq!(prog.output, vec![204]);
+
+        let mut prog = Program::new("109, 1, 109, 9, 204, -6, 99");
+        prog.run();
+        assert_eq!(prog.output, vec![204]);
+
+        let mut prog = Program::new("109, 1, 209, -1, 204, -106, 99");
+        prog.run();
+        assert_eq!(prog.output, vec![204]);
+
+        let mut prog = Program::new("109, 1, 3, 3, 204, 2, 99");
+        prog.input.push(1);
+        prog.run();
+        assert_eq!(prog.output, vec![1]);
+
+        let mut prog = Program::new("109, 1, 203, 2, 204, 2, 99");
+        prog.input.push(1);
+        prog.run();
+        assert_eq!(prog.output, vec![1]);
+    }
 
     #[test]
     fn test_part_two() {}
