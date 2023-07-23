@@ -47,7 +47,7 @@ fn closest_and_shortest_intersection(
 
 pub fn run() {
     println!("Day 3: Crossed Wires");
-    let file_path = "inputs/day3.txt";
+    let file_path = "inputs/day03.txt";
     let input_raw =
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 

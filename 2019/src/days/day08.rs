@@ -65,7 +65,7 @@ fn decode_layers(layers: &Vec<Vec<Vec<u32>>>) -> Vec<Vec<u32>> {
 
 pub fn run() {
     println!("Day 8: Space Image Format");
-    let file_path = "inputs/day8.txt";
+    let file_path = "inputs/day08.txt";
     let input_raw =
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 

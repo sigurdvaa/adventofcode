@@ -80,7 +80,7 @@ fn max_thrust_signal(prog: &Program, input: &Vec<i64>, feedback: bool) -> i64 {
 
 pub fn run() {
     println!("Day 7: Amplification Circuit");
-    let file_path = "inputs/day7.txt";
+    let file_path = "inputs/day07.txt";
     let input_raw =
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 

@@ -14,7 +14,7 @@ fn fuel_required_recur(mass: i32) -> i32 {
 
 pub fn run() {
     println!("Day 1: The Tyranny of the Rocket Equation");
-    let file_path = "inputs/day1.txt";
+    let file_path = "inputs/day01.txt";
     let input_raw =
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 

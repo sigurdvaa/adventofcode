@@ -18,7 +18,7 @@ fn find_noun_verb(prog: &Program) -> i64 {
 
 pub fn run() {
     println!("Day 2: 1202 Program Alarm");
-    let file_path = "inputs/day2.txt";
+    let file_path = "inputs/day02.txt";
     let input_raw =
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 

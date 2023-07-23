@@ -1,20 +1,48 @@
 mod days;
 mod intcode;
 
+fn usage(args: &Vec<String>) {
+    eprintln!("Usage: {} <all|dayXX>", args[0]);
+    std::process::exit(1);
+}
+
 fn main() {
-    let arg = std::env::args()
-        .nth(1)
-        .expect("day not given (day1, day2, ...)");
-    match arg.as_str() {
-        "day1" => days::day1::run(),
-        "day2" => days::day2::run(),
-        "day3" => days::day3::run(),
-        "day4" => days::day4::run(),
-        "day5" => days::day5::run(),
-        "day6" => days::day6::run(),
-        "day7" => days::day7::run(),
-        "day8" => days::day8::run(),
-        "day9" => days::day9::run(),
-        _ => panic!("invalid day"),
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() != 2 {
+        usage(&args);
+    }
+    match args[1].as_str() {
+        "day01" => days::day01::run(),
+        "day02" => days::day02::run(),
+        "day03" => days::day03::run(),
+        "day04" => days::day04::run(),
+        "day05" => days::day05::run(),
+        "day06" => days::day06::run(),
+        "day07" => days::day07::run(),
+        "day08" => days::day08::run(),
+        "day09" => days::day09::run(),
+        "day10" => days::day10::run(),
+        "all" => {
+            days::day01::run();
+            println!();
+            days::day02::run();
+            println!();
+            days::day03::run();
+            println!();
+            days::day04::run();
+            println!();
+            days::day05::run();
+            println!();
+            days::day06::run();
+            println!();
+            days::day07::run();
+            println!();
+            days::day08::run();
+            println!();
+            days::day09::run();
+            println!();
+            days::day10::run();
+        }
+        _ => usage(&args),
     }
 }
