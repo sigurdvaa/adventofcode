@@ -47,8 +47,9 @@ fn bet_200th(mut targets: HashMap<String, Vec<Point>>) -> i32 {
     let mut dir: Vec<String> = targets.keys().map(|x| x.clone()).collect();
     dir.sort();
     let mut i = 0;
-    loop {
-        let prev = i;
+    let mut prev = -1;
+    while prev != i {
+        prev = i;
         for d in &dir {
             let t = targets.get_mut(d).unwrap();
             if t.len() == 0 {
@@ -59,9 +60,6 @@ fn bet_200th(mut targets: HashMap<String, Vec<Point>>) -> i32 {
             if i == 200 {
                 return p.x * 100 + p.y;
             }
-        }
-        if prev == i {
-            break;
         }
     }
     0
