@@ -31,6 +31,10 @@ fn gradient(a: &(i32, i32), b: &(i32, i32)) -> f32 {
     dy as f32 / dx as f32
 }
 
+fn slope(a: &(i32, i32), b: &(i32, i32)) -> f32 {
+    (b.1 - a.1) as f32 / (b.0 - a.0) as f32
+}
+
 fn best_detection(points: &Vec<(i32, i32)>) -> usize {
     let mut max = 0;
     for p1 in points {
@@ -71,6 +75,24 @@ pub fn run() {
 
     let points = parse_map(&input_raw);
     println!("Part One: {}", best_detection(&points));
+
+    let p1 = (10, 10);
+    let points = vec![
+        (10, 5),
+        (11, 0),
+        (12, 0),
+        (15, 5),
+        (25, 5),
+        (25, 10),
+        (25, 25),
+        (10, 15),
+        (5, 25),
+        (5, 15),
+        (5, 5),
+    ];
+    for p2 in points {
+        println!("{:?}: {:?}", p2, slope(&p1, &p2).atan());
+    }
 }
 
 #[cfg(test)]
