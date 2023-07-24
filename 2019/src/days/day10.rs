@@ -1,38 +1,12 @@
 use std::fs;
 
-fn direction(a: &(i32, i32), b: &(i32, i32)) -> (i32, i32) {
-    let dx = b.0 - a.0;
-    let dy = b.1 - a.1;
-    (
-        if dx == 0 {
-            0
-        } else {
-            if dx > 0 {
-                1
-            } else {
-                -1
-            }
-        },
-        if dy == 0 {
-            0
-        } else {
-            if dy > 0 {
-                1
-            } else {
-                -1
-            }
-        },
-    )
-}
-
-fn gradient(a: &(i32, i32), b: &(i32, i32)) -> f32 {
-    let dx = b.0 - a.0;
-    let dy = b.1 - a.1;
-    dy as f32 / dx as f32
-}
-
-fn slope(a: &(i32, i32), b: &(i32, i32)) -> f32 {
-    (b.1 - a.1) as f32 / (b.0 - a.0) as f32
+fn gradient_circle(a: &(i32, i32), b: &(i32, i32)) -> f32 {
+    let mut s = (b.1 - a.1) as f32 / (b.0 - a.0) as f32;
+    s = s.atan();
+    if a.0 > b.0 {
+        s += 4.0;
+    }
+    s
 }
 
 fn best_detection(points: &Vec<(i32, i32)>) -> usize {
@@ -43,9 +17,9 @@ fn best_detection(points: &Vec<(i32, i32)>) -> usize {
             if p1 == p2 {
                 continue;
             }
-            let dg = (direction(p1, p2), gradient(p1, p2));
-            if !gradients.contains(&dg) {
-                gradients.push(dg);
+            let g = gradient_circle(&p1, &p2);
+            if !gradients.contains(&g) {
+                gradients.push(g);
             }
         }
         if gradients.len() > max {
@@ -75,24 +49,6 @@ pub fn run() {
 
     let points = parse_map(&input_raw);
     println!("Part One: {}", best_detection(&points));
-
-    let p1 = (10, 10);
-    let points = vec![
-        (10, 5),
-        (11, 0),
-        (12, 0),
-        (15, 5),
-        (25, 5),
-        (25, 10),
-        (25, 25),
-        (10, 15),
-        (5, 25),
-        (5, 15),
-        (5, 5),
-    ];
-    for p2 in points {
-        println!("{:?}: {:?}", p2, slope(&p1, &p2).atan());
-    }
 }
 
 #[cfg(test)]
