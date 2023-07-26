@@ -7,7 +7,7 @@ pub struct Program {
     relative_base: i64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ExitCode {
     Halted,
     Input,
