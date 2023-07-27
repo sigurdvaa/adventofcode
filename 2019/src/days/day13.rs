@@ -1,7 +1,7 @@
 use crate::intcode::Program;
 use std::fs;
 
-fn build_map(input: &Vec<i64>) -> Vec<Vec<i64>> {
+fn parse_map(input: &Vec<i64>) -> Vec<Vec<i64>> {
     let max_x = input.iter().step_by(3).max().unwrap() + 1;
     let max_y = input.iter().skip(1).step_by(3).max().unwrap() + 1;
     let mut map = vec![vec![0; max_x as usize]; max_y as usize];
@@ -12,6 +12,25 @@ fn build_map(input: &Vec<i64>) -> Vec<Vec<i64>> {
         map[y][x] = value;
     }
     map
+}
+
+fn print_map(map: &Vec<Vec<i64>>) {
+    for y in 0..map.len() {
+        for x in 0..map[y].len() {
+            print!(
+                "{}",
+                match map[y][x] {
+                    0 => ' ',
+                    1 => '|',
+                    2 => '#',
+                    3 => '-',
+                    4 => '.',
+                    _ => unreachable!(),
+                }
+            );
+        }
+        println!();
+    }
 }
 
 pub fn run() {
@@ -35,8 +54,11 @@ pub fn run() {
             .count()
     );
 
-    let map = build_map(&prog1.output);
     let mut prog2 = prog.clone();
+    prog2.run();
+    let map = parse_map(&prog2.output);
+    print_map(&map);
+    prog2.output.clear();
     prog2.input.push(2);
 }
 
