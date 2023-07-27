@@ -1,65 +1,43 @@
 use std::cell::RefCell;
-use std::collections::HashSet;
 #[derive(Debug, Clone)]
 struct Moon {
-    x: i32,
-    y: i32,
-    z: i32,
-    vx: i32,
-    vy: i32,
-    vz: i32,
+    position: [i32; 3],
+    velocity: [i32; 3],
+    init_state: [(i32, i32); 3],
 }
 
 impl Moon {
     fn new(x: i32, y: i32, z: i32) -> Moon {
         Moon {
-            x,
-            y,
-            z,
-            vx: 0,
-            vy: 0,
-            vz: 0,
+            position: [x, y, z],
+            velocity: [0, 0, 0],
+            init_state: [(x, 0), (y, 0), (z, 0)],
         }
     }
 
-    fn pot(&self) -> i32 {
-        self.x.abs() + self.y.abs() + self.z.abs()
+    fn energy(&self) -> i32 {
+        self.position.iter().map(|x| x.abs()).sum::<i32>()
+            * self.velocity.iter().map(|x| x.abs()).sum::<i32>()
     }
 
-    fn kin(&self) -> i32 {
-        self.vx.abs() + self.vy.abs() + self.vz.abs()
-    }
-
-    fn total(&self) -> i32 {
-        self.pot() * self.kin()
-    }
-
-    fn state(&self) -> (i32, i32, i32, i32) {
-        (self.x, self.y, self.z, self.total())
+    fn repeated(&self, dim: usize) -> bool {
+        self.init_state[dim] == (self.position[dim], self.velocity[dim])
     }
 
     fn update_velocities(&mut self, other: &Moon) {
-        self.vx += match other.x {
-            x if x > self.x => 1,
-            x if x < self.x => -1,
-            _ => 0,
-        };
-        self.vy += match other.y {
-            y if y > self.y => 1,
-            y if y < self.y => -1,
-            _ => 0,
-        };
-        self.vz += match other.z {
-            z if z > self.z => 1,
-            z if z < self.z => -1,
-            _ => 0,
-        };
+        for i in 0..3 {
+            self.velocity[i] += match other.position[i] {
+                x if x > self.position[i] => 1,
+                x if x < self.position[i] => -1,
+                _ => 0,
+            };
+        }
     }
 
     fn apply_velocity(&mut self) {
-        self.x += self.vx;
-        self.y += self.vy;
-        self.z += self.vz;
+        for i in 0..3 {
+            self.position[i] += self.velocity[i];
+        }
     }
 }
 
@@ -76,57 +54,78 @@ fn parse_moons(input: &str) -> Vec<RefCell<Moon>> {
     moons
 }
 
-fn total_energy_in_system(moons: Vec<RefCell<Moon>>, steps: u32) -> i32 {
-    for _ in 0..steps {
-        for i in 0..moons.len() {
-            let mut moon = moons[i].borrow_mut();
-            for j in 0..moons.len() {
-                if i == j {
-                    continue;
-                }
-                let other = moons[j].borrow();
-                moon.update_velocities(&other);
+fn run_sim_step(moons: &Vec<RefCell<Moon>>) {
+    for i in 0..moons.len() {
+        let mut moon = moons[i].borrow_mut();
+        for j in 0..moons.len() {
+            if i == j {
+                continue;
             }
-        }
-        for moon in moons.iter() {
-            moon.borrow_mut().apply_velocity();
+            let other = moons[j].borrow();
+            moon.update_velocities(&other);
         }
     }
+    for moon in moons.iter() {
+        moon.borrow_mut().apply_velocity();
+    }
+}
 
+fn total_energy_in_system(moons: Vec<RefCell<Moon>>, steps: u32) -> i32 {
+    for _ in 0..steps {
+        run_sim_step(&moons);
+    }
     let mut total = 0;
     for moon in moons {
-        total += moon.borrow().total();
+        total += moon.borrow().energy();
     }
     total
 }
 
-fn steps_to_repeat(moons: Vec<RefCell<Moon>>) -> i64 {
-    let mut seen = HashSet::new();
-    let mut s = 0;
+fn gcd(mut a: usize, mut b: usize) -> usize {
+    if a > b {
+        std::mem::swap(&mut a, &mut b);
+    }
 
-    loop {
-        for i in 0..moons.len() {
-            let mut moon = moons[i].borrow_mut();
-            for j in 0..moons.len() {
-                if i == j {
-                    continue;
+    let mut res = b % a;
+    while res != 0 {
+        b = a;
+        a = res;
+        res = b % a;
+    }
+    a
+}
+
+fn lcm(a: usize, b: usize) -> usize {
+    a * b / gcd(a, b)
+}
+
+fn steps_to_repeat(moons: Vec<RefCell<Moon>>) -> usize {
+    let mut periods_axis = vec![0; 3];
+    let mut steps = 0;
+    while periods_axis.contains(&0) {
+        run_sim_step(&moons);
+        steps += 1;
+
+        for i in 0..3 {
+            if periods_axis[i] != 0 {
+                continue;
+            }
+            let mut all = 0;
+            for moon in moons.iter() {
+                if moon.borrow().repeated(i) {
+                    all += 1;
                 }
-                let other = moons[j].borrow();
-                moon.update_velocities(&other);
+            }
+            if all == moons.len() {
+                periods_axis[i] = steps;
             }
         }
-
-        let mut state = vec![];
-        for i in 0..moons.len() {
-            state.push(moons[i].borrow().state());
-            moons[i].borrow_mut().apply_velocity();
-        }
-        if seen.contains(&state) {
-            return s;
-        }
-        seen.insert(state);
-        s += 1;
     }
+    let mut total = 1;
+    for p in periods_axis.iter() {
+        total = lcm(total, *p);
+    }
+    total
 }
 
 pub fn run() {
@@ -160,8 +159,8 @@ mod tests {
         let moons = parse_moons(&input_raw);
         assert_eq!(steps_to_repeat(moons), 2772);
 
-        // let input_raw = "<x=-8, y=-10, z=0>\n<x=5, y=5, z=10>\n<x=2, y=-7, z=3>\n<x=9, y=-8, z=-3>";
-        // let moons = parse_moons(&input_raw);
-        // assert_eq!(steps_to_repeat(moons), 4686774924);
+        let input_raw = "<x=-8, y=-10, z=0>\n<x=5, y=5, z=10>\n<x=2, y=-7, z=3>\n<x=9, y=-8, z=-3>";
+        let moons = parse_moons(&input_raw);
+        assert_eq!(steps_to_repeat(moons), 4686774924);
     }
 }
