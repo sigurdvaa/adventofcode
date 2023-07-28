@@ -1,17 +1,10 @@
 use std::collections::HashMap;
 use std::fs;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 struct Reaction {
-    product: String,
     amount: i64,
     reactants: Vec<(i64, String)>,
-}
-
-impl PartialEq<str> for Reaction {
-    fn eq(&self, other: &str) -> bool {
-        self.product == other
-    }
 }
 
 fn parse_reactions(input: &str) -> HashMap<String, Reaction> {
@@ -32,15 +25,8 @@ fn parse_reactions(input: &str) -> HashMap<String, Reaction> {
             .collect::<Vec<(i64, String)>>();
         let mut produces = parts.next().unwrap().split(" ");
         let amount = produces.next().unwrap().parse().unwrap();
-        let product = produces.next().unwrap().to_string();
-        reactions.insert(
-            product.clone(),
-            Reaction {
-                product,
-                amount,
-                reactants,
-            },
-        );
+        let product = produces.next().unwrap();
+        reactions.insert(product.to_string(), Reaction { amount, reactants });
     }
     reactions
 }
@@ -56,13 +42,14 @@ fn ores_required(
 
     while has < amount {
         let product = reactions.get(product).unwrap();
+        let diff = 1.max((amount - has) / product.amount);
         for (amount, reactant) in &product.reactants {
             ores += match reactant {
-                n if n == "ORE" => *amount,
-                _ => ores_required(reactions, available, reactant, *amount),
+                n if n == "ORE" => *amount * diff,
+                _ => ores_required(reactions, available, reactant, *amount * diff),
             }
         }
-        has += product.amount;
+        has += product.amount * diff;
     }
 
     available.insert(product.to_string(), has - amount);
@@ -74,10 +61,16 @@ fn ores_required_for_fuel(reactions: &HashMap<String, Reaction>) -> i64 {
 }
 
 fn max_fuel(reactions: &HashMap<String, Reaction>) -> i64 {
-    let available_ore: i64 = 1000000000000;
-    let mut max_fuel = 0;
+    let available_ore = 1000000000000;
+    let ores_per_fuel = ores_required_for_fuel(reactions);
+    let mut max_fuel = available_ore / ores_per_fuel;
 
-    max_fuel
+    let mut ores = ores_required(&reactions, &mut HashMap::new(), "FUEL", max_fuel);
+    while ores < available_ore {
+        max_fuel += 1.max((available_ore - ores) / ores_per_fuel);
+        ores = ores_required(&reactions, &mut HashMap::new(), "FUEL", max_fuel);
+    }
+    max_fuel - 1
 }
 
 pub fn run() {
@@ -87,11 +80,8 @@ pub fn run() {
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 
     let reactions = parse_reactions(&input_raw);
-    let ores = ores_required_for_fuel(&reactions);
-    println!("Part One: {}", ores);
-
-    // part two
-    // 508306 low
+    println!("Part One: {}", ores_required_for_fuel(&reactions));
+    println!("Part Two: {}", max_fuel(&reactions));
 }
 
 #[cfg(test)]
