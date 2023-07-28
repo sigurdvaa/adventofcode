@@ -73,6 +73,13 @@ fn ores_required_for_fuel(reactions: &HashMap<String, Reaction>) -> i64 {
     ores_required(&reactions, &mut HashMap::new(), "FUEL", 1)
 }
 
+fn max_fuel(reactions: &HashMap<String, Reaction>) -> i64 {
+    let available_ore: i64 = 1000000000000;
+    let mut max_fuel = 0;
+
+    max_fuel
+}
+
 pub fn run() {
     println!("Day 14: Space Stoichiometry");
     let file_path = "inputs/day14.txt";
@@ -139,5 +146,14 @@ mod tests {
     }
 
     #[test]
-    fn test_part_two() {}
+    fn test_part_two() {
+        let reactions = parse_reactions(&INPUT_TEST1);
+        assert_eq!(max_fuel(&reactions), 82892753);
+
+        let reactions = parse_reactions(&INPUT_TEST2);
+        assert_eq!(max_fuel(&reactions), 5586022);
+
+        let reactions = parse_reactions(&INPUT_TEST3);
+        assert_eq!(max_fuel(&reactions), 460664);
+    }
 }
