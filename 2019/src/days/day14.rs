@@ -40,9 +40,9 @@ fn ores_required(
     let mut ores = 0;
     let mut has = *available.get(product).unwrap_or(&0);
 
-    while has < amount {
+    if has < amount {
         let product = reactions.get(product).unwrap();
-        let diff = 1.max((amount - has) / product.amount);
+        let diff = (amount - has - 1) / product.amount + 1;
         for (amount, reactant) in &product.reactants {
             ores += match reactant {
                 n if n == "ORE" => *amount * diff,
@@ -66,8 +66,8 @@ fn max_fuel(reactions: &HashMap<String, Reaction>) -> i64 {
     let mut max_fuel = available_ore / ores_per_fuel;
 
     let mut ores = ores_required(&reactions, &mut HashMap::new(), "FUEL", max_fuel);
-    while ores < available_ore {
-        max_fuel += 1.max((available_ore - ores) / ores_per_fuel);
+    while ores <= available_ore {
+        max_fuel += (available_ore - ores - 1) / ores_per_fuel + 1;
         ores = ores_required(&reactions, &mut HashMap::new(), "FUEL", max_fuel);
     }
     max_fuel - 1
