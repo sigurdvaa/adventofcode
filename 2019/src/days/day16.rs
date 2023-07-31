@@ -25,14 +25,14 @@ fn create_patterns(base: Vec<i32>, len: usize) -> Vec<Vec<i32>> {
     patterns
 }
 
-fn fft_phases(mut numbers: Vec<i32>, phases: i32) -> Vec<i32> {
+fn fft_phases(mut input: Vec<i32>, phases: i32) -> Vec<i32> {
     let base = vec![0, 1, 0, -1];
-    let patterns = create_patterns(base, numbers.len());
+    let patterns = create_patterns(base, input.len());
     for _ in 0..phases {
-        let mut next = Vec::with_capacity(numbers.len());
+        let mut next = Vec::with_capacity(input.len());
         for i in 0..next.capacity() {
             next.push(
-                numbers
+                input
                     .iter()
                     .zip(&patterns[i])
                     .skip(i)
@@ -42,21 +42,34 @@ fn fft_phases(mut numbers: Vec<i32>, phases: i32) -> Vec<i32> {
                     % 10,
             );
         }
-        numbers = next;
+        input = next;
     }
-    numbers
+    input
 }
 
-fn fft_phases_real(mut numbers: Vec<i32>) -> Vec<i32> {
+fn fft_real_phases_last_half(mut input: Vec<i32>) -> Vec<i32> {
+    let mut next = vec![0; input.len()];
+    for _ in 0..100 {
+        let mut total = 0;
+        for i in (0..input.len()).rev() {
+            total += input[i];
+            next[i] = total % 10;
+        }
+        std::mem::swap(&mut next, &mut input);
+    }
+    input
+}
+fn fft_real(numbers: Vec<i32>) -> Vec<i32> {
     let offset = numbers[..7].iter().fold(0, |acc, x| acc * 10 + x) as usize;
     let input_len = numbers.len();
-    numbers = numbers
-        .into_iter()
+    let input = numbers
+        .iter()
         .cycle()
         .take(input_len * 10_000)
         .skip(offset)
+        .cloned()
         .collect();
-    fft_phases(numbers, 100)
+    fft_real_phases_last_half(input)
 }
 
 pub fn run() {
@@ -66,18 +79,22 @@ pub fn run() {
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 
     let numbers = parse_numbers(&input_raw);
+
     println!(
         "Part One: {}",
-        fft_phases(numbers, 100)[..8]
+        fft_phases(numbers.clone(), 100)[..8]
             .iter()
             .map(|n| n.to_string())
-            .collect::<Vec<String>>()
-            .join("")
+            .collect::<String>()
     );
 
-    let input_raw = "03036732577212944063491565474664";
-    let numbers = parse_numbers(&input_raw);
-    //assert_eq!(fft_phases_real(numbers)[..8], [8, 4, 4, 6, 2, 0, 2, 6]);
+    println!(
+        "Part Two: {}",
+        fft_real(numbers)[..8]
+            .iter()
+            .map(|n| n.to_string())
+            .collect::<String>()
+    );
 }
 
 #[cfg(test)]
@@ -107,14 +124,14 @@ mod tests {
     fn test_part_two() {
         let input_raw = "03036732577212944063491565474664";
         let numbers = parse_numbers(&input_raw);
-        assert_eq!(fft_phases_real(numbers)[..8], [8, 4, 4, 6, 2, 0, 2, 6]);
+        assert_eq!(fft_real(numbers)[..8], [8, 4, 4, 6, 2, 0, 2, 6]);
 
-        //let input_raw = "02935109699940807407585447034323";
-        //let numbers = parse_numbers(&input_raw);
-        //assert_eq!(fft_phases_real(numbers)[..8], [7, 8, 7, 2, 5, 2, 7, 0]);
+        let input_raw = "02935109699940807407585447034323";
+        let numbers = parse_numbers(&input_raw);
+        assert_eq!(fft_real(numbers)[..8], [7, 8, 7, 2, 5, 2, 7, 0]);
 
-        //let input_raw = "03081770884921959731165446850517";
-        //let numbers = parse_numbers(&input_raw);
-        //assert_eq!(fft_phases_real(numbers)[..8], [5, 3, 5, 5, 3, 7, 3, 1]);
+        let input_raw = "03081770884921959731165446850517";
+        let numbers = parse_numbers(&input_raw);
+        assert_eq!(fft_real(numbers)[..8], [5, 3, 5, 5, 3, 7, 3, 1]);
     }
 }
