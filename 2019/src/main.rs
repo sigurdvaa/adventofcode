@@ -28,6 +28,7 @@ fn main() {
         "day14" => days::day14::run(),
         "day15" => days::day15::run(),
         "day16" => days::day16::run(),
+        "day17" => days::day17::run(),
         "all" => {
             days::day01::run();
             println!();
@@ -60,6 +61,8 @@ fn main() {
             days::day15::run();
             println!();
             days::day16::run();
+            println!();
+            days::day17::run();
         }
         _ => usage(&args),
     }
