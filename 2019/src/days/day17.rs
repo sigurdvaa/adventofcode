@@ -31,9 +31,11 @@ pub fn run() {
     let input_raw =
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 
-    let mut prog = Program::new(&input_raw);
+    let prog = Program::new(&input_raw);
+
     let mut prog1 = prog.clone();
     prog1.run();
+
     let map_str = prog1
         .output
         .iter()
@@ -41,7 +43,9 @@ pub fn run() {
         .collect::<String>();
     println!("Part One: {}", sum_alignment_parameters(&map_str));
 
-    prog.intcode[0] = 2;
+    for l in map_str.lines() {
+        println!("{}", l);
+    }
 }
 
 #[cfg(test)]
