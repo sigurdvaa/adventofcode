@@ -32,13 +32,16 @@ pub fn run() {
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 
     let mut prog = Program::new(&input_raw);
-    prog.run();
-    let map_str = prog
+    let mut prog1 = prog.clone();
+    prog1.run();
+    let map_str = prog1
         .output
         .iter()
         .map(|&x| x as u8 as char)
         .collect::<String>();
     println!("Part One: {}", sum_alignment_parameters(&map_str));
+
+    prog.intcode[0] = 2;
 }
 
 #[cfg(test)]
