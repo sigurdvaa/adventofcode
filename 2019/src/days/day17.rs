@@ -88,17 +88,17 @@ fn compressed_to_string(compressed: &Vec<(char, String)>) -> String {
         .join(",")
 }
 
-fn count_patterns(path: &Vec<(char, String)>) -> HashMap<(char, String), u32> {
+fn count_patterns(path: &Vec<(char, String)>) -> HashMap<&[(char, String)], u32> {
     let mut patterns = HashMap::new();
     for i in 0..path.len() {
-        for l in 0..i {
+        for l in 0..=i {
             let curr = &path[l..=i];
             if let Some(_) = patterns.get(curr) {
                 continue;
             }
             let mut count = 1;
             for j in i + 1..path.len() {
-                if *curr == path[j] {
+                if *curr == path[l..=j] {
                     count += 1;
                 }
             }
