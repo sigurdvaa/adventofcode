@@ -104,17 +104,17 @@ fn sum_alignment_parameters(map: &Vec<Vec<char>>) -> usize {
     sum
 }
 
-fn pattern_freq(path: &Vec<String>) -> HashMap<String, u32> {
+fn pattern_freq(path: &Vec<String>) -> HashMap<&[String], u32> {
     let mut patterns = HashMap::new();
     for i in 0..path.len() {
         for l in 0..=i {
-            let curr = path[l..=i].join(",");
+            let curr = &path[l..=i];
             if let Some(_) = patterns.get(&curr) {
                 continue;
             }
             let mut count = 1;
-            for j in i + 1..path.len() - l {
-                if curr == path[j..=j + l].join(",") {
+            for j in i + 1..path.len() - curr.len() {
+                if *curr == path[j..j + curr.len()] {
                     count += 1;
                 }
             }
