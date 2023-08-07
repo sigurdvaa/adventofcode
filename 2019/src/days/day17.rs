@@ -60,7 +60,7 @@ fn get_turn(next: u32, prev: u32) -> Option<char> {
     }
 }
 
-fn compact_path(path: &Vec<u32>) -> Vec<(char, String)> {
+fn compact_path(path: &Vec<u32>) -> Vec<String> {
     let mut compact = vec![];
     let mut count = 1;
     let mut prev = 0;
@@ -69,43 +69,20 @@ fn compact_path(path: &Vec<u32>) -> Vec<(char, String)> {
             count += 1;
             continue;
         }
-        compact.push((get_turn(path[i - 1], prev).unwrap(), count.to_string()));
+        compact.push(format!(
+            "{},{}",
+            get_turn(path[i - 1], prev).unwrap(),
+            count.to_string()
+        ));
         prev = path[i - 1];
         count = 1;
     }
-    compact.push((
+    compact.push(format!(
+        "{},{}",
         get_turn(*path.last().unwrap(), prev).unwrap(),
         count.to_string(),
     ));
     compact
-}
-
-fn compact_to_string(compact: &Vec<(char, String)>) -> String {
-    compact
-        .iter()
-        .map(|(c, n)| format!("{c},{n}"))
-        .collect::<Vec<_>>()
-        .join(",")
-}
-
-fn pattern_freq(path: &Vec<(char, String)>) -> HashMap<&[(char, String)], u32> {
-    let mut patterns = HashMap::new();
-    for i in 0..path.len() {
-        for l in 0..=i {
-            let curr = &path[l..=i];
-            if let Some(_) = patterns.get(curr) {
-                continue;
-            }
-            let mut count = 1;
-            for j in i + 1..path.len() - i {
-                if *curr == path[j..j + curr.len()] {
-                    count += 1;
-                }
-            }
-            patterns.insert(curr.clone(), count);
-        }
-    }
-    patterns
 }
 
 fn sum_alignment_parameters(map: &Vec<Vec<char>>) -> usize {
@@ -127,6 +104,37 @@ fn sum_alignment_parameters(map: &Vec<Vec<char>>) -> usize {
     sum
 }
 
+fn pattern_freq(path: &Vec<String>) -> HashMap<String, u32> {
+    let mut patterns = HashMap::new();
+    for i in 0..path.len() {
+        for l in 0..=i {
+            let curr = path[l..=i].join(",");
+            if let Some(_) = patterns.get(&curr) {
+                continue;
+            }
+            let mut count = 1;
+            for j in i + 1..path.len() - l {
+                if curr == path[j..=j + l].join(",") {
+                    count += 1;
+                }
+            }
+            patterns.insert(curr, count);
+        }
+    }
+    patterns
+}
+
+fn compressed_path(map: &Vec<Vec<char>>) -> (Vec<u32>, Vec<String>) {
+    let path = trace_path(&map);
+    let compact = compact_path(&path);
+    let mut patterns = pattern_freq(&compact).into_iter().collect::<Vec<_>>();
+    patterns.sort_by_key(|x| (std::cmp::Reverse(x.1), x.0.len()));
+    for p in patterns {
+        println!("{:?}", p);
+    }
+    (vec![], vec![])
+}
+
 pub fn run() {
     println!("Day 17: Set and Forget");
     let file_path = "inputs/day17.txt";
@@ -140,35 +148,24 @@ pub fn run() {
     let map = parse_map(&prog1.output);
     println!("Part One: {}", sum_alignment_parameters(&map));
 
-    let path = trace_path(&map);
-    let _compact = compact_path(&path);
-
     let map_str = "\
-            #######...#####\n\
-            #.....#...#...#\n\
-            #.....#...#...#\n\
-            ......#...#...#\n\
-            ......#...###.#\n\
-            ......#.....#.#\n\
-            ^########...#.#\n\
-            ......#.#...#.#\n\
-            ......#########\n\
-            ........#...#..\n\
-            ....#########..\n\
-            ....#...#......\n\
-            ....#...#......\n\
-            ....#...#......\n\
-            ....#####......";
+        #######...#####\n\
+        #.....#...#...#\n\
+        #.....#...#...#\n\
+        ......#...#...#\n\
+        ......#...###.#\n\
+        ......#.....#.#\n\
+        ^########...#.#\n\
+        ......#.#...#.#\n\
+        ......#########\n\
+        ........#...#..\n\
+        ....#########..\n\
+        ....#...#......\n\
+        ....#...#......\n\
+        ....#...#......\n\
+        ....#####......";
     let map = parse_map(&map_str.chars().map(|x| x as i64).collect());
-    let path = trace_path(&map);
-    let compact = compact_path(&path);
-    let _cmp_str = compact_to_string(&compact);
-    let patterns = pattern_freq(&compact);
-    let mut sorted = patterns.iter().collect::<Vec<_>>();
-    sorted.sort();
-    for s in sorted {
-        println!("{:?}", s);
-    }
+    let _compressed = compressed_path(&map);
 }
 
 #[cfg(test)]
@@ -211,7 +208,7 @@ mod tests {
         let path = trace_path(&map);
         let compact = compact_path(&path);
         assert_eq!(
-            compact_to_string(&compact),
+            compact.join(","),
             "R,8,R,8,R,4,R,4,R,8,L,6,L,2,R,4,R,4,R,8,R,8,R,8,L,6,L,2"
         );
     }
