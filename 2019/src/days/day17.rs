@@ -124,14 +124,36 @@ fn pattern_freq(path: &Vec<String>) -> HashMap<&[String], u32> {
     patterns
 }
 
+fn compression_indexes(compact_path: &Vec<String>, parts: &Vec<&[String]>) -> Option<Vec<usize>> {
+    let mut indexes = vec![];
+    let mut i = 0;
+    while i < compact_path.len() {
+        let prev = i;
+        for (i2, p) in parts.iter().enumerate() {
+            if i + p.len() > compact_path.len() {
+                continue;
+            }
+            if **p == compact_path[i..i + p.len()] {
+                indexes.push(i2);
+                i += p.len();
+                break;
+            }
+        }
+        if prev == i {
+            return None;
+        }
+    }
+    Some(indexes)
+}
+
 fn compressed_path(map: &Vec<Vec<char>>) -> (Vec<u32>, Vec<String>) {
     let path = trace_path(&map);
     let compact = compact_path(&path);
     let mut patterns = pattern_freq(&compact).into_iter().collect::<Vec<_>>();
-    patterns.sort_by_key(|x| (std::cmp::Reverse(x.1), x.0.len()));
-    for p in patterns {
-        println!("{:?}", p);
-    }
+    patterns.sort_by_key(|x| (std::cmp::Reverse(x.1), x.0.len(), x.0));
+    let parts = vec![patterns[2].0, patterns[7].0, patterns[10].0];
+    let indexes = compression_indexes(&compact, &parts);
+    println!("{:?}", indexes);
     (vec![], vec![])
 }
 
