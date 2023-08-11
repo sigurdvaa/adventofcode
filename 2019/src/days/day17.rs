@@ -1,5 +1,5 @@
 use crate::intcode::Program;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::fs;
 
 fn parse_map(map: &Vec<i64>) -> Vec<Vec<char>> {
@@ -124,35 +124,54 @@ fn pattern_freq(path: &Vec<String>) -> HashMap<&[String], u32> {
     patterns
 }
 
-fn compression_indexes(compact_path: &Vec<String>, parts: &Vec<&[String]>) -> Option<Vec<usize>> {
-    let mut indexes = vec![];
-    let mut i = 0;
-    while i < compact_path.len() {
-        let prev = i;
-        for (i2, p) in parts.iter().enumerate() {
-            if i + p.len() > compact_path.len() {
+fn compression_indexes(path: &String, patterns: &Vec<String>) -> Option<Vec<usize>> {
+    let mut deque = VecDeque::new();
+    deque.push_back((0, vec![]));
+
+    while deque.len() > 0 {
+        let (s, indexes) = deque.pop_front().unwrap();
+
+        for (i, p) in patterns.iter().enumerate() {
+            let next_s = s + p.len();
+            if next_s > path.len() {
                 continue;
             }
-            if **p == compact_path[i..i + p.len()] {
-                indexes.push(i2);
-                i += p.len();
-                break;
+
+            if *p == path[s..next_s] {
+                let mut next_ids = indexes.clone();
+                next_ids.push(i);
+                if next_s == path.len() {
+                    return Some(next_ids);
+                }
+                deque.push_back((next_s + 1, next_ids));
             }
         }
-        if prev == i {
-            return None;
-        }
     }
-    Some(indexes)
+
+    None
+}
+
+fn patterns_sorted(path: &Vec<String>) -> Vec<String> {
+    let mut patterns = pattern_freq(&path).into_iter().collect::<Vec<_>>();
+    patterns.sort_by_key(|x| (std::cmp::Reverse(x.1), x.0.len(), x.0));
+    patterns
+        .iter()
+        .map(|x| x.0.join(","))
+        .filter(|x| x.len() <= 20)
+        .collect()
 }
 
 fn compressed_path(map: &Vec<Vec<char>>) -> (Vec<u32>, Vec<String>) {
     let path = trace_path(&map);
     let compact = compact_path(&path);
-    let mut patterns = pattern_freq(&compact).into_iter().collect::<Vec<_>>();
-    patterns.sort_by_key(|x| (std::cmp::Reverse(x.1), x.0.len(), x.0));
-    let parts = vec![patterns[2].0, patterns[7].0, patterns[10].0];
-    let indexes = compression_indexes(&compact, &parts);
+    let patterns = patterns_sorted(&compact);
+    let parts = vec![
+        patterns[2].clone(),
+        patterns[7].clone(),
+        patterns[10].clone(),
+    ];
+    let indexes = compression_indexes(&compact.join(","), &parts);
+    // while None, loop patterns
     println!("{:?}", indexes);
     (vec![], vec![])
 }
