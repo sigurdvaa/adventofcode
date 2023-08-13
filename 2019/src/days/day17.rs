@@ -51,11 +51,11 @@ fn trace_path(map: &Vec<Vec<char>>) -> Vec<u32> {
 }
 
 fn get_turn(next: u32, prev: u32) -> Option<char> {
-    match next {
-        _ if prev == 3 && next == 0 => Some('R'),
-        _ if next == 3 && prev == 0 => Some('L'),
-        _ if next < prev => Some('L'),
-        _ if next > prev => Some('R'),
+    match (prev, next) {
+        (3, 0) => Some('R'),
+        (0, 3) => Some('L'),
+        (a, b) if b < a => Some('L'),
+        (a, b) if b > a => Some('R'),
         _ => None,
     }
 }
@@ -186,7 +186,9 @@ fn pattern_combinations(path: &String, patterns: &Vec<String>) -> Vec<Vec<String
     let mut base_combs = vec![];
     for s in &start {
         for e in &end {
-            base_combs.push(vec![s.to_string(), e.to_string()]);
+            if s != e {
+                base_combs.push(vec![s.to_string(), e.to_string()]);
+            }
         }
     }
 
@@ -204,18 +206,26 @@ fn pattern_combinations(path: &String, patterns: &Vec<String>) -> Vec<Vec<String
     combs
 }
 
-fn compressed_path(map: &Vec<Vec<char>>) -> Option<(Vec<usize>, Vec<String>)> {
+fn compressed_path(map: &Vec<Vec<char>>) -> Vec<(String, Vec<String>)> {
     let path = trace_path(&map);
     let compact = compact_path(&path);
     let compact_str = compact.join(",");
     let patterns = patterns_sorted(&compact);
     let combinations = pattern_combinations(&compact_str, &patterns);
+    let mut res = vec![];
     for c in &combinations {
+        println!("{:?}", c);
         if let Some(ids) = compression_indexes(&compact_str, &c) {
-            return Some((ids, c.clone()));
+            res.push((
+                ids.iter()
+                    .map(|x| ((x + 65) as u8 as char).to_string())
+                    .collect::<Vec<_>>()
+                    .join(","),
+                c.clone(),
+            ));
         }
     }
-    None
+    res
 }
 
 pub fn run() {
@@ -231,6 +241,10 @@ pub fn run() {
     let map = parse_map(&prog1.output);
     println!("Part One: {}", sum_alignment_parameters(&map));
 
+    let _compressed = compressed_path(&map);
+    println!("{:?}\n", _compressed);
+
+    /*
     let map_str = "\
         #######...#####\n\
         #.....#...#...#\n\
@@ -249,7 +263,10 @@ pub fn run() {
         ....#####......";
     let map = parse_map(&map_str.chars().map(|x| x as i64).collect());
     let _compressed = compressed_path(&map);
-    println!("{:?}", _compressed);
+    for c in _compressed {
+        println!("{:?}", c);
+    }
+    */
 }
 
 #[cfg(test)]
