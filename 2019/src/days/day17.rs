@@ -130,6 +130,16 @@ fn compression_indexes(path: &String, patterns: &Vec<String>) -> Option<Vec<usiz
 
     while deque.len() > 0 {
         let (s, indexes) = deque.pop_front().unwrap();
+        if indexes
+            .iter()
+            .map(|x: &usize| x.to_string())
+            .collect::<Vec<_>>()
+            .join(",")
+            .len()
+            > 20
+        {
+            continue;
+        }
 
         for (i, p) in patterns.iter().enumerate() {
             let next_s = s + p.len();
@@ -140,9 +150,11 @@ fn compression_indexes(path: &String, patterns: &Vec<String>) -> Option<Vec<usiz
             if *p == path[s..next_s] {
                 let mut next_ids = indexes.clone();
                 next_ids.push(i);
+
                 if next_s == path.len() {
                     return Some(next_ids);
                 }
+
                 deque.push_back((next_s + 1, next_ids));
             }
         }
@@ -161,19 +173,49 @@ fn patterns_sorted(path: &Vec<String>) -> Vec<String> {
         .collect()
 }
 
-fn compressed_path(map: &Vec<Vec<char>>) -> (Vec<u32>, Vec<String>) {
+fn pattern_combinations(path: &String, patterns: &Vec<String>) -> Vec<Vec<String>> {
+    let start = patterns
+        .iter()
+        .filter(|x| path.starts_with(x.as_str()))
+        .collect::<Vec<_>>();
+    let end = patterns
+        .iter()
+        .filter(|x| path.ends_with(x.as_str()))
+        .collect::<Vec<_>>();
+
+    let mut base_combs = vec![];
+    for s in &start {
+        for e in &end {
+            base_combs.push(vec![s.to_string(), e.to_string()]);
+        }
+    }
+
+    let mut combs = vec![];
+    for b in &base_combs {
+        for p in patterns {
+            if !b.contains(p) {
+                let mut c = b.clone();
+                c.push(p.clone());
+                combs.push(c);
+            }
+        }
+    }
+
+    combs
+}
+
+fn compressed_path(map: &Vec<Vec<char>>) -> Option<(Vec<usize>, Vec<String>)> {
     let path = trace_path(&map);
     let compact = compact_path(&path);
+    let compact_str = compact.join(",");
     let patterns = patterns_sorted(&compact);
-    let parts = vec![
-        patterns[2].clone(),
-        patterns[7].clone(),
-        patterns[10].clone(),
-    ];
-    let indexes = compression_indexes(&compact.join(","), &parts);
-    // while None, loop patterns
-    println!("{:?}", indexes);
-    (vec![], vec![])
+    let combinations = pattern_combinations(&compact_str, &patterns);
+    for c in &combinations {
+        if let Some(ids) = compression_indexes(&compact_str, &c) {
+            return Some((ids, c.clone()));
+        }
+    }
+    None
 }
 
 pub fn run() {
@@ -207,6 +249,7 @@ pub fn run() {
         ....#####......";
     let map = parse_map(&map_str.chars().map(|x| x as i64).collect());
     let _compressed = compressed_path(&map);
+    println!("{:?}", _compressed);
 }
 
 #[cfg(test)]
