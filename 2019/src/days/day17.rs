@@ -130,22 +130,7 @@ fn compression_indexes(path: &String, patterns: &Vec<String>) -> Option<Vec<usiz
 
     while deque.len() > 0 {
         let (s, indexes) = deque.pop_front().unwrap();
-        println!(
-            "{}",
-            indexes
-                .iter()
-                .map(|x: &usize| x.to_string())
-                .collect::<Vec<_>>()
-                .join(",")
-        );
-        if indexes
-            .iter()
-            .map(|x: &usize| x.to_string())
-            .collect::<Vec<_>>()
-            .join(",")
-            .len()
-            > 20
-        {
+        if indexes.len() > 10 {
             continue;
         }
 
@@ -163,7 +148,9 @@ fn compression_indexes(path: &String, patterns: &Vec<String>) -> Option<Vec<usiz
                     return Some(next_ids);
                 }
 
-                deque.push_back((next_s + 1, next_ids));
+                if &path[next_s..=next_s] == "," {
+                    deque.push_back((next_s + 1, next_ids));
+                }
             }
         }
     }
@@ -177,45 +164,47 @@ fn patterns_sorted(path: &Vec<String>) -> Vec<String> {
     patterns
         .iter()
         .map(|x| x.0.join(","))
-        .filter(|x| x.len() <= 20)
+        .filter(|x| x.len() < 21)
         .collect()
 }
 
 fn pattern_combinations(path: &String, patterns: &Vec<String>) -> Vec<Vec<String>> {
-    let mut base_combs = vec![];
-    for s in patterns.iter().filter(|x| path.starts_with(x.as_str())) {
-        for e in patterns.iter().filter(|x| path.ends_with(x.as_str())) {
-            if s != e {
-                base_combs.push(vec![s.to_string(), e.to_string()]);
-            }
-        }
+    let mut combs = vec![];
+    for base in patterns
+        .iter()
+        .filter(|x| path.starts_with(x.as_str()) || path.ends_with(x.as_str()))
+    {
+        combs.push(vec![base.to_string()]);
     }
 
-    let mut combs = vec![];
-    for b in &base_combs {
-        for p in patterns {
-            if !b.contains(p) {
-                let mut c = b.clone();
-                c.push(p.clone());
-                combs.push(c);
+    let mut next_combs = vec![];
+    for _ in 0..2 {
+        for b in &combs {
+            for p in patterns {
+                if !b.contains(p) {
+                    let mut c = b.clone();
+                    c.push(p.clone());
+                    next_combs.push(c);
+                }
             }
         }
+        std::mem::swap(&mut next_combs, &mut combs);
+        next_combs.clear();
     }
 
     combs
 }
 
-fn compressed_path(map: &Vec<Vec<char>>) -> Vec<(String, Vec<String>)> {
+fn compressed_path(map: &Vec<Vec<char>>) -> Option<(String, Vec<String>)> {
     let path = trace_path(&map);
     let compact = compact_path(&path);
     let compact_str = compact.join(",");
     let patterns = patterns_sorted(&compact);
     let combinations = pattern_combinations(&compact_str, &patterns);
-    println!("{:?}", combinations.len());
-    let mut res = vec![];
+    println!("{}", combinations.len());
     for c in &combinations {
         if let Some(ids) = compression_indexes(&compact_str, &c) {
-            res.push((
+            return Some((
                 ids.iter()
                     .map(|x| ((x + 65) as u8 as char).to_string())
                     .collect::<Vec<_>>()
@@ -224,7 +213,7 @@ fn compressed_path(map: &Vec<Vec<char>>) -> Vec<(String, Vec<String>)> {
             ));
         }
     }
-    res
+    None
 }
 
 pub fn run() {
@@ -233,39 +222,34 @@ pub fn run() {
     let input_raw =
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 
-    let prog = Program::new(&input_raw);
+    let mut prog = Program::new(&input_raw);
 
     let mut prog1 = prog.clone();
     prog1.run();
     let map = parse_map(&prog1.output);
     println!("Part One: {}", sum_alignment_parameters(&map));
 
-    let _compressed = compressed_path(&map);
-    println!("{:?}\n", _compressed);
+    let compressed = compressed_path(&map).unwrap();
+    let mut fn_main = compressed.0.chars().map(|x| x as i64).collect();
+    let mut fn_a = compressed.1[0].chars().map(|x| x as i64).collect();
+    let mut fn_b = compressed.1[1].chars().map(|x| x as i64).collect();
+    let mut fn_c = compressed.1[2].chars().map(|x| x as i64).collect();
 
-    /*
-    let map_str = "\
-        #######...#####\n\
-        #.....#...#...#\n\
-        #.....#...#...#\n\
-        ......#...#...#\n\
-        ......#...###.#\n\
-        ......#.....#.#\n\
-        ^########...#.#\n\
-        ......#.#...#.#\n\
-        ......#########\n\
-        ........#...#..\n\
-        ....#########..\n\
-        ....#...#......\n\
-        ....#...#......\n\
-        ....#...#......\n\
-        ....#####......";
-    let map = parse_map(&map_str.chars().map(|x| x as i64).collect());
-    let _compressed = compressed_path(&map);
-    for c in _compressed {
-        println!("{:?}", c);
-    }
-    */
+    prog.input.append(&mut fn_main);
+    prog.input.push('\n' as i64);
+    prog.input.append(&mut fn_a);
+    prog.input.push('\n' as i64);
+    prog.input.append(&mut fn_b);
+    prog.input.push('\n' as i64);
+    prog.input.append(&mut fn_c);
+    prog.input.push('\n' as i64);
+    prog.input.push('n' as i64);
+    prog.input.push('\n' as i64);
+    prog.input.reverse();
+
+    prog.intcode[0] = 2;
+    prog.run();
+    println!("Part Two: {}", prog.output.last().unwrap());
 }
 
 #[cfg(test)]
@@ -313,3 +297,29 @@ mod tests {
         );
     }
 }
+
+/*
+R,8,L,4,R,4,R,10,R,8
+R,8,L,4,R,4,R,10,R,8
+
+L,12,L,12,R,8,R,8
+
+R,10,R,4,R,4
+
+L,12,L,12,R,8,R,8
+
+R,10,R,4,R,4
+
+L,12,L,12,R,8,R,8
+
+R,10,R,4,R,4
+R,10,R,4,R,4
+
+R,8,L,4,R,4,R,10,R,8
+
+#####
+
+R,8,L,4,R,4,R,10,R,8
+L,12,L,12,R,8,R,8
+R,10,R,4,R,4
+*/
