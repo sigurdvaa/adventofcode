@@ -1,5 +1,5 @@
 use crate::intcode::Program;
-use std::collections::{HashMap, VecDeque};
+use std::collections::{HashSet, VecDeque};
 use std::fs;
 
 fn parse_map(map: &Vec<i64>) -> Vec<Vec<char>> {
@@ -104,24 +104,18 @@ fn sum_alignment_parameters(map: &Vec<Vec<char>>) -> usize {
     sum
 }
 
-fn pattern_freq(path: &Vec<String>) -> HashMap<&[String], u32> {
-    let mut patterns = HashMap::new();
+fn path_patterns(path: &Vec<String>) -> Vec<String> {
+    let mut patterns = HashSet::new();
     for i in 0..path.len() {
         for l in 0..=i {
-            let curr = &path[l..=i];
-            if let Some(_) = patterns.get(&curr) {
-                continue;
-            }
-            let mut count = 1;
-            for j in i + 1..path.len() - curr.len() {
-                if *curr == path[j..j + curr.len()] {
-                    count += 1;
-                }
-            }
-            patterns.insert(curr, count);
+            patterns.insert(&path[l..=i]);
         }
     }
     patterns
+        .iter()
+        .map(|x| x.join(","))
+        .filter(|x| x.len() < 21)
+        .collect()
 }
 
 fn compression_indexes(path: &String, patterns: &Vec<String>) -> Option<Vec<usize>> {
@@ -158,16 +152,6 @@ fn compression_indexes(path: &String, patterns: &Vec<String>) -> Option<Vec<usiz
     None
 }
 
-fn patterns_sorted(path: &Vec<String>) -> Vec<String> {
-    let mut patterns = pattern_freq(&path).into_iter().collect::<Vec<_>>();
-    patterns.sort_by_key(|x| (std::cmp::Reverse(x.1), x.0.len(), x.0));
-    patterns
-        .iter()
-        .map(|x| x.0.join(","))
-        .filter(|x| x.len() < 21)
-        .collect()
-}
-
 fn pattern_combinations(path: &String, patterns: &Vec<String>) -> Vec<Vec<String>> {
     let mut combs = vec![];
     for base in patterns
@@ -195,11 +179,11 @@ fn pattern_combinations(path: &String, patterns: &Vec<String>) -> Vec<Vec<String
     combs
 }
 
-fn compressed_path(map: &Vec<Vec<char>>) -> Option<(String, Vec<String>)> {
+fn compressed_path_funcs(map: &Vec<Vec<char>>) -> Option<(String, Vec<String>)> {
     let path = trace_path(&map);
     let compact = compact_path(&path);
     let compact_str = compact.join(",");
-    let patterns = patterns_sorted(&compact);
+    let patterns = path_patterns(&compact);
     let combinations = pattern_combinations(&compact_str, &patterns);
     println!("{}", combinations.len());
     for c in &combinations {
@@ -229,14 +213,21 @@ pub fn run() {
     let map = parse_map(&prog1.output);
     println!("Part One: {}", sum_alignment_parameters(&map));
 
-    let compressed = compressed_path(&map).unwrap();
-    let mut fn_main = compressed.0.chars().map(|x| x as i64).collect();
-    let mut fn_a = compressed.1[0].chars().map(|x| x as i64).collect();
-    let mut fn_b = compressed.1[1].chars().map(|x| x as i64).collect();
-    let mut fn_c = compressed.1[2].chars().map(|x| x as i64).collect();
+    let (main, funcs) = compressed_path_funcs(&map).unwrap();
+    let mut fn_main = main.chars().map(|x| x as i64).collect();
+    let mut fn_a = funcs[0].chars().map(|x| x as i64).collect();
+    let mut fn_b = funcs[1].chars().map(|x| x as i64).collect();
+    let mut fn_c = funcs[2].chars().map(|x| x as i64).collect();
 
     prog.input.append(&mut fn_main);
     prog.input.push('\n' as i64);
+
+    for fn in funcs {
+    prog.input.append(&mut fn.chars().map(|x|x as i64));
+    prog.input.push('\n' as i64);
+
+    }
+
     prog.input.append(&mut fn_a);
     prog.input.push('\n' as i64);
     prog.input.append(&mut fn_b);
@@ -246,7 +237,6 @@ pub fn run() {
     prog.input.push('n' as i64);
     prog.input.push('\n' as i64);
     prog.input.reverse();
-
     prog.intcode[0] = 2;
     prog.run();
     println!("Part Two: {}", prog.output.last().unwrap());
@@ -297,29 +287,3 @@ mod tests {
         );
     }
 }
-
-/*
-R,8,L,4,R,4,R,10,R,8
-R,8,L,4,R,4,R,10,R,8
-
-L,12,L,12,R,8,R,8
-
-R,10,R,4,R,4
-
-L,12,L,12,R,8,R,8
-
-R,10,R,4,R,4
-
-L,12,L,12,R,8,R,8
-
-R,10,R,4,R,4
-R,10,R,4,R,4
-
-R,8,L,4,R,4,R,10,R,8
-
-#####
-
-R,8,L,4,R,4,R,10,R,8
-L,12,L,12,R,8,R,8
-R,10,R,4,R,4
-*/
