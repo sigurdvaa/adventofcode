@@ -161,21 +161,24 @@ fn pattern_combinations(path: &String, patterns: &Vec<String>) -> Vec<Vec<String
         combs.push(vec![base.to_string()]);
     }
 
-    for _ in 0..2 {
-        let mut next_combs = vec![];
-        for base in &combs {
-            for p in patterns {
-                if !base.contains(p) {
-                    let mut comb = base.clone();
-                    comb.push(p.clone());
-                    next_combs.push(comb);
+    let mut next_combs = vec![];
+    for i1 in 0..patterns.len() - 1 {
+        for i2 in i1 + 1..patterns.len() {
+            for b in &combs {
+                let p1 = &patterns[i1];
+                let p2 = &patterns[i2];
+
+                if p1 != &b[0] && p2 != &b[0] {
+                    let mut next = b.clone();
+                    next.push(p1.clone());
+                    next.push(p2.clone());
+                    next_combs.push(next);
                 }
             }
         }
-        combs = next_combs;
     }
 
-    combs
+    next_combs
 }
 
 fn compressed_path_funcs(map: &Vec<Vec<char>>) -> Option<(String, Vec<String>)> {
