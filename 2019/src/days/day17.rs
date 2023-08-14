@@ -161,19 +161,18 @@ fn pattern_combinations(path: &String, patterns: &Vec<String>) -> Vec<Vec<String
         combs.push(vec![base.to_string()]);
     }
 
-    let mut next_combs = vec![];
     for _ in 0..2 {
-        for b in &combs {
+        let mut next_combs = vec![];
+        for base in &combs {
             for p in patterns {
-                if !b.contains(p) {
-                    let mut c = b.clone();
-                    c.push(p.clone());
-                    next_combs.push(c);
+                if !base.contains(p) {
+                    let mut comb = base.clone();
+                    comb.push(p.clone());
+                    next_combs.push(comb);
                 }
             }
         }
-        std::mem::swap(&mut next_combs, &mut combs);
-        next_combs.clear();
+        combs = next_combs;
     }
 
     combs
@@ -185,7 +184,6 @@ fn compressed_path_funcs(map: &Vec<Vec<char>>) -> Option<(String, Vec<String>)> 
     let compact_str = compact.join(",");
     let patterns = path_patterns(&compact);
     let combinations = pattern_combinations(&compact_str, &patterns);
-    println!("{}", combinations.len());
     for c in &combinations {
         if let Some(ids) = compression_indexes(&compact_str, &c) {
             return Some((
@@ -214,26 +212,14 @@ pub fn run() {
     println!("Part One: {}", sum_alignment_parameters(&map));
 
     let (main, funcs) = compressed_path_funcs(&map).unwrap();
-    let mut fn_main = main.chars().map(|x| x as i64).collect();
-    let mut fn_a = funcs[0].chars().map(|x| x as i64).collect();
-    let mut fn_b = funcs[1].chars().map(|x| x as i64).collect();
-    let mut fn_c = funcs[2].chars().map(|x| x as i64).collect();
-
-    prog.input.append(&mut fn_main);
+    prog.input
+        .append(&mut main.chars().map(|x| x as i64).collect());
     prog.input.push('\n' as i64);
-
-    for fn in funcs {
-    prog.input.append(&mut fn.chars().map(|x|x as i64));
-    prog.input.push('\n' as i64);
-
+    for f in funcs {
+        prog.input
+            .append(&mut f.chars().map(|x| x as i64).collect());
+        prog.input.push('\n' as i64);
     }
-
-    prog.input.append(&mut fn_a);
-    prog.input.push('\n' as i64);
-    prog.input.append(&mut fn_b);
-    prog.input.push('\n' as i64);
-    prog.input.append(&mut fn_c);
-    prog.input.push('\n' as i64);
     prog.input.push('n' as i64);
     prog.input.push('\n' as i64);
     prog.input.reverse();
