@@ -124,10 +124,6 @@ fn compression_indexes(path: &String, patterns: &Vec<String>) -> Option<Vec<usiz
 
     while deque.len() > 0 {
         let (s, indexes) = deque.pop_front().unwrap();
-        if indexes.len() > 10 {
-            continue;
-        }
-
         for (i, p) in patterns.iter().enumerate() {
             let next_s = s + p.len();
             if next_s > path.len() {
@@ -138,10 +134,12 @@ fn compression_indexes(path: &String, patterns: &Vec<String>) -> Option<Vec<usiz
                 let mut next_ids = indexes.clone();
                 next_ids.push(i);
 
+                if next_ids.len() > 10 {
+                    continue;
+                }
                 if next_s == path.len() {
                     return Some(next_ids);
                 }
-
                 if &path[next_s..=next_s] == "," {
                     deque.push_back((next_s + 1, next_ids));
                 }
