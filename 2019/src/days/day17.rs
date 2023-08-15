@@ -181,21 +181,21 @@ fn pattern_combinations(path: &String, patterns: &Vec<String>) -> Vec<Vec<String
     next_combs
 }
 
-fn compressed_path_funcs(map: &Vec<Vec<char>>) -> Option<(String, Vec<String>)> {
+fn compressed_path_funcs(map: &Vec<Vec<char>>) -> Option<Vec<String>> {
     let path = trace_path(&map);
     let compact = compact_path(&path);
     let compact_str = compact.join(",");
     let patterns = path_patterns(&compact);
     let combinations = pattern_combinations(&compact_str, &patterns);
-    for c in &combinations {
+    for mut c in combinations {
         if let Some(ids) = compression_indexes(&compact_str, &c) {
-            return Some((
-                ids.iter()
-                    .map(|x| ((x + 65) as u8 as char).to_string())
-                    .collect::<Vec<_>>()
-                    .join(","),
-                c.clone(),
-            ));
+            let main = ids
+                .iter()
+                .map(|x| ((x + 65) as u8 as char).to_string())
+                .collect::<Vec<_>>()
+                .join(",");
+            c.insert(0, main);
+            return Some(c.clone());
         }
     }
     None
@@ -214,10 +214,7 @@ pub fn run() {
     let map = parse_map(&prog1.output);
     println!("Part One: {}", sum_alignment_parameters(&map));
 
-    let (main, funcs) = compressed_path_funcs(&map).unwrap();
-    prog.input
-        .append(&mut main.chars().map(|x| x as i64).collect());
-    prog.input.push('\n' as i64);
+    let funcs = compressed_path_funcs(&map).unwrap();
     for f in funcs {
         prog.input
             .append(&mut f.chars().map(|x| x as i64).collect());
