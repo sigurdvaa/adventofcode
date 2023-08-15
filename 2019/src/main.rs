@@ -1,7 +1,7 @@
 mod days;
 mod intcode;
 
-const DAYS: &[fn() -> ()] = &[
+const DAYS: &[fn()] = &[
     days::day01::run,
     days::day02::run,
     days::day03::run,
