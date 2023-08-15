@@ -1,8 +1,29 @@
 mod days;
 mod intcode;
 
+const DAYS: &[fn() -> ()] = &[
+    days::day01::run,
+    days::day02::run,
+    days::day03::run,
+    days::day04::run,
+    days::day05::run,
+    days::day06::run,
+    days::day07::run,
+    days::day08::run,
+    days::day09::run,
+    days::day10::run,
+    days::day11::run,
+    days::day12::run,
+    days::day13::run,
+    days::day14::run,
+    days::day15::run,
+    days::day16::run,
+    days::day17::run,
+    days::day18::run,
+];
+
 fn usage(args: &Vec<String>) {
-    eprintln!("Usage: {} <all|dayXX>", args[0]);
+    eprintln!("Usage: {} {{ all | day1..day{} }}", args[0], DAYS.len());
     std::process::exit(1);
 }
 
@@ -12,60 +33,22 @@ fn main() {
         usage(&args);
     }
     match args[1].as_str() {
-        "day01" => days::day01::run(),
-        "day02" => days::day02::run(),
-        "day03" => days::day03::run(),
-        "day04" => days::day04::run(),
-        "day05" => days::day05::run(),
-        "day06" => days::day06::run(),
-        "day07" => days::day07::run(),
-        "day08" => days::day08::run(),
-        "day09" => days::day09::run(),
-        "day10" => days::day10::run(),
-        "day11" => days::day11::run(),
-        "day12" => days::day12::run(),
-        "day13" => days::day13::run(),
-        "day14" => days::day14::run(),
-        "day15" => days::day15::run(),
-        "day16" => days::day16::run(),
-        "day17" => days::day17::run(),
-        "day18" => days::day18::run(),
+        arg if arg.starts_with("day") => match arg[3..].parse::<usize>() {
+            Ok(day) if 0 < day && day <= DAYS.len() => {
+                DAYS[day - 1]();
+            }
+            Err(err) => {
+                eprintln!("Invalid day, {err}: {}", &arg[3..]);
+            }
+            _ => {
+                usage(&args);
+            }
+        },
         "all" => {
-            days::day01::run();
-            println!();
-            days::day02::run();
-            println!();
-            days::day03::run();
-            println!();
-            days::day04::run();
-            println!();
-            days::day05::run();
-            println!();
-            days::day06::run();
-            println!();
-            days::day07::run();
-            println!();
-            days::day08::run();
-            println!();
-            days::day09::run();
-            println!();
-            days::day10::run();
-            println!();
-            days::day11::run();
-            println!();
-            days::day12::run();
-            println!();
-            days::day13::run();
-            println!();
-            days::day14::run();
-            println!();
-            days::day15::run();
-            println!();
-            days::day16::run();
-            println!();
-            days::day17::run();
-            println!();
-            days::day18::run();
+            for day in DAYS {
+                day();
+                println!();
+            }
         }
         _ => usage(&args),
     }
