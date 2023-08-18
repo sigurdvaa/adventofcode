@@ -22,12 +22,17 @@ fn steps_collect_keys(map: &str) -> Option<usize> {
         .map(|line| line.chars().collect::<Vec<_>>())
         .collect::<Vec<_>>();
     let (entrance, num_keys) = find_entrance_and_keys(&map);
+    let mut seen = HashSet::new();
     let mut queue = VecDeque::new();
-    queue.push_back((0, entrance, vec![], HashSet::new()));
+    queue.push_back((0, entrance, vec![]));
+
+    let mut i = 0;
+
     while !queue.is_empty() {
-        let (steps, pos, mut keys, mut seen) = queue.pop_front().unwrap();
+        i += 1;
+        let (steps, pos, mut keys) = queue.pop_front().unwrap();
         let state = (pos.clone(), keys.clone());
-        println!("s: {}, pos: {:?}, keys: {:?}", steps, pos, keys);
+        // println!("s: {}, pos: {:?}, keys: {:?}", steps, pos, keys);
         if seen.contains(&state) {
             continue;
         }
@@ -41,7 +46,9 @@ fn steps_collect_keys(map: &str) -> Option<usize> {
             c if c.is_lowercase() => {
                 if !keys.contains(&c) {
                     keys.push(c);
+                    keys.sort();
                     if keys.len() >= num_keys {
+                        println!("{}", i);
                         return Some(steps);
                     }
                 }
@@ -58,9 +65,10 @@ fn steps_collect_keys(map: &str) -> Option<usize> {
                 3 => (pos.0 - 1, pos.1),
                 _ => unreachable!(),
             };
-            queue.push_back((steps + 1, new_pos, keys.clone(), seen.clone()));
+            queue.push_back((steps + 1, new_pos, keys.clone()));
         }
     }
+    println!("{}", i);
     None
 }
 
@@ -72,12 +80,18 @@ pub fn run() {
 
     //println!("Part One: {}", steps_collect_keys(&input_raw).unwrap());
     let map = "\
-            ########################\n\
-            #...............b.C.D.f#\n\
-            #.######################\n\
-            #.....@.a.B.c.d.A.e.F.g#\n\
-            ########################";
-    assert_eq!(steps_collect_keys(map).unwrap(), 132);
+            #################\n\
+            #i.G..c...e..H.p#\n\
+            ########.########\n\
+            #j.A..b...f..D.o#\n\
+            ########@########\n\
+            #k.E..a...g..B.n#\n\
+            ########.########\n\
+            #l.F..d...h..C.m#\n\
+            #################";
+    assert_eq!(steps_collect_keys(map).unwrap(), 136);
+
+    //assert_eq!(vec!["a", "b"], vec!["b", "a"]);
 }
 
 #[cfg(test)]
@@ -120,7 +134,6 @@ mod tests {
             #################";
         assert_eq!(steps_collect_keys(map).unwrap(), 136);
 
-        /*
         let map = "\
             ########################\n\
             #@..............ac.GI.b#\n\
@@ -129,7 +142,6 @@ mod tests {
             ###g#h#i################\n\
             ########################";
         assert_eq!(steps_collect_keys(map).unwrap(), 81);
-        */
     }
 
     #[test]
