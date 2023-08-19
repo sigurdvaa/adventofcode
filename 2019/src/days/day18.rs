@@ -31,12 +31,6 @@ fn steps_collect_keys(map: &str) -> Option<usize> {
     while !queue.is_empty() {
         i += 1;
         let (steps, pos, mut keys) = queue.pop_front().unwrap();
-        let state = (pos.clone(), keys.clone());
-        // println!("s: {}, pos: {:?}, keys: {:?}", steps, pos, keys);
-        if seen.contains(&state) {
-            continue;
-        }
-        seen.insert(state);
         match map[pos.1][pos.0] {
             c if c.is_uppercase() => {
                 if !keys.contains(&c.to_lowercase().next().unwrap()) {
@@ -65,6 +59,11 @@ fn steps_collect_keys(map: &str) -> Option<usize> {
                 3 => (pos.0 - 1, pos.1),
                 _ => unreachable!(),
             };
+            let state = (new_pos, keys.clone());
+            if seen.contains(&state) {
+                continue;
+            }
+            seen.insert(state);
             queue.push_back((steps + 1, new_pos, keys.clone()));
         }
     }
@@ -90,8 +89,6 @@ pub fn run() {
             #l.F..d...h..C.m#\n\
             #################";
     assert_eq!(steps_collect_keys(map).unwrap(), 136);
-
-    //assert_eq!(vec!["a", "b"], vec!["b", "a"]);
 }
 
 #[cfg(test)]
