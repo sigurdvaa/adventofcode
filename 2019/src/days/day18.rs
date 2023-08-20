@@ -1,83 +1,137 @@
+use core::cell::RefCell;
 use std::collections::{HashSet, VecDeque};
 use std::fs;
 
-fn find_entrance_and_keys(map: &Vec<Vec<char>>) -> ((usize, usize), usize) {
-    let mut entrance = (0, 0);
-    let mut keys = 0;
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+struct Pos {
+    x: usize,
+    y: usize,
+}
+
+impl Pos {
+    fn new(x: usize, y: usize) -> Pos {
+        Pos { x, y }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+struct Node {
+    name: char,
+    pos: Pos,
+    adjacent: Vec<(RefCell<Node>, usize, Vec<String>)>,
+}
+
+impl Node {
+    fn new(name: char, x: usize, y: usize) -> Node {
+        Node {
+            name,
+            pos: Pos { x, y },
+            adjacent: Vec::new(),
+        }
+    }
+}
+
+fn create_nodes(map: &Vec<Vec<char>>) -> Vec<Node> {
+    let mut nodes = vec![];
     for (y, line) in map.iter().enumerate() {
         for (x, c) in line.iter().enumerate() {
             match c {
-                '@' => entrance = (x, y),
-                _ if c.is_lowercase() => keys += 1,
+                c if c.is_lowercase() => nodes.push(Node::new(*c, x, y)),
+                '@' => nodes.push(Node::new(*c, x, y)),
                 _ => (),
             }
         }
     }
-    (entrance, keys)
+    nodes
+}
+
+fn find_adjacent_nodes(map: &Vec<Vec<char>>, pos: Pos) -> Vec<(char, Vec<char>)> {
+    let mut nodes = Vec::new();
+    let mut seen = HashSet::new();
+    let mut queue = VecDeque::new();
+    queue.push_back((pos, vec![]));
+
+    while !queue.is_empty() {
+        let (pos, doors) = queue.pop_front().unwrap();
+        for i in 0..4 {
+            let next_pos = match i {
+                0 => Pos::new(pos.x + 1, pos.y),
+                1 => Pos::new(pos.x - 1, pos.y),
+                2 => Pos::new(pos.x, pos.y + 1),
+                3 => Pos::new(pos.x, pos.y - 1),
+                _ => unreachable!(),
+            };
+
+            if seen.contains(&next_pos) {
+                continue;
+            }
+            seen.insert(next_pos.clone());
+
+            let mut next_doors = doors.clone();
+            match map[next_pos.y][next_pos.x] {
+                c if c.is_uppercase() => {
+                    next_doors.push(c);
+                }
+                c if c.is_lowercase() => {
+                    nodes.push((c, next_doors));
+                    continue;
+                }
+
+                '@' => nodes.push(('@', next_doors.clone())),
+                '.' => (),
+                _ => continue,
+            }
+            queue.push_back((next_pos, next_doors));
+        }
+    }
+
+    nodes
+}
+
+fn create_key_graph(map: &str) -> () {
+    let map = map
+        .lines()
+        .map(|l| l.chars().collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+    let nodes = create_nodes(&map);
+    for n in nodes {
+        let adjacent = find_adjacent_nodes(&map, n.pos);
+        println!("{:?}", adjacent);
+    }
 }
 
 fn steps_collect_keys(map: &str) -> Option<usize> {
-    let map = map
-        .lines()
-        .map(|line| line.chars().collect::<Vec<_>>())
-        .collect::<Vec<_>>();
-    let (entrance, num_keys) = find_entrance_and_keys(&map);
-    let mut seen = HashSet::new();
-    let mut queue = VecDeque::new();
-    queue.push_back((0, entrance, vec![]));
+    // use bfs to precalc graph between all keys (this includes entrance), cost is steps
+    let _adj_keys = create_key_graph(map);
 
-    let mut i = 0;
+    // then djikstra to find shortest path based on cost
 
-    while !queue.is_empty() {
-        i += 1;
-        let (steps, pos, mut keys) = queue.pop_front().unwrap();
-        match map[pos.1][pos.0] {
-            c if c.is_uppercase() => {
-                if !keys.contains(&c.to_lowercase().next().unwrap()) {
-                    continue;
-                }
-            }
-            c if c.is_lowercase() => {
-                if !keys.contains(&c) {
-                    keys.push(c);
-                    keys.sort();
-                    if keys.len() >= num_keys {
-                        println!("{}", i);
-                        return Some(steps);
-                    }
-                }
-            }
-            '.' | '@' => (),
-            '#' => continue,
-            _ => unreachable!(),
-        }
-        for i in 0..4 {
-            let new_pos = match i {
-                0 => (pos.0 + 1, pos.1),
-                1 => (pos.0, pos.1 + 1),
-                2 => (pos.0, pos.1 - 1),
-                3 => (pos.0 - 1, pos.1),
-                _ => unreachable!(),
-            };
-            let state = (new_pos, keys.clone());
-            if seen.contains(&state) {
-                continue;
-            }
-            seen.insert(state);
-            queue.push_back((steps + 1, new_pos, keys.clone()));
-        }
-    }
-    println!("{}", i);
-    None
+    Some(0)
 }
 
 pub fn run() {
     println!("Day 18: Many-Worlds Interpretation");
     let file_path = "inputs/day18.txt";
-    let input_raw =
+    let _input_raw =
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 
     //println!("Part One: {}", steps_collect_keys(&input_raw).unwrap());
+
+    /*
+    println!(
+        "Part Two: {}",
+        steps_collect_keys_all_entrances(&input_raw).unwrap()
+    );
+    */
+    // high 1828
+
+    let map = "\
+        #########\n\
+        #b.A.@.a#\n\
+        #########";
+    assert_eq!(steps_collect_keys(map).unwrap(), 8);
+
+    /*
     let map = "\
             #################\n\
             #i.G..c...e..H.p#\n\
@@ -89,6 +143,21 @@ pub fn run() {
             #l.F..d...h..C.m#\n\
             #################";
     assert_eq!(steps_collect_keys(map).unwrap(), 136);
+    */
+
+    /*
+    let map = "\
+            #############\n\
+            #g#f.D#..h#l#\n\
+            #F###e#E###.#\n\
+            #dCba@#@BcIJ#\n\
+            #############\n\
+            #nK.L@#@G...#\n\
+            #M###N#H###.#\n\
+            #o#m..#i#jk.#\n\
+            #############";
+    assert_eq!(steps_collect_keys_all_entrances(map).unwrap(), 72);
+    */
 }
 
 #[cfg(test)]
@@ -142,5 +211,49 @@ mod tests {
     }
 
     #[test]
-    fn test_part_two() {}
+    fn test_part_two() {
+        /*
+        let map = "\
+            #######\n\
+            #a.#Cd#\n\
+            ##@#@##\n\
+            #######\n\
+            ##@#@##\n\
+            #cB#Ab#\n\
+            #######";
+        assert_eq!(steps_collect_keys_all_entrances(map).unwrap(), 8);
+
+        let map = "\
+            ###############\n\
+            #d.ABC.#.....a#\n\
+            ######@#@######\n\
+            ###############\n\
+            ######@#@######\n\
+            #b.....#.....c#\n\
+            ###############";
+        assert_eq!(steps_collect_keys_all_entrances(map).unwrap(), 24);
+
+        let map = "\
+            #############\n\
+            #DcBa.#.GhKl#\n\
+            #.###@#@#I###\n\
+            #e#d#####j#k#\n\
+            ###C#@#@###J#\n\
+            #fEbA.#.FgHi#\n\
+            #############";
+        assert_eq!(steps_collect_keys_all_entrances(map).unwrap(), 32);
+
+        let map = "\
+            #############\n\
+            #g#f.D#..h#l#\n\
+            #F###e#E###.#\n\
+            #dCba@#@BcIJ#\n\
+            #############\n\
+            #nK.L@#@G...#\n\
+            #M###N#H###.#\n\
+            #o#m..#i#jk.#\n\
+            #############";
+        assert_eq!(steps_collect_keys_all_entrances(map).unwrap(), 72);
+        */
+    }
 }
