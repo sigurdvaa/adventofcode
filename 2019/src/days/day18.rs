@@ -18,7 +18,7 @@ impl Pos {
 struct Node {
     name: char,
     pos: Pos,
-    adjacent: Vec<(RefCell<Node>, usize, Vec<String>)>,
+    adjacent: Vec<(RefCell<Node>, usize, Vec<char>)>,
 }
 
 impl Node {
@@ -28,6 +28,10 @@ impl Node {
             pos: Pos { x, y },
             adjacent: Vec::new(),
         }
+    }
+
+    fn add(mut self, adj: Node, steps: usize, doors: Vec<char>) {
+        self.adjacent.push((RefCell::new(adj), steps, doors));
     }
 }
 
@@ -45,14 +49,14 @@ fn create_nodes(map: &Vec<Vec<char>>) -> Vec<Node> {
     nodes
 }
 
-fn find_adjacent_nodes(map: &Vec<Vec<char>>, pos: Pos) -> Vec<(char, Vec<char>)> {
+fn find_adjacent_nodes(map: &Vec<Vec<char>>, pos: Pos) -> Vec<(char, usize, Vec<char>)> {
     let mut nodes = Vec::new();
     let mut seen = HashSet::new();
     let mut queue = VecDeque::new();
-    queue.push_back((pos, vec![]));
+    queue.push_back((0, pos, vec![]));
 
     while !queue.is_empty() {
-        let (pos, doors) = queue.pop_front().unwrap();
+        let (steps, pos, doors) = queue.pop_front().unwrap();
         for i in 0..4 {
             let next_pos = match i {
                 0 => Pos::new(pos.x + 1, pos.y),
@@ -68,20 +72,21 @@ fn find_adjacent_nodes(map: &Vec<Vec<char>>, pos: Pos) -> Vec<(char, Vec<char>)>
             seen.insert(next_pos.clone());
 
             let mut next_doors = doors.clone();
+            let next_steps = steps + 1;
             match map[next_pos.y][next_pos.x] {
                 c if c.is_uppercase() => {
                     next_doors.push(c);
                 }
                 c if c.is_lowercase() => {
-                    nodes.push((c, next_doors));
+                    nodes.push((c, next_steps, next_doors));
                     continue;
                 }
 
-                '@' => nodes.push(('@', next_doors.clone())),
+                '@' => nodes.push(('@', next_steps, next_doors.clone())),
                 '.' => (),
                 _ => continue,
             }
-            queue.push_back((next_pos, next_doors));
+            queue.push_back((next_steps, next_pos, next_doors));
         }
     }
 
@@ -94,8 +99,16 @@ fn create_key_graph(map: &str) -> () {
         .map(|l| l.chars().collect::<Vec<_>>())
         .collect::<Vec<_>>();
     let nodes = create_nodes(&map);
-    for n in nodes {
-        let adjacent = find_adjacent_nodes(&map, n.pos);
+    for i1 in 0..nodes.len() {
+        let adjacent = find_adjacent_nodes(&map, nodes[i1].pos);
+        'outer: for (c, steps, doors) in adjacent.iter() {
+            for i2 in 0..nodes.len() {
+                if nodes[i2].name == *c {
+                    nodes[i1].add(nodes[i2], *steps, *doors);
+                    break 'outer;
+                }
+            }
+        }
         println!("{:?}", adjacent);
     }
 }
@@ -112,7 +125,7 @@ fn steps_collect_keys(map: &str) -> Option<usize> {
 pub fn run() {
     println!("Day 18: Many-Worlds Interpretation");
     let file_path = "inputs/day18.txt";
-    let _input_raw =
+    let input_raw =
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 
     //println!("Part One: {}", steps_collect_keys(&input_raw).unwrap());
