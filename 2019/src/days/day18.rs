@@ -117,52 +117,7 @@ fn create_key_graph(map: &str) -> Graph {
 
 fn shortest_path_to_keys(map: &str) -> Option<usize> {
     let key_graph = create_key_graph(map);
-    let mut shortest = None;
-    let mut queue = VecDeque::new();
-    let mut seen = HashSet::new();
-    queue.push_back(('@', vec![], 0));
-
-    while let Some((c, keys, steps)) = queue.pop_front() {
-        let state = (c, keys.clone());
-        if seen.contains(&state) {
-            continue;
-        }
-        seen.insert(state);
-
-        if keys.len() == key_graph.nodes.len() - 1 {
-            shortest = match shortest {
-                None => Some(steps),
-                Some(s) => Some(s.min(steps)),
-            };
-            continue;
-        }
-
-        println!();
-        'outer: for a in &key_graph.adjacency {
-            if a.from == c {
-                for d in &a.doors {
-                    if !keys.contains(d) {
-                        continue 'outer;
-                    }
-                }
-
-                let mut next_keys = keys.clone();
-                if !next_keys.contains(&a.to) {
-                    next_keys.push(a.to);
-                    next_keys.sort();
-                }
-                println!(
-                    "{} -> {}, steps: {}, keys {:?}",
-                    a.from,
-                    a.to,
-                    steps + a.steps,
-                    next_keys
-                );
-                queue.push_back((a.to, next_keys, steps + a.steps));
-            }
-        }
-    }
-    shortest
+    // djikstra's (with priority queue)
 }
 
 pub fn run() {
