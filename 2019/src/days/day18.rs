@@ -20,6 +20,30 @@ impl Adjacent {
     }
 }
 
+#[derive(Debug, Clone)]
+struct Graph {
+    nodes: Vec<char>,
+    adjacency: Vec<Adjacent>,
+}
+
+impl Graph {
+    fn new() -> Graph {
+        Graph {
+            nodes: vec![],
+            adjacency: vec![],
+        }
+    }
+
+    fn extend_edge(&mut self, adj: Vec<Adjacent>) {
+        for a in adj {
+            if !self.nodes.contains(&a.from) {
+                self.nodes.push(a.from);
+            }
+            self.adjacency.push(a);
+        }
+    }
+}
+
 fn find_entrace_and_keys(map: &Vec<Vec<char>>) -> Vec<(char, (usize, usize))> {
     let mut nodes = vec![];
     for (y, line) in map.iter().enumerate() {
@@ -63,13 +87,13 @@ fn find_adjacent_nodes(map: &Vec<Vec<char>>, pos: (usize, usize)) -> Vec<Adjacen
             let next_steps = steps + 1;
             match map[next_pos.1][next_pos.0] {
                 c if c.is_uppercase() => {
-                    next_doors.push(c);
+                    next_doors.push(c.to_lowercase().next().unwrap());
                 }
                 c if c.is_lowercase() => {
                     adj.push(Adjacent::new(from, c, next_steps, next_doors));
                     continue;
                 }
-                '.' => (),
+                '.' | '@' => (),
                 _ => continue,
             }
             queue.push_back((next_steps, next_pos, next_doors));
@@ -78,25 +102,67 @@ fn find_adjacent_nodes(map: &Vec<Vec<char>>, pos: (usize, usize)) -> Vec<Adjacen
     adj
 }
 
-fn create_key_graph(map: &str) -> Vec<Adjacent> {
+fn create_key_graph(map: &str) -> Graph {
     let map = map
         .lines()
         .map(|l| l.chars().collect::<Vec<_>>())
         .collect::<Vec<_>>();
     let nodes = find_entrace_and_keys(&map);
-    let mut adj = vec![];
+    let mut graph = Graph::new();
     for n in nodes {
-        adj.extend(find_adjacent_nodes(&map, n.1));
+        graph.extend_edge(find_adjacent_nodes(&map, n.1));
     }
-    adj
+    graph
 }
 
 fn shortest_path_to_keys(map: &str) -> Option<usize> {
-    let adj_keys = create_key_graph(map);
+    let key_graph = create_key_graph(map);
+    let mut shortest = None;
+    let mut queue = VecDeque::new();
+    let mut seen = HashSet::new();
+    queue.push_back(('@', vec![], 0));
 
-    // BFS or djikstra's
+    while let Some((c, keys, steps)) = queue.pop_front() {
+        let state = (c, keys.clone());
+        if seen.contains(&state) {
+            continue;
+        }
+        seen.insert(state);
 
-    Some(0)
+        if keys.len() == key_graph.nodes.len() - 1 {
+            shortest = match shortest {
+                None => Some(steps),
+                Some(s) => Some(s.min(steps)),
+            };
+            continue;
+        }
+
+        println!();
+        'outer: for a in &key_graph.adjacency {
+            if a.from == c {
+                for d in &a.doors {
+                    if !keys.contains(d) {
+                        continue 'outer;
+                    }
+                }
+
+                let mut next_keys = keys.clone();
+                if !next_keys.contains(&a.to) {
+                    next_keys.push(a.to);
+                    next_keys.sort();
+                }
+                println!(
+                    "{} -> {}, steps: {}, keys {:?}",
+                    a.from,
+                    a.to,
+                    steps + a.steps,
+                    next_keys
+                );
+                queue.push_back((a.to, next_keys, steps + a.steps));
+            }
+        }
+    }
+    shortest
 }
 
 pub fn run() {
@@ -121,7 +187,6 @@ pub fn run() {
             #########";
     assert_eq!(shortest_path_to_keys(map).unwrap(), 8);
 
-    /*
     let map = "\
             #################\n\
             #i.G..c...e..H.p#\n\
@@ -133,7 +198,6 @@ pub fn run() {
             #l.F..d...h..C.m#\n\
             #################";
     assert_eq!(shortest_path_to_keys(map).unwrap(), 136);
-    */
 
     /*
     let map = "\
