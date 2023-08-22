@@ -3,27 +3,21 @@ use std::fs;
 
 #[derive(Debug, Clone)]
 struct Adjacent {
-    from: char,
     to: char,
     steps: usize,
     doors: Vec<char>,
 }
 
 impl Adjacent {
-    fn new(from: char, to: char, steps: usize, doors: Vec<char>) -> Adjacent {
-        Adjacent {
-            steps,
-            doors,
-            from,
-            to,
-        }
+    fn new(to: char, steps: usize, doors: Vec<char>) -> Adjacent {
+        Adjacent { steps, doors, to }
     }
 }
 
 #[derive(Debug, Clone)]
 struct Graph {
     nodes: Vec<char>,
-    adjacency: Vec<Adjacent>,
+    adjacency: Vec<Vec<Adjacent>>,
 }
 
 impl Graph {
@@ -34,13 +28,69 @@ impl Graph {
         }
     }
 
-    fn extend_edge(&mut self, adj: Vec<Adjacent>) {
-        for a in adj {
-            if !self.nodes.contains(&a.from) {
-                self.nodes.push(a.from);
-            }
-            self.adjacency.push(a);
+    fn add(&mut self, node: char, adj: Vec<Adjacent>) {
+        if !self.nodes.contains(&node) {
+            self.nodes.push(node);
         }
+        self.adjacency.push(adj);
+    }
+}
+
+struct PriQueue<T> {
+    data: Vec<T>,
+    length: usize,
+}
+
+impl<T> PriQueue<T> {
+    fn new() -> PriQueue<T> {
+        PriQueue {
+            data: Vec::new(),
+            length: 0,
+        }
+    }
+
+    fn heap_up(&mut self, id: usize) {}
+
+    fn heap_down(&mut self, id: usize) {}
+
+    fn insert(&mut self, value: T) {
+        self.length += 1;
+        if self.length == self.data.len() {
+            self.data.push(value);
+        } else {
+            self.data[self.length] = value;
+        }
+        self.heap_up(self.data.len() - 1);
+    }
+
+    fn delete(&mut self) -> Option<T> {
+        if self.length == 0 {
+            return None;
+        }
+        if self.length == 1 {
+            self.length -= 1;
+            return Some(self.data[0]);
+        }
+        let value = self.data[0];
+        self.length -= 1;
+        self.data[0] = self.data[self.length];
+        self.heap_down(0);
+        Some(value)
+    }
+
+    fn parent(id: usize) -> usize {
+        if id == 0 {
+            return 0;
+        }
+        (id - 1) / 2
+    }
+
+    fn left_child(id: usize) -> usize {
+        id * 2 + 1
+    }
+
+    fn right_child(id: usize) -> usize {
+        id * 2 + 2
     }
 }
 
@@ -62,7 +112,6 @@ fn find_adjacent_nodes(map: &Vec<Vec<char>>, pos: (usize, usize)) -> Vec<Adjacen
     let mut adj = Vec::new();
     let mut seen = HashSet::new();
     let mut queue = VecDeque::new();
-    let from = map[pos.1][pos.0];
 
     seen.insert(pos);
     queue.push_back((0, pos, vec![]));
@@ -90,7 +139,7 @@ fn find_adjacent_nodes(map: &Vec<Vec<char>>, pos: (usize, usize)) -> Vec<Adjacen
                     next_doors.push(c.to_lowercase().next().unwrap());
                 }
                 c if c.is_lowercase() => {
-                    adj.push(Adjacent::new(from, c, next_steps, next_doors));
+                    adj.push(Adjacent::new(c, next_steps, next_doors));
                     continue;
                 }
                 '.' | '@' => (),
@@ -110,14 +159,18 @@ fn create_key_graph(map: &str) -> Graph {
     let nodes = find_entrace_and_keys(&map);
     let mut graph = Graph::new();
     for n in nodes {
-        graph.extend_edge(find_adjacent_nodes(&map, n.1));
+        graph.add(n.0, find_adjacent_nodes(&map, n.1));
     }
     graph
 }
 
 fn shortest_path_to_keys(map: &str) -> Option<usize> {
     let key_graph = create_key_graph(map);
+    for a in key_graph.adjacency.iter() {
+        println!("{:?}", a);
+    }
     // djikstra's (with priority queue)
+    Some(0)
 }
 
 pub fn run() {
