@@ -36,61 +36,89 @@ impl Graph {
     }
 }
 
-struct PriQueue<T> {
+#[derive(Debug, Clone)]
+struct MinHeap<T: Ord + Clone> {
     data: Vec<T>,
     length: usize,
 }
 
-impl<T> PriQueue<T> {
-    fn new() -> PriQueue<T> {
-        PriQueue {
+impl<T: Ord + Clone> MinHeap<T> {
+    fn new() -> Self {
+        Self {
             data: Vec::new(),
             length: 0,
         }
     }
 
-    fn heap_up(&mut self, id: usize) {}
+    fn parent(&self, id: usize) -> Option<usize> {
+        if id == 0 {
+            return None;
+        }
+        Some((id - 1) / 2)
+    }
 
-    fn heap_down(&mut self, id: usize) {}
+    fn left_child(&self, id: usize) -> usize {
+        id * 2 + 1
+    }
 
-    fn insert(&mut self, value: T) {
-        self.length += 1;
+    fn right_child(&self, id: usize) -> usize {
+        id * 2 + 2
+    }
+
+    fn heap_up(&mut self, mut id: usize) {
+        while let Some(p) = self.parent(id) {
+            if self.data[id] < self.data[p] {
+                self.data.swap(id, p);
+                id = p;
+            } else {
+                break;
+            }
+        }
+    }
+
+    fn heap_down(&mut self, mut id: usize) {
+        loop {
+            let left_id = self.left_child(id);
+            let right_id = self.right_child(id);
+
+            if right_id >= self.length {
+                break;
+            }
+
+            if self.data[left_id] < self.data[right_id] && self.data[left_id] < self.data[id] {
+                self.data.swap(id, left_id);
+                id = left_id;
+            } else if self.data[right_id] < self.data[id] {
+                self.data.swap(id, right_id);
+                id = right_id;
+            } else {
+                break;
+            }
+        }
+    }
+
+    fn add(&mut self, value: T) {
         if self.length == self.data.len() {
             self.data.push(value);
         } else {
             self.data[self.length] = value;
         }
-        self.heap_up(self.data.len() - 1);
+        self.heap_up(self.length);
+        self.length += 1;
     }
 
-    fn delete(&mut self) -> Option<T> {
+    fn pop(&mut self) -> Option<T> {
         if self.length == 0 {
             return None;
         }
-        if self.length == 1 {
-            self.length -= 1;
-            return Some(self.data[0]);
-        }
-        let value = self.data[0];
+
+        let val = self.data.first().cloned().unwrap();
         self.length -= 1;
-        self.data[0] = self.data[self.length];
-        self.heap_down(0);
-        Some(value)
-    }
-
-    fn parent(id: usize) -> usize {
-        if id == 0 {
-            return 0;
+        if self.length > 0 {
+            self.data.swap(0, self.length);
+            self.heap_down(0);
         }
-        (id - 1) / 2
-    }
-
-    fn left_child(id: usize) -> usize {
-        id * 2 + 1
-    }
-
-    fn right_child(id: usize) -> usize {
-        id * 2 + 2
+        Some(val)
     }
 }
 
