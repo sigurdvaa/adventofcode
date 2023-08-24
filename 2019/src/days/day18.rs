@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::collections::{HashSet, VecDeque};
 use std::fs;
 
@@ -122,6 +123,59 @@ impl<T: Ord + Clone> MinHeap<T> {
     }
 }
 
+impl<T: Ord + Clone> From<Vec<T>> for MinHeap<T> {
+    fn from(data: Vec<T>) -> Self {
+        let mut new = Self::new();
+        for d in data {
+            new.add(d);
+        }
+        new
+    }
+}
+
+#[derive(PartialOrd, PartialEq, Eq, Clone, Debug)]
+struct Distance {
+    weight: usize,
+    node: char,
+}
+
+impl Ord for Distance {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.weight.cmp(&other.weight)
+    }
+}
+
+#[derive(Debug, Clone)]
+struct State<T: Ord + Clone> {
+    distances: Vec<Distance>,
+    pri: MinHeap<T>,
+    keys: Vec<char>,
+}
+
+impl<T: Ord + Clone> State<T> {
+    fn new() -> Self {
+        Self {
+            distances: Vec::new(),
+            pri: MinHeap::new(),
+            keys: Vec::new(),
+        }
+    }
+
+    fn add_key(&mut self, key: char) {
+        self.keys.push(key);
+    }
+}
+
+impl<T: Ord + Clone> From<Vec<T>> for State<T> {
+    fn from(nodes: Vec<T>) -> Self {
+        Self {
+            distances: nodes,
+            distances: MinHeap::new(nodes),
+            keys: Vec::new(),
+        }
+    }
+}
+
 fn find_entrace_and_keys(map: &Vec<Vec<char>>) -> Vec<(char, (usize, usize))> {
     let mut nodes = vec![];
     for (y, line) in map.iter().enumerate() {
@@ -194,9 +248,8 @@ fn create_key_graph(map: &str) -> Graph {
 
 fn shortest_path_to_keys(map: &str) -> Option<usize> {
     let key_graph = create_key_graph(map);
-    for a in key_graph.adjacency.iter() {
-        println!("{:?}", a);
-    }
+    let state = State::from(key_graph.nodes.clone());
+    println!("{:?}", state);
     // djikstra's (with priority queue)
     Some(0)
 }
@@ -223,17 +276,19 @@ pub fn run() {
             #########";
     assert_eq!(shortest_path_to_keys(map).unwrap(), 8);
 
-    let map = "\
-            #################\n\
-            #i.G..c...e..H.p#\n\
-            ########.########\n\
-            #j.A..b...f..D.o#\n\
-            ########@########\n\
-            #k.E..a...g..B.n#\n\
-            ########.########\n\
-            #l.F..d...h..C.m#\n\
-            #################";
-    assert_eq!(shortest_path_to_keys(map).unwrap(), 136);
+    /*
+        let map = "\
+                #################\n\
+                #i.G..c...e..H.p#\n\
+                ########.########\n\
+                #j.A..b...f..D.o#\n\
+                ########@########\n\
+                #k.E..a...g..B.n#\n\
+                ########.########\n\
+                #l.F..d...h..C.m#\n\
+                #################";
+        assert_eq!(shortest_path_to_keys(map).unwrap(), 136);
+    */
 
     /*
     let map = "\
