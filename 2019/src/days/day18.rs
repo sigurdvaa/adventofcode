@@ -5,13 +5,13 @@ use std::fs;
 #[derive(Debug, Clone)]
 struct Adjacent {
     to: char,
-    steps: usize,
+    weight: usize,
     doors: Vec<char>,
 }
 
 impl Adjacent {
-    fn new(to: char, steps: usize, doors: Vec<char>) -> Adjacent {
-        Adjacent { steps, doors, to }
+    fn new(to: char, weight: usize, doors: Vec<char>) -> Adjacent {
+        Adjacent { weight, doors, to }
     }
 }
 
@@ -29,11 +29,13 @@ impl Graph {
         }
     }
 
-    fn add(&mut self, node: char, adj: Vec<Adjacent>) {
-        if !self.nodes.contains(&node) {
-            self.nodes.push(node);
+    fn add(&mut self, node: char, adj: Vec<Adjacent>) -> Result<(), &'static str> {
+        if self.nodes.contains(&node) {
+            return Err("Node already added");
         }
+        self.nodes.push(node);
         self.adjacency.push(adj);
+        Ok(())
     }
 }
 
@@ -133,49 +135,6 @@ impl<T: Ord + Clone> From<Vec<T>> for MinHeap<T> {
     }
 }
 
-#[derive(PartialOrd, PartialEq, Eq, Clone, Debug)]
-struct Distance {
-    weight: usize,
-    node: char,
-}
-
-impl Ord for Distance {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.weight.cmp(&other.weight)
-    }
-}
-
-#[derive(Debug, Clone)]
-struct State<T: Ord + Clone> {
-    distances: Vec<Distance>,
-    pri: MinHeap<T>,
-    keys: Vec<char>,
-}
-
-impl<T: Ord + Clone> State<T> {
-    fn new() -> Self {
-        Self {
-            distances: Vec::new(),
-            pri: MinHeap::new(),
-            keys: Vec::new(),
-        }
-    }
-
-    fn add_key(&mut self, key: char) {
-        self.keys.push(key);
-    }
-}
-
-impl<T: Ord + Clone> From<Vec<T>> for State<T> {
-    fn from(nodes: Vec<T>) -> Self {
-        Self {
-            distances: nodes,
-            distances: MinHeap::new(nodes),
-            keys: Vec::new(),
-        }
-    }
-}
-
 fn find_entrace_and_keys(map: &Vec<Vec<char>>) -> Vec<(char, (usize, usize))> {
     let mut nodes = vec![];
     for (y, line) in map.iter().enumerate() {
@@ -221,8 +180,7 @@ fn find_adjacent_nodes(map: &Vec<Vec<char>>, pos: (usize, usize)) -> Vec<Adjacen
                     next_doors.push(c.to_lowercase().next().unwrap());
                 }
                 c if c.is_lowercase() => {
-                    adj.push(Adjacent::new(c, next_steps, next_doors));
-                    continue;
+                    adj.push(Adjacent::new(c, next_steps, doors.clone()));
                 }
                 '.' | '@' => (),
                 _ => continue,
@@ -233,7 +191,7 @@ fn find_adjacent_nodes(map: &Vec<Vec<char>>, pos: (usize, usize)) -> Vec<Adjacen
     adj
 }
 
-fn create_key_graph(map: &str) -> Graph {
+fn create_key_graph(map: &str) -> Result<Graph, &'static str> {
     let map = map
         .lines()
         .map(|l| l.chars().collect::<Vec<_>>())
@@ -241,17 +199,60 @@ fn create_key_graph(map: &str) -> Graph {
     let nodes = find_entrace_and_keys(&map);
     let mut graph = Graph::new();
     for n in nodes {
-        graph.add(n.0, find_adjacent_nodes(&map, n.1));
+        graph.add(n.0, find_adjacent_nodes(&map, n.1))?;
     }
-    graph
+    Ok(graph)
+}
+
+#[derive(PartialEq, Eq, PartialOrd, Clone, Debug)]
+struct Dist {
+    dist: usize,
+    idx: usize,
+    keys: Vec<char>,
+}
+
+impl Ord for Dist {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.dist.cmp(&other.dist)
+    }
 }
 
 fn shortest_path_to_keys(map: &str) -> Option<usize> {
-    let key_graph = create_key_graph(map);
-    let state = State::from(key_graph.nodes.clone());
-    println!("{:?}", state);
-    // djikstra's (with priority queue)
-    Some(0)
+    let key_graph = create_key_graph(map).unwrap();
+    let mut minheap = MinHeap::new();
+    let mut seen = HashSet::new();
+
+    let start_idx = key_graph.nodes.iter().position(|&c| c == '@').unwrap();
+    minheap.add(Dist {
+        dist: 0,
+        idx: start_idx,
+        keys: vec!['@'],
+    });
+
+    while let Some(curr) = minheap.pop() {
+        if curr.keys.len() == key_graph.nodes.len() {
+            return Some(curr.dist);
+        }
+        for edge in &key_graph.adjacency[curr.idx] {
+            if !curr.keys.contains(&edge.to) && edge.doors.iter().all(|&x| curr.keys.contains(&x)) {
+                let edge_idx = key_graph.nodes.iter().position(|&c| c == edge.to).unwrap();
+                let edge_dist = curr.dist + edge.weight;
+                let mut edge_keys = curr.keys.clone();
+                edge_keys.push(edge.to);
+                edge_keys.sort();
+                if !seen.insert((edge_dist, edge_keys.clone())) {
+                    continue;
+                }
+                minheap.add(Dist {
+                    dist: edge_dist,
+                    idx: edge_idx,
+                    keys: edge_keys,
+                });
+            }
+        }
+    }
+
+    None
 }
 
 pub fn run() {
@@ -270,14 +271,15 @@ pub fn run() {
     */
     // high 1828
 
-    let map = "\
-            #########\n\
-            #b.A.@.a#\n\
-            #########";
-    assert_eq!(shortest_path_to_keys(map).unwrap(), 8);
-
     /*
         let map = "\
+                #########\n\
+                #b.A.@.a#\n\
+                #########";
+        assert_eq!(shortest_path_to_keys(map).unwrap(), 8);
+    */
+
+    let map = "\
                 #################\n\
                 #i.G..c...e..H.p#\n\
                 ########.########\n\
@@ -287,8 +289,7 @@ pub fn run() {
                 ########.########\n\
                 #l.F..d...h..C.m#\n\
                 #################";
-        assert_eq!(shortest_path_to_keys(map).unwrap(), 136);
-    */
+    assert_eq!(shortest_path_to_keys(map).unwrap(), 136);
 
     /*
     let map = "\
