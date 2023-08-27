@@ -16,23 +16,23 @@ impl Adjacent {
 
 #[derive(Debug, Clone)]
 struct Graph {
-    nodes: Vec<char>,
+    nodes: HashMap<char, usize>,
     adjacency: Vec<Vec<Adjacent>>,
 }
 
 impl Graph {
     fn new() -> Graph {
         Graph {
-            nodes: vec![],
+            nodes: HashMap::new(),
             adjacency: vec![],
         }
     }
 
     fn add(&mut self, node: char, adj: Vec<Adjacent>) -> Result<(), &'static str> {
-        if self.nodes.contains(&node) {
+        if let Some(_) = self.nodes.get(&node) {
             return Err("Node already added");
         }
-        self.nodes.push(node);
+        self.nodes.insert(node, self.adjacency.len());
         self.adjacency.push(adj);
         Ok(())
     }
@@ -149,43 +149,6 @@ fn find_node(map: &Vec<Vec<char>>, node: &char) -> Option<(usize, usize)> {
     None
 }
 
-fn find_nodes(map: &Vec<Vec<char>>, start: &(usize, usize)) -> Vec<char> {
-    let mut nodes = Vec::new();
-    let mut seen = HashSet::new();
-    let mut queue = VecDeque::new();
-
-    seen.insert(*start);
-    queue.push_back(*start);
-
-    while !queue.is_empty() {
-        let pos = queue.pop_front().unwrap();
-        for i in 0..4 {
-            let next_pos = match i {
-                0 => (pos.0 + 1, pos.1),
-                1 => (pos.0 - 1, pos.1),
-                2 => (pos.0, pos.1 + 1),
-                3 => (pos.0, pos.1 - 1),
-                _ => unreachable!(),
-            };
-
-            if seen.contains(&next_pos) {
-                continue;
-            }
-            seen.insert(next_pos.clone());
-
-            match map[next_pos.1][next_pos.0] {
-                c if c.is_lowercase() => {
-                    nodes.push(c);
-                }
-                '#' => continue,
-                _ => (),
-            }
-            queue.push_back(next_pos);
-        }
-    }
-    nodes
-}
-
 fn find_adjacent_nodes(map: &Vec<Vec<char>>, start: &(usize, usize)) -> Vec<Adjacent> {
     let mut adj = Vec::new();
     let mut seen = HashSet::new();
@@ -235,7 +198,7 @@ fn create_key_graph(map: &Vec<Vec<char>>, start: &(usize, usize)) -> Result<Grap
     let mut i = 0;
     while i < graph.nodes.len() {
         for edge in graph.adjacency[i].clone() {
-            if graph.nodes.contains(&edge.to) {
+            if let Some(_) = graph.nodes.get(&edge.to) {
                 continue;
             }
             graph.add(
@@ -252,59 +215,8 @@ fn bfs_dist_collect_keys(map: &Vec<Vec<char>>) -> Option<usize> {
     #[derive(PartialEq, Eq, Clone, Debug, PartialOrd, Ord)]
     struct State {
         dist: usize,
-        idx: usize,
-        keys: Vec<char>, // TODO: bitmask instead?
-    }
-
-    let entrances = find_entrances(map);
-    let key_graph = create_key_graph(&map, entrances.first().unwrap()).unwrap();
-    let mut minheap = MinHeap::new();
-    let mut seen: HashMap<(char, Vec<char>), usize> = HashMap::new();
-
-    let start_idx = key_graph.nodes.iter().position(|&c| c == '@').unwrap();
-    minheap.push(State {
-        dist: 0,
-        idx: start_idx,
-        keys: vec!['@'],
-    });
-
-    while let Some(curr) = minheap.pop() {
-        if curr.keys.len() == key_graph.nodes.len() {
-            return Some(curr.dist);
-        }
-        for edge in &key_graph.adjacency[curr.idx] {
-            if edge.doors.iter().all(|&x| curr.keys.contains(&x)) {
-                let edge_idx = key_graph.nodes.iter().position(|&c| c == edge.to).unwrap();
-                let edge_dist = curr.dist + edge.weight;
-                let mut edge_keys = curr.keys.clone();
-                if !edge_keys.contains(&edge.to) {
-                    edge_keys.push(edge.to);
-                    edge_keys.sort();
-                }
-                let best_dist = seen
-                    .entry((edge.to, edge_keys.clone()))
-                    .or_insert(usize::MAX);
-                if edge_dist < *best_dist {
-                    *best_dist = edge_dist;
-                    minheap.push(State {
-                        dist: edge_dist,
-                        idx: edge_idx,
-                        keys: edge_keys,
-                    });
-                }
-            }
-        }
-    }
-
-    None
-}
-
-fn bfs_dist_collect_keys_all_entrances(map: &Vec<Vec<char>>) -> Option<usize> {
-    #[derive(PartialEq, Eq, Clone, Debug, PartialOrd, Ord)]
-    struct State {
-        dist: usize,
-        ids: Vec<usize>,
-        keys: Vec<char>, // TODO: bitmask instead?
+        ids: Vec<char>,
+        keys: Vec<char>,
     }
 
     let entrances = find_entrances(map);
@@ -314,16 +226,11 @@ fn bfs_dist_collect_keys_all_entrances(map: &Vec<Vec<char>>) -> Option<usize> {
     }
     let num_keys = graphs.iter().map(|g| g.nodes.len()).sum::<usize>() - entrances.len();
     let mut minheap = MinHeap::new();
-    let mut seen: HashMap<(Vec<usize>, Vec<char>), usize> = HashMap::new();
-
-    let mut start_ids = vec![];
-    for (i, _) in entrances.iter().enumerate() {
-        start_ids.push(graphs[i].nodes.iter().position(|&c| c == '@').unwrap());
-    }
+    let mut seen: HashMap<(String, String), usize> = HashMap::new();
 
     minheap.push(State {
         dist: 0,
-        ids: start_ids,
+        ids: vec!['@'; entrances.len()],
         keys: vec![],
     });
 
@@ -331,14 +238,14 @@ fn bfs_dist_collect_keys_all_entrances(map: &Vec<Vec<char>>) -> Option<usize> {
         if curr.keys.len() == num_keys {
             return Some(curr.dist);
         }
-        for (graph_idx, node_idx) in curr.ids.iter().enumerate() {
+        for (graph_idx, node) in curr.ids.iter().enumerate() {
             let key_graph = &graphs[graph_idx];
+            let node_idx = key_graph.nodes.get(node).unwrap();
             for edge in &key_graph.adjacency[*node_idx] {
                 if edge.doors.iter().all(|&x| curr.keys.contains(&x)) {
-                    let edge_idx = key_graph.nodes.iter().position(|&c| c == edge.to).unwrap();
                     let edge_dist = curr.dist + edge.weight;
                     let mut edge_ids = curr.ids.clone();
-                    edge_ids[graph_idx] = edge_idx;
+                    edge_ids[graph_idx] = edge.to;
 
                     let mut edge_keys = curr.keys.clone();
                     if !edge_keys.contains(&edge.to) {
@@ -347,7 +254,7 @@ fn bfs_dist_collect_keys_all_entrances(map: &Vec<Vec<char>>) -> Option<usize> {
                     }
 
                     let best_dist = seen
-                        .entry((edge_ids.clone(), edge_keys.clone()))
+                        .entry((edge_ids.iter().collect(), edge_keys.iter().collect()))
                         .or_insert(usize::MAX);
                     if edge_dist < *best_dist {
                         *best_dist = edge_dist;
@@ -373,7 +280,7 @@ fn shortest_dist_collect_keys(map: &str) -> Option<usize> {
     bfs_dist_collect_keys(&map)
 }
 
-fn shortest_dist_collect_keys_all_entrances(map: &str) -> Option<usize> {
+fn shortest_dist_collect_keys_four_entrances(map: &str) -> Option<usize> {
     let mut map = map
         .lines()
         .map(|l| l.chars().collect::<Vec<_>>())
@@ -391,7 +298,7 @@ fn shortest_dist_collect_keys_all_entrances(map: &str) -> Option<usize> {
     map[entrance.1 + 1][entrance.0 - 1] = '@';
     map[entrance.1 + 1][entrance.0 + 1] = '@';
 
-    bfs_dist_collect_keys_all_entrances(&map)
+    bfs_dist_collect_keys(&map)
 }
 
 pub fn run() {
@@ -406,7 +313,7 @@ pub fn run() {
     );
     println!(
         "Part Two: {}",
-        shortest_dist_collect_keys_all_entrances(&input_raw).unwrap()
+        shortest_dist_collect_keys_four_entrances(&input_raw).unwrap()
     );
 }
 
@@ -470,7 +377,7 @@ mod tests {
             #######\n\
             #cB#Ab#\n\
             #######";
-        assert_eq!(shortest_dist_collect_keys_all_entrances(map).unwrap(), 8);
+        assert_eq!(shortest_dist_collect_keys_four_entrances(map).unwrap(), 8);
 
         let map = "\
             ###############\n\
@@ -480,7 +387,7 @@ mod tests {
             ###############\n\
             #b.....#.....c#\n\
             ###############";
-        assert_eq!(shortest_dist_collect_keys_all_entrances(map).unwrap(), 24);
+        assert_eq!(shortest_dist_collect_keys_four_entrances(map).unwrap(), 24);
 
         let map = "\
             #############\n\
@@ -490,7 +397,7 @@ mod tests {
             ###C#######J#\n\
             #fEbA.#.FgHi#\n\
             #############";
-        assert_eq!(shortest_dist_collect_keys_all_entrances(map).unwrap(), 32);
+        assert_eq!(shortest_dist_collect_keys_four_entrances(map).unwrap(), 32);
 
         let map = "\
             #############\n\
@@ -502,6 +409,6 @@ mod tests {
             #M###N#H###.#\n\
             #o#m..#i#jk.#\n\
             #############";
-        assert_eq!(shortest_dist_collect_keys_all_entrances(map).unwrap(), 72);
+        assert_eq!(shortest_dist_collect_keys_four_entrances(map).unwrap(), 72);
     }
 }
