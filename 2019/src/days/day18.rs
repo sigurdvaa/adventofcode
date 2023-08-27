@@ -215,7 +215,7 @@ fn bfs_dist_collect_keys(map: &Vec<Vec<char>>) -> Option<usize> {
     #[derive(PartialEq, Eq, Clone, Debug, PartialOrd, Ord)]
     struct State {
         dist: usize,
-        ids: Vec<char>,
+        nodes: Vec<char>,
         keys: Vec<char>,
     }
 
@@ -230,7 +230,7 @@ fn bfs_dist_collect_keys(map: &Vec<Vec<char>>) -> Option<usize> {
 
     minheap.push(State {
         dist: 0,
-        ids: vec!['@'; entrances.len()],
+        nodes: vec!['@'; entrances.len()],
         keys: vec![],
     });
 
@@ -238,13 +238,13 @@ fn bfs_dist_collect_keys(map: &Vec<Vec<char>>) -> Option<usize> {
         if curr.keys.len() == num_keys {
             return Some(curr.dist);
         }
-        for (graph_idx, node) in curr.ids.iter().enumerate() {
+        for (graph_idx, node) in curr.nodes.iter().enumerate() {
             let key_graph = &graphs[graph_idx];
             let node_idx = key_graph.nodes.get(node).unwrap();
             for edge in &key_graph.adjacency[*node_idx] {
                 if edge.doors.iter().all(|&x| curr.keys.contains(&x)) {
                     let edge_dist = curr.dist + edge.weight;
-                    let mut edge_ids = curr.ids.clone();
+                    let mut edge_ids = curr.nodes.clone();
                     edge_ids[graph_idx] = edge.to;
 
                     let mut edge_keys = curr.keys.clone();
@@ -260,7 +260,7 @@ fn bfs_dist_collect_keys(map: &Vec<Vec<char>>) -> Option<usize> {
                         *best_dist = edge_dist;
                         minheap.push(State {
                             dist: edge_dist,
-                            ids: edge_ids,
+                            nodes: edge_ids,
                             keys: edge_keys,
                         });
                     }
