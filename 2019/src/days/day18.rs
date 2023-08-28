@@ -226,7 +226,7 @@ fn bfs_dist_collect_keys(map: &Vec<Vec<char>>) -> Option<usize> {
     }
     let num_keys = graphs.iter().map(|g| g.nodes.len()).sum::<usize>() - entrances.len();
     let mut minheap = MinHeap::new();
-    let mut seen: HashMap<(String, String), usize> = HashMap::new();
+    let mut seen = HashMap::new();
 
     minheap.push(State {
         dist: 0,
@@ -254,7 +254,10 @@ fn bfs_dist_collect_keys(map: &Vec<Vec<char>>) -> Option<usize> {
                     }
 
                     let best_dist = seen
-                        .entry((edge_ids.iter().collect(), edge_keys.iter().collect()))
+                        .entry((
+                            edge_ids.iter().collect::<String>(),
+                            edge_keys.iter().collect::<String>(),
+                        ))
                         .or_insert(usize::MAX);
                     if edge_dist < *best_dist {
                         *best_dist = edge_dist;
