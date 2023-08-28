@@ -37,12 +37,12 @@ fn tractor_beam_affected_points(prog: &Program, x_max: i64, y_max: i64) -> usize
     affected
 }
 
-fn find_santas_ship(prog: &Program) -> Option<(usize, usize)> {
+fn find_santas_ship(prog: &Program) -> Option<(i64, i64)> {
     let mut seen = HashSet::new();
     let mut queue = VecDeque::new();
     queue.push_back((0, 0));
 
-    while !queue.is_empty() {
+    'main: while !queue.is_empty() {
         let (x, y) = queue.pop_front().unwrap();
 
         let mut curr = prog.clone();
@@ -50,10 +50,6 @@ fn find_santas_ship(prog: &Program) -> Option<(usize, usize)> {
         curr.input.push(x);
         curr.run();
         let res = curr.output.pop().unwrap();
-
-        if res == 1 {
-            // find ship
-        }
 
         for i in 0..3 {
             let (next_x, next_y) = match i {
@@ -65,6 +61,30 @@ fn find_santas_ship(prog: &Program) -> Option<(usize, usize)> {
             if seen.insert((next_x, next_y)) {
                 queue.push_back((next_x, next_y));
             }
+        }
+
+        if res == 1 {
+            for x2 in x + 1..x + 100 {
+                let mut curr = prog.clone();
+                curr.input.push(y);
+                curr.input.push(x2);
+                curr.run();
+                let res = curr.output.pop().unwrap();
+                if res == 0 {
+                    continue 'main;
+                }
+            }
+            for y2 in y + 1..y + 100 {
+                let mut curr = prog.clone();
+                curr.input.push(y2);
+                curr.input.push(x);
+                curr.run();
+                let res = curr.output.pop().unwrap();
+                if res == 0 {
+                    continue 'main;
+                }
+            }
+            return Some((x, y));
         }
     }
     None
@@ -80,7 +100,8 @@ pub fn run() {
     println!("Part One: {}", tractor_beam_affected_points(&prog, 50, 50));
 
     let prog = Program::new(&input_raw);
-    println!("Part Two: {:?}", find_santas_ship(&prog).unwrap());
+    let pos = find_santas_ship(&prog).unwrap();
+    println!("Part Two: {}", pos.0 * 10_000 + pos.1);
 }
 
 #[cfg(test)]
