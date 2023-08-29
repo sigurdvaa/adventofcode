@@ -1,5 +1,4 @@
 use crate::intcode::Program;
-use std::collections::{HashSet, VecDeque};
 use std::fs;
 
 fn point_affected(prog: &mut Program, x: i64, y: i64) -> bool {
@@ -15,72 +14,36 @@ fn point_affected(prog: &mut Program, x: i64, y: i64) -> bool {
 }
 
 fn tractor_beam_affected_points(mut prog: Program, x_max: i64, y_max: i64) -> usize {
-    let mut affected = 1;
-    let mut seen = HashSet::new();
-    let mut queue = VecDeque::new();
-    queue.push_back((1, 1));
-    while let Some((x, y)) = queue.pop_front() {
-        if point_affected(&mut prog, x, y) {
-            affected += 1;
-        }
-
-        for i in 0..3 {
-            let (next_x, next_y) = match i {
-                0 => (x + 1, y),
-                1 => (x, y + 1),
-                2 => (x + 1, y + 1),
-                _ => unreachable!(),
-            };
-
-            let slope = next_y as f32 / next_x as f32;
-            if 0.99 < slope && slope < 1.69 {
-                if seen.insert((next_x, next_y)) {
-                    if next_x < x_max && next_y < y_max {
-                        queue.push_back((next_x, next_y));
-                    }
-                }
+    let mut affected = 0;
+    for y in 0..y_max {
+        for x in 0..x_max {
+            if point_affected(&mut prog, x, y) {
+                affected += 1;
             }
         }
     }
     affected
 }
 
-fn find_santas_ship(mut prog: Program) -> Option<(i64, i64)> {
-    let mut seen = HashSet::new();
-    let mut queue = VecDeque::new();
-    queue.push_back((1, 1));
+fn find_santas_ship(mut prog: Program) -> (i64, i64) {
+    let mut x = 0;
+    let mut y = 99;
 
-    'main: while let Some((x, y)) = queue.pop_front() {
-        for i in 0..3 {
-            let (next_x, next_y) = match i {
-                0 => (x + 1, y),
-                1 => (x, y + 1),
-                2 => (x + 1, y + 1),
-                _ => unreachable!(),
-            };
-            let slope = next_y as f32 / next_x as f32;
-            if 0.99 < slope && slope < 1.69 {
-                if seen.insert((next_x, next_y)) {
-                    queue.push_back((next_x, next_y));
-                }
-            }
+    loop {
+        // track outside edge
+        y += 1;
+        while !point_affected(&mut prog, x + 1, y) {
+            x += 1;
         }
-        if point_affected(&mut prog, x, y) {
-            for i in 0..3 {
-                let (cx, cy) = match i {
-                    0 => (x + 99, y),
-                    1 => (x, y + 99),
-                    2 => (x + 99, y + 99),
-                    _ => unreachable!(),
-                };
-                if !point_affected(&mut prog, cx, cy) {
-                    continue 'main;
-                }
-            }
-            return Some((x, y));
+
+        // check if beam is wide enough
+        if point_affected(&mut prog, x + 100, y)
+            && point_affected(&mut prog, x + 1, y - 99)
+            && point_affected(&mut prog, x + 100, y - 99)
+        {
+            return (x + 1, y - 99);
         }
     }
-    None
 }
 
 pub fn run() {
@@ -96,7 +59,7 @@ pub fn run() {
         tractor_beam_affected_points(prog.clone(), 50, 50)
     );
 
-    let pos = find_santas_ship(prog).unwrap();
+    let pos = find_santas_ship(prog);
     println!("Part Two: {}", pos.0 * 10_000 + pos.1);
 }
 
