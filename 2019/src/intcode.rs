@@ -1,6 +1,7 @@
 #[derive(Clone, Debug)]
 pub struct Program {
     pub intcode: Vec<i64>,
+    orig_intcode: Vec<i64>,
     pub input: Vec<i64>,
     pub output: Vec<i64>,
     ip: usize,
@@ -15,8 +16,10 @@ pub enum ExitCode {
 
 impl Program {
     pub fn new(code: &str) -> Program {
+        let intcode = Program::parse(code);
         Program {
-            intcode: Program::parse(code),
+            intcode: intcode.clone(),
+            orig_intcode: intcode,
             input: vec![],
             output: vec![],
             ip: 0,
@@ -51,6 +54,14 @@ impl Program {
             self.intcode.resize(addr + 1, 0);
         }
         self.intcode[addr] = value;
+    }
+
+    pub fn reset(&mut self) {
+        self.intcode = self.orig_intcode.clone();
+        self.ip = 0;
+        self.relative_base = 0;
+        self.output.clear();
+        self.input.clear();
     }
 
     pub fn run(&mut self) -> ExitCode {
