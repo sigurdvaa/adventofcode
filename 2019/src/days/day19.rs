@@ -13,7 +13,7 @@ fn point_affected(prog: &mut Program, x: i64, y: i64) -> bool {
     }
 }
 
-fn tractor_beam_affected_points(mut prog: Program, x_max: i64, y_max: i64) -> usize {
+fn tractor_beam_points_affected(mut prog: Program, x_max: i64, y_max: i64) -> usize {
     let mut affected = 0;
     for y in 0..y_max {
         for x in 0..x_max {
@@ -56,7 +56,7 @@ pub fn run() {
 
     println!(
         "Part One: {}",
-        tractor_beam_affected_points(prog.clone(), 50, 50)
+        tractor_beam_points_affected(prog.clone(), 50, 50)
     );
 
     let pos = find_santas_ship(prog);
