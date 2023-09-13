@@ -27,8 +27,8 @@ pub fn run() {
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 
     let map = map_str_to_vec(_input_raw.as_str());
-    let start = find_start(&map);
-    println!("{:?}", start);
+    let start = find_start(&map).unwrap();
+    println!("Start: {start:?}");
 }
 
 #[cfg(test)]
