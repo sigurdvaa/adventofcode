@@ -9,14 +9,19 @@ fn find_start(map: &Vec<Vec<char>>) -> Option<(usize, usize)> {
         for x in 0..map[y].len() - 1 {
             if map[y][x] == 'A' {
                 if map[y][x] == map[y][x + 1] {
-                    return Some((y, x + 2));
+                    return Some((x + 2, y));
                 }
                 if map[y][x] == map[y + 1][x] {
-                    return Some((y + 2, x));
+                    return Some((x, y + 2));
                 }
             }
         }
     }
+    None
+}
+
+fn shortest_path(map: &Vec<Vec<char>>) -> Option<usize> {
+    let _start = find_start(map)?;
     None
 }
 
@@ -27,16 +32,39 @@ pub fn run() {
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 
     let map = map_str_to_vec(_input_raw.as_str());
-    let start = find_start(&map).unwrap();
-    println!("Start: {start:?}");
+    println!("Part One: {}", shortest_path(&map).unwrap());
 }
 
 #[cfg(test)]
 mod tests {
-    //use super::*;
+    use super::*;
 
     #[test]
-    fn test_part_one() {}
+    fn test_part_one() {
+        let input = concat!(
+            "         A           \n",
+            "         A           \n",
+            "  #######.#########  \n",
+            "  #######.........#  \n",
+            "  #######.#######.#  \n",
+            "  #######.#######.#  \n",
+            "  #######.#######.#  \n",
+            "  #####  B    ###.#  \n",
+            "BC...##  C    ###.#  \n",
+            "  ##.##       ###.#  \n",
+            "  ##...DE  F  ###.#  \n",
+            "  #####    G  ###.#  \n",
+            "  #########.#####.#  \n",
+            "DE..#######...###.#  \n",
+            "  #.#########.###.#  \n",
+            "FG..#########.....#  \n",
+            "  ###########.#####  \n",
+            "             Z       \n",
+            "             Z       ");
+        let map = map_str_to_vec(input);
+        assert_eq!(find_start(&map), Some((9, 2)));
+        assert_eq!(shortest_path(&map), Some(23));
+    }
 
     #[test]
     fn test_part_two() {}
