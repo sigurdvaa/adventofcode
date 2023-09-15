@@ -4,24 +4,49 @@ fn map_str_to_vec(map: &str) -> Vec<Vec<char>> {
     map.lines().map(|line| line.chars().collect()).collect()
 }
 
-fn find_start(map: &Vec<Vec<char>>) -> Option<(usize, usize)> {
-    for y in 0..map.len() - 1 {
-        for x in 0..map[y].len() - 1 {
-            if map[y][x] == 'A' {
-                if map[y][x] == map[y][x + 1] {
-                    return Some((x + 2, y));
-                }
-                if map[y][x] == map[y + 1][x] {
-                    return Some((x, y + 2));
-                }
-            }
+fn find_portal(
+    map: &Vec<Vec<char>>,
+    pos: (usize, usize),
+    dir: (usize, usize),
+) -> Option<(usize, usize)> {
+    if pos.1 > 1 && pos.0 > 1 {
+        if map[pos.1 - dir.1][pos.0 - dir.0] == '.' {
+            return Some((pos.0 - dir.0, pos.1 - dir.1));
+        }
+    }
+    if pos.1 < map.len() - 2 && pos.0 < map[pos.1].len() - 2 {
+        let x = pos.0 + (dir.0 * 2);
+        let y = pos.1 + (dir.1 * 2);
+        if map[y][x] == '.' {
+            return Some((x, y));
         }
     }
     None
 }
 
+fn find_portals(map: &Vec<Vec<char>>) -> Vec<(String, (usize, usize))> {
+    let dirs = [(0, 1), (1, 0)];
+    let mut portals = vec![];
+    for y in 0..map.len() - 1 {
+        for x in 0..map[y].len() - 1 {
+            if map[y][x].is_uppercase() {
+                for dir in dirs {
+                    if map[y + dir.1][x + dir.0].is_uppercase() {
+                        let p = format!("{}{}", map[y][x], map[y + dir.1][x + dir.0]);
+                        if let Some(pos) = find_portal(&map, (x, y), dir) {
+                            portals.push((p, pos));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    portals
+}
+
 fn shortest_path(map: &Vec<Vec<char>>) -> Option<usize> {
-    let _start = find_start(map)?;
+    let portals = find_portals(map);
+    let start = portals.iter().find(|(portal, _)| portal == "AA")?.1;
     None
 }
 
@@ -60,9 +85,9 @@ mod tests {
             "FG..#########.....#  \n",
             "  ###########.#####  \n",
             "             Z       \n",
-            "             Z       ");
+            "             Z       "
+        );
         let map = map_str_to_vec(input);
-        assert_eq!(find_start(&map), Some((9, 2)));
         assert_eq!(shortest_path(&map), Some(23));
     }
 
