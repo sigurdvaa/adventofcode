@@ -1,3 +1,4 @@
+use std::collections::{HashSet, VecDeque};
 use std::fs;
 
 fn map_str_to_vec(map: &str) -> Vec<Vec<char>> {
@@ -46,7 +47,46 @@ fn find_portals(map: &Vec<Vec<char>>) -> Vec<(String, (usize, usize))> {
 
 fn shortest_path(map: &Vec<Vec<char>>) -> Option<usize> {
     let portals = find_portals(map);
-    let start = portals.iter().find(|(portal, _)| portal == "AA")?.1;
+    let start = portals.iter().find(|(portal, _)| portal == "AA").unwrap().1;
+    let end = portals.iter().find(|(portal, _)| portal == "ZZ").unwrap().1;
+    let mut queue = VecDeque::new();
+    queue.push_back((0, start, HashSet::new()));
+
+    while !queue.is_empty() {
+        let (steps, curr, mut seen) = queue.pop_front().unwrap();
+        for dir in 0..4 {
+            let next = match dir {
+                0 if curr.0 > 0 => (curr.0 - 1, curr.1),
+                1 if curr.1 > 0 => (curr.0, curr.1 - 1),
+                2 if curr.0 < map[curr.1].len() - 1 => (curr.0 + 1, curr.1),
+                3 if curr.1 < map.len() - 1 => (curr.0, curr.1 + 1),
+                _ => unreachable!(),
+            };
+
+            if !seen.insert(next) {
+                continue;
+            }
+
+            if next == end {
+                return Some(steps + 1);
+            }
+
+            match map[next.1][next.0] {
+                '.' => queue.push_back((steps + 1, next, seen.clone())),
+                c if c.is_uppercase() => {
+                    let portal = portals.iter().find(|(_, pos)| *pos == curr).unwrap();
+                    if let Some(goto) = portals
+                        .iter()
+                        .find(|(name, pos)| *pos != curr && name == &portal.0)
+                    {
+                        queue.push_back((steps + 1, goto.1, seen.clone()));
+                    }
+                }
+                _ => (),
+            }
+        }
+    }
+
     None
 }
 
@@ -89,6 +129,49 @@ mod tests {
         );
         let map = map_str_to_vec(input);
         assert_eq!(shortest_path(&map), Some(23));
+
+        let input = concat!(
+            "                   A               \n",
+            "                   A               \n",
+            "  #################.#############  \n",
+            "  #.#...#...................#.#.#  \n",
+            "  #.#.#.###.###.###.#########.#.#  \n",
+            "  #.#.#.......#...#.....#.#.#...#  \n",
+            "  #.#########.###.#####.#.#.###.#  \n",
+            "  #.............#.#.....#.......#  \n",
+            "  ###.###########.###.#####.#.#.#  \n",
+            "  #.....#        A   C    #.#.#.#  \n",
+            "  #######        S   P    #####.#  \n",
+            "  #.#...#                 #......VT\n",
+            "  #.#.#.#                 #.#####  \n",
+            "  #...#.#               YN....#.#  \n",
+            "  #.###.#                 #####.#  \n",
+            "DI....#.#                 #.....#  \n",
+            "  #####.#                 #.###.#  \n",
+            "ZZ......#               QG....#..AS\n",
+            "  ###.###                 #######  \n",
+            "JO..#.#.#                 #.....#  \n",
+            "  #.#.#.#                 ###.#.#  \n",
+            "  #...#..DI             BU....#..LF\n",
+            "  #####.#                 #.#####  \n",
+            "YN......#               VT..#....QG\n",
+            "  #.###.#                 #.###.#  \n",
+            "  #.#...#                 #.....#  \n",
+            "  ###.###    J L     J    #.#.###  \n",
+            "  #.....#    O F     P    #.#...#  \n",
+            "  #.###.#####.#.#####.#####.###.#  \n",
+            "  #...#.#.#...#.....#.....#.#...#  \n",
+            "  #.#####.###.###.#.#.#########.#  \n",
+            "  #...#.#.....#...#.#.#.#.....#.#  \n",
+            "  #.###.#####.###.###.#.#.#######  \n",
+            "  #.#.........#...#.............#  \n",
+            "  #########.###.###.#############  \n",
+            "           B   J   C               \n",
+            "           U   P   P               "
+        );
+
+        let map = map_str_to_vec(input);
+        assert_eq!(shortest_path(&map), Some(58));
     }
 
     #[test]
