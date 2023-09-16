@@ -62,7 +62,7 @@ fn shortest_path_recursive(map: &Vec<Vec<char>>) -> Option<usize> {
         .unwrap()
         .1;
     let mut queue = VecDeque::new();
-    queue.push_back((0, start, HashSet::new(), 0, HashSet::new()));
+    queue.push_back((0, start, HashSet::new(), 0, vec![]));
 
     while !queue.is_empty() {
         let (steps, curr, mut seen, level, curr_portals) = queue.pop_front().unwrap();
@@ -76,11 +76,7 @@ fn shortest_path_recursive(map: &Vec<Vec<char>>) -> Option<usize> {
                 _ => unreachable!(),
             };
 
-            if !seen.insert((
-                next,
-                level,
-                curr_portals.iter().cloned().collect::<Vec<_>>().join(""),
-            )) {
+            if !seen.insert((next, level, curr_portals.clone())) {
                 continue;
             }
 
@@ -105,9 +101,10 @@ fn shortest_path_recursive(map: &Vec<Vec<char>>) -> Option<usize> {
                     };
 
                     let mut next_portals = curr_portals.clone();
-                    if !next_portals.insert(portal.0.clone()) {
+                    if next_portals.contains(&portal.1) {
                         continue;
                     }
+                    next_portals.push(portal.1);
 
                     if let Some(goto) = portals
                         .iter()
@@ -191,7 +188,49 @@ pub fn run() {
 
     let map = map_str_to_vec(_input_raw.as_str());
     println!("Part One: {}", shortest_path(&map).unwrap());
-    println!("Part Two: {}", shortest_path_recursive(&map).unwrap());
+    //println!("Part Two: {}", shortest_path_recursive(&map).unwrap());
+
+    const TESTINPUT3: &'static str = concat!(
+        "             Z L X W       C                 \n",
+        "             Z P Q B       K                 \n",
+        "  ###########.#.#.#.#######.###############  \n",
+        "  #...#.......#.#.......#.#.......#.#.#...#  \n",
+        "  ###.#.#.#.#.#.#.#.###.#.#.#######.#.#.###  \n",
+        "  #.#...#.#.#...#.#.#...#...#...#.#.......#  \n",
+        "  #.###.#######.###.###.#.###.###.#.#######  \n",
+        "  #...#.......#.#...#...#.............#...#  \n",
+        "  #.#########.#######.#.#######.#######.###  \n",
+        "  #...#.#    F       R I       Z    #.#.#.#  \n",
+        "  #.###.#    D       E C       H    #.#.#.#  \n",
+        "  #.#...#                           #...#.#  \n",
+        "  #.###.#                           #.###.#  \n",
+        "  #.#....OA                       WB..#.#..ZH\n",
+        "  #.###.#                           #.#.#.#  \n",
+        "CJ......#                           #.....#  \n",
+        "  #######                           #######  \n",
+        "  #.#....CK                         #......IC\n",
+        "  #.###.#                           #.###.#  \n",
+        "  #.....#                           #...#.#  \n",
+        "  ###.###                           #.#.#.#  \n",
+        "XF....#.#                         RF..#.#.#  \n",
+        "  #####.#                           #######  \n",
+        "  #......CJ                       NM..#...#  \n",
+        "  ###.#.#                           #.###.#  \n",
+        "RE....#.#                           #......RF\n",
+        "  ###.###        X   X       L      #.#.#.#  \n",
+        "  #.....#        F   Q       P      #.#.#.#  \n",
+        "  ###.###########.###.#######.#########.###  \n",
+        "  #.....#...#.....#.......#...#.....#.#...#  \n",
+        "  #####.#.###.#######.#######.###.###.#.#.#  \n",
+        "  #.......#.......#.#.#.#.#...#...#...#.#.#  \n",
+        "  #####.###.#####.#.#.#.#.###.###.#.###.###  \n",
+        "  #.......#.....#.#...#...............#...#  \n",
+        "  #############.#.#.###.###################  \n",
+        "               A O F   N                     \n",
+        "               A A D   M                     "
+    );
+    let map = map_str_to_vec(TESTINPUT3);
+    assert_eq!(shortest_path_recursive(&map), Some(396));
 }
 
 #[cfg(test)]
@@ -317,7 +356,7 @@ mod tests {
         let map = map_str_to_vec(TESTINPUT2);
         assert_eq!(shortest_path_recursive(&map), None);
 
-        let map = map_str_to_vec(TESTINPUT3);
-        assert_eq!(shortest_path_recursive(&map), Some(396));
+        let map = map_str_to_vec(testinput3);
+        assert_eq!(shortest_path_recursive(&map), some(396));
     }
 }
