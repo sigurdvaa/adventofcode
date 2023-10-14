@@ -9,12 +9,12 @@ struct Portal {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-struct State<'a> {
+struct State {
     steps: usize,
     pos: (usize, usize),
     level: usize,
-    seen_portals: Vec<&'a Portal>,
-    seen_pos: HashSet<((usize, usize), usize, Vec<&'a Portal>)>,
+    seen_portals: String,
+    jumps: usize,
 }
 
 fn map_str_to_vec(map: &str) -> Vec<Vec<char>> {
@@ -71,28 +71,21 @@ fn find_portals(map: &Vec<Vec<char>>) -> Vec<Portal> {
 
 fn shortest_path_recursive(map: &Vec<Vec<char>>) -> Option<usize> {
     let portals = find_portals(map);
-    let start = portals
-        .iter()
-        .find(|portal| portal.name == "AA")
-        .unwrap()
-        .pos;
-    let end = portals
-        .iter()
-        .find(|portal| portal.name == "ZZ")
-        .unwrap()
-        .pos;
+    let start_portal = portals.iter().find(|portal| portal.name == "AA").unwrap();
+    let end_portal = portals.iter().find(|portal| portal.name == "ZZ").unwrap();
+    let mut seen = HashSet::new();
     let mut queue = VecDeque::new();
     queue.push_back(State {
         steps: 0,
-        pos: start,
+        pos: start_portal.pos,
         level: 0,
-        seen_portals: vec![],
-        seen_pos: HashSet::new(),
+        jumps: 0,
+        seen_portals: start_portal.name.clone() + "0",
     });
 
     while !queue.is_empty() {
-        let mut curr = queue.pop_front().unwrap();
-        println!("{:?}", curr);
+        let curr = queue.pop_front().unwrap();
+        println!("{:?}", (curr.steps, curr.jumps, portals.len(), queue.len()));
         for dir in 0..4 {
             let next = match dir {
                 0 if curr.pos.0 > 0 => (curr.pos.0 - 1, curr.pos.1),
@@ -102,14 +95,11 @@ fn shortest_path_recursive(map: &Vec<Vec<char>>) -> Option<usize> {
                 _ => unreachable!(),
             };
 
-            if !curr
-                .seen_pos
-                .insert((next, curr.level, curr.seen_portals.clone()))
-            {
+            if !seen.insert((next, curr.seen_portals.clone())) {
                 continue;
             }
 
-            if next == end && curr.level == 0 {
+            if next == end_portal.pos && curr.level == 0 {
                 return Some(curr.steps + 1);
             }
 
@@ -118,8 +108,8 @@ fn shortest_path_recursive(map: &Vec<Vec<char>>) -> Option<usize> {
                     steps: curr.steps + 1,
                     pos: next,
                     level: curr.level,
+                    jumps: curr.jumps,
                     seen_portals: curr.seen_portals.clone(),
-                    seen_pos: curr.seen_pos.clone(),
                 }),
                 c if c.is_uppercase() => {
                     let portal = portals
@@ -136,22 +126,30 @@ fn shortest_path_recursive(map: &Vec<Vec<char>>) -> Option<usize> {
                         false => curr.level + 1,
                     };
 
-                    let mut next_portals = curr.seen_portals.clone();
-                    if next_portals.contains(&portal) {
+                    if curr.jumps > portals.len() * 2 {
                         continue;
                     }
-                    next_portals.push(portal);
+
+                    let mut port = portal.name.clone();
+                    port.push_str(&next_level.to_string());
+                    if curr.seen_portals[curr.seen_portals.len() - port.len()..] == port {
+                        continue;
+                    }
+
+                    let mut next_portals = curr.seen_portals.clone();
+                    next_portals.push_str(&portal.name);
+                    next_portals.push_str(&curr.level.to_string());
 
                     if let Some(goto) = portals
                         .iter()
-                        .find(|other| other.pos != curr.pos && other.name == portal.name)
+                        .find(|other| other.pos != portal.pos && other.name == portal.name)
                     {
                         queue.push_back(State {
                             steps: curr.steps + 1,
                             pos: goto.pos,
                             level: next_level,
+                            jumps: curr.jumps + 1,
                             seen_portals: next_portals,
-                            seen_pos: curr.seen_pos.clone(),
                         });
                     }
                 }
@@ -226,6 +224,45 @@ pub fn run() {
     println!("Part One: {}", shortest_path(&map).unwrap());
     //println!("Part Two: {}", shortest_path_recursive(&map).unwrap());
 
+    const TESTINPUT2: &'static str = concat!(
+        "                   A               \n",
+        "                   A               \n",
+        "  #################.#############  \n",
+        "  #.#...#...................#.#.#  \n",
+        "  #.#.#.###.###.###.#########.#.#  \n",
+        "  #.#.#.......#...#.....#.#.#...#  \n",
+        "  #.#########.###.#####.#.#.###.#  \n",
+        "  #.............#.#.....#.......#  \n",
+        "  ###.###########.###.#####.#.#.#  \n",
+        "  #.....#        A   C    #.#.#.#  \n",
+        "  #######        S   P    #####.#  \n",
+        "  #.#...#                 #......VT\n",
+        "  #.#.#.#                 #.#####  \n",
+        "  #...#.#               YN....#.#  \n",
+        "  #.###.#                 #####.#  \n",
+        "DI....#.#                 #.....#  \n",
+        "  #####.#                 #.###.#  \n",
+        "ZZ......#               QG....#..AS\n",
+        "  ###.###                 #######  \n",
+        "JO..#.#.#                 #.....#  \n",
+        "  #.#.#.#                 ###.#.#  \n",
+        "  #...#..DI             BU....#..LF\n",
+        "  #####.#                 #.#####  \n",
+        "YN......#               VT..#....QG\n",
+        "  #.###.#                 #.###.#  \n",
+        "  #.#...#                 #.....#  \n",
+        "  ###.###    J L     J    #.#.###  \n",
+        "  #.....#    O F     P    #.#...#  \n",
+        "  #.###.#####.#.#####.#####.###.#  \n",
+        "  #...#.#.#...#.....#.....#.#...#  \n",
+        "  #.#####.###.###.#.#.#########.#  \n",
+        "  #...#.#.....#...#.#.#.#.....#.#  \n",
+        "  #.###.#####.###.###.#.#.#######  \n",
+        "  #.#.........#...#.............#  \n",
+        "  #########.###.###.#############  \n",
+        "           B   J   C               \n",
+        "           U   P   P               "
+    );
     const TESTINPUT3: &'static str = concat!(
         "             Z L X W       C                 \n",
         "             Z P Q B       K                 \n",
@@ -265,6 +302,9 @@ pub fn run() {
         "               A O F   N                     \n",
         "               A A D   M                     "
     );
+
+    //let map = map_str_to_vec(TESTINPUT2);
+    //assert_eq!(shortest_path_recursive(&map), None);
     let map = map_str_to_vec(TESTINPUT3);
     assert_eq!(shortest_path_recursive(&map), Some(396));
 }
@@ -335,7 +375,7 @@ mod tests {
         "           U   P   P               "
     );
 
-    const _TESTINPUT3: &'static str = concat!(
+    const TESTINPUT3: &'static str = concat!(
         "             Z L X W       C                 \n",
         "             Z P Q B       K                 \n",
         "  ###########.#.#.#.#######.###############  \n",
@@ -389,10 +429,10 @@ mod tests {
         let map = map_str_to_vec(TESTINPUT1);
         assert_eq!(shortest_path_recursive(&map), Some(26));
 
-        // let map = map_str_to_vec(TESTINPUT2);
-        // assert_eq!(shortest_path_recursive(&map), None);
+        let map = map_str_to_vec(TESTINPUT2);
+        assert_eq!(shortest_path_recursive(&map), None);
 
-        // let map = map_str_to_vec(TESTINPUT3);
-        // assert_eq!(shortest_path_recursive(&map), Some(396));
+        let map = map_str_to_vec(TESTINPUT3);
+        assert_eq!(shortest_path_recursive(&map), Some(396));
     }
 }
