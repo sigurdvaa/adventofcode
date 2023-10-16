@@ -9,15 +9,6 @@ struct Portal {
     is_outer: bool,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-struct State {
-    steps: usize,
-    pos: (usize, usize),
-    level: usize,
-    seen_portals: String,
-    jumps: usize,
-}
-
 fn map_str_to_vec(map: &str) -> Vec<Vec<char>> {
     map.lines().map(|line| line.chars().collect()).collect()
 }
@@ -106,13 +97,6 @@ fn get_portal_adj_list(map: &Vec<Vec<char>>) -> HashMap<Portal, Vec<(usize, Port
         }
     }
     adj
-}
-
-fn shortest_path_astar(map: &Vec<Vec<char>>) -> Option<usize> {
-    let graph = get_portal_adj_list(map);
-    let mut dists: Vec<Vec<Vec<usize>>> = vec![];
-
-    None
 }
 
 fn shortest_path_levels(map: &Vec<Vec<char>>) -> Option<usize> {
@@ -362,10 +346,8 @@ mod tests {
     fn test_part_two() {
         let map = map_str_to_vec(TESTINPUT1);
         assert_eq!(shortest_path_levels(&map), Some(26));
-        assert_eq!(shortest_path_astar(&map), Some(26));
 
         let map = map_str_to_vec(TESTINPUT3);
         assert_eq!(shortest_path_levels(&map), Some(396));
-        assert_eq!(shortest_path_astar(&map), Some(396));
     }
 }
