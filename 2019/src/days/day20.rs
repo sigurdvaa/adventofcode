@@ -9,6 +9,12 @@ struct Portal {
     is_outer: bool,
 }
 
+struct Edge {
+    weight: usize,
+    portal: Portal,
+    jump_to: Option<Portal>,
+}
+
 fn map_str_to_vec(map: &str) -> Vec<Vec<char>> {
     map.lines().map(|line| line.chars().collect()).collect()
 }
@@ -59,12 +65,6 @@ fn find_portals(map: &Vec<Vec<char>>) -> Vec<Portal> {
         }
     }
     portals
-}
-
-struct Edge {
-    weight: usize,
-    portal: Portal,
-    jump_to: Option<Portal>,
 }
 
 fn get_portal_adj_list(map: &Vec<Vec<char>>) -> HashMap<Portal, Vec<Edge>> {
