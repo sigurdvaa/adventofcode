@@ -99,7 +99,7 @@ fn get_portal_adj_list(map: &Vec<Vec<char>>) -> HashMap<Portal, Vec<(usize, Port
     adj
 }
 
-fn shortest_path_levels(map: &Vec<Vec<char>>) -> Option<usize> {
+fn shortest_path(map: &Vec<Vec<char>>, with_levels: bool) -> Option<usize> {
     #[derive(PartialEq, Eq, Clone, Debug)]
     struct State {
         weight: usize,
@@ -119,8 +119,10 @@ fn shortest_path_levels(map: &Vec<Vec<char>>) -> Option<usize> {
         }
     }
 
+    let start = "AA";
+    let end = "ZZ";
     let graph = get_portal_adj_list(map);
-    let start_p = graph.keys().find(|portal| portal.name == "AA").unwrap();
+    let start_p = graph.keys().find(|portal| portal.name == start).unwrap();
     let mut queue = BinaryHeap::from([State {
         weight: 0,
         steps: 0,
@@ -129,26 +131,37 @@ fn shortest_path_levels(map: &Vec<Vec<char>>) -> Option<usize> {
     }]);
 
     while let Some(state) = queue.pop() {
+        if state.portal.name == end && state.level == 0 {
+            return Some(state.steps);
+        }
         if let Some(adj) = graph.get(&state.portal) {
             for (weight, portal) in adj {
-                if portal.name == "ZZ" && state.level == 0 {
-                    return Some(state.steps + weight);
-                }
-
-                if portal.is_outer && state.level == 0 {
+                if portal.name == end && state.level == 0 {
+                    queue.push(State {
+                        weight: state.weight + weight,
+                        steps: state.steps + weight,
+                        level: state.level,
+                        portal: portal.clone(),
+                    });
                     continue;
                 }
 
-                let next_level = match portal.is_outer {
-                    true => state.level - 1,
-                    false => state.level + 1,
-                };
+                let mut next_level = 0;
+                if with_levels {
+                    if portal.is_outer && state.level == 0 && portal.name != end {
+                        continue;
+                    }
+                    next_level = match portal.is_outer {
+                        true => state.level - 1,
+                        false => state.level + 1,
+                    };
+                }
 
+                let next_weight = state.weight + ((next_level + 1) * weight);
                 if let Some(next_portal) = graph
                     .keys()
                     .find(|other| other.name == portal.name && other.pos != portal.pos)
                 {
-                    let next_weight = state.weight + ((next_level + 1) * weight);
                     queue.push(State {
                         weight: next_weight,
                         steps: state.steps + weight + 1,
@@ -163,59 +176,6 @@ fn shortest_path_levels(map: &Vec<Vec<char>>) -> Option<usize> {
     None
 }
 
-fn shortest_path(map: &Vec<Vec<char>>) -> Option<usize> {
-    let portals = find_portals(map);
-    let start = portals
-        .iter()
-        .find(|portal| portal.name == "AA")
-        .unwrap()
-        .pos;
-    let end = portals
-        .iter()
-        .find(|portal| portal.name == "ZZ")
-        .unwrap()
-        .pos;
-    let mut queue = VecDeque::new();
-    queue.push_back((0, start, HashSet::new()));
-
-    while !queue.is_empty() {
-        let (steps, curr, mut seen) = queue.pop_front().unwrap();
-        for dir in 0..4 {
-            let next = match dir {
-                0 if curr.0 > 0 => (curr.0 - 1, curr.1),
-                1 if curr.1 > 0 => (curr.0, curr.1 - 1),
-                2 if curr.0 < map[curr.1].len() - 1 => (curr.0 + 1, curr.1),
-                3 if curr.1 < map.len() - 1 => (curr.0, curr.1 + 1),
-                _ => unreachable!(),
-            };
-
-            if !seen.insert(next) {
-                continue;
-            }
-
-            if next == end {
-                return Some(steps + 1);
-            }
-
-            match map[next.1][next.0] {
-                '.' => queue.push_back((steps + 1, next, seen.clone())),
-                c if c.is_uppercase() => {
-                    let portal = portals.iter().find(|portal| portal.pos == curr).unwrap();
-                    if let Some(goto) = portals
-                        .iter()
-                        .find(|other| other.pos != curr && other.name == portal.name)
-                    {
-                        queue.push_back((steps + 1, goto.pos, seen.clone()));
-                    }
-                }
-                _ => (),
-            }
-        }
-    }
-
-    None
-}
-
 pub fn run() {
     println!("Day 20: Donut Maze");
     let file_path = "inputs/day20.txt";
@@ -223,8 +183,8 @@ pub fn run() {
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 
     let map = map_str_to_vec(_input_raw.as_str());
-    println!("Part One: {}", shortest_path(&map).unwrap());
-    println!("Part Two: {}", shortest_path_levels(&map).unwrap());
+    println!("Part One: {}", shortest_path(&map, false).unwrap());
+    println!("Part Two: {}", shortest_path(&map, true).unwrap());
 }
 
 #[cfg(test)]
@@ -336,18 +296,18 @@ mod tests {
     #[test]
     fn test_part_one() {
         let map = map_str_to_vec(TESTINPUT1);
-        assert_eq!(shortest_path(&map), Some(23));
+        assert_eq!(shortest_path(&map, false), Some(23));
 
         let map = map_str_to_vec(TESTINPUT2);
-        assert_eq!(shortest_path(&map), Some(58));
+        assert_eq!(shortest_path(&map, false), Some(58));
     }
 
     #[test]
     fn test_part_two() {
         let map = map_str_to_vec(TESTINPUT1);
-        assert_eq!(shortest_path_levels(&map), Some(26));
+        assert_eq!(shortest_path(&map, true), Some(26));
 
         let map = map_str_to_vec(TESTINPUT3);
-        assert_eq!(shortest_path_levels(&map), Some(396));
+        assert_eq!(shortest_path(&map, true), Some(396));
     }
 }
