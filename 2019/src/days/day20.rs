@@ -61,7 +61,13 @@ fn find_portals(map: &Vec<Vec<char>>) -> Vec<Portal> {
     portals
 }
 
-fn get_portal_adj_list(map: &Vec<Vec<char>>) -> HashMap<Portal, Vec<(usize, Portal)>> {
+struct Edge {
+    weight: usize,
+    portal: Portal,
+    jump_to: Option<Portal>,
+}
+
+fn get_portal_adj_list(map: &Vec<Vec<char>>) -> HashMap<Portal, Vec<Edge>> {
     let mut adj = HashMap::new();
     let portals = find_portals(map);
     for portal in portals.iter() {
@@ -91,7 +97,14 @@ fn get_portal_adj_list(map: &Vec<Vec<char>>) -> HashMap<Portal, Vec<(usize, Port
                 }
 
                 if let Some(other) = portals.iter().find(|p| p.pos == next) {
-                    portal_adj.push((weight + 1, other.clone()));
+                    portal_adj.push(Edge {
+                        weight: weight + 1,
+                        portal: other.clone(),
+                        jump_to: portals
+                            .iter()
+                            .find(|tunnel| tunnel.name == other.name && tunnel.pos != other.pos)
+                            .cloned(),
+                    })
                 }
             }
         }
@@ -123,6 +136,8 @@ fn shortest_path(map: &Vec<Vec<char>>, with_levels: bool) -> Option<usize> {
     let end = "ZZ";
     let graph = get_portal_adj_list(map);
     let start_p = graph.keys().find(|portal| portal.name == start).unwrap();
+    let mut dists = HashMap::new();
+    dists.insert((0, start_p.clone()), 0);
     let mut queue = BinaryHeap::from([State {
         weight: 0,
         steps: 0,
@@ -135,36 +150,41 @@ fn shortest_path(map: &Vec<Vec<char>>, with_levels: bool) -> Option<usize> {
             return Some(state.steps);
         }
         if let Some(adj) = graph.get(&state.portal) {
-            for (weight, portal) in adj {
-                if portal.name == end && state.level == 0 {
+            for edge in adj {
+                if edge.portal.name == end && state.level == 0 {
                     queue.push(State {
-                        weight: state.weight + weight,
-                        steps: state.steps + weight,
+                        weight: state.weight + edge.weight,
+                        steps: state.steps + edge.weight,
                         level: state.level,
-                        portal: portal.clone(),
+                        portal: edge.portal.clone(),
                     });
-                    continue;
                 }
 
-                let mut next_level = 0;
-                if with_levels {
-                    if portal.is_outer && state.level == 0 && portal.name != end {
+                if let Some(next_portal) = &edge.jump_to {
+                    let mut next_level = 0;
+                    if with_levels {
+                        if edge.portal.is_outer && state.level == 0 && edge.portal.name != end {
+                            continue;
+                        }
+                        next_level = match edge.portal.is_outer {
+                            true => state.level - 1,
+                            false => state.level + 1,
+                        };
+                    }
+
+                    let next_steps = state.steps + edge.weight + 1;
+                    let dist = dists
+                        .entry((next_level, next_portal.clone()))
+                        .or_insert(usize::MAX);
+                    if *dist < next_steps {
                         continue;
                     }
-                    next_level = match portal.is_outer {
-                        true => state.level - 1,
-                        false => state.level + 1,
-                    };
-                }
+                    *dist = next_steps;
 
-                let next_weight = state.weight + ((next_level + 1) * weight);
-                if let Some(next_portal) = graph
-                    .keys()
-                    .find(|other| other.name == portal.name && other.pos != portal.pos)
-                {
+                    let next_weight = state.weight + ((next_level + 1) * edge.weight);
                     queue.push(State {
                         weight: next_weight,
-                        steps: state.steps + weight + 1,
+                        steps: next_steps,
                         level: next_level,
                         portal: next_portal.clone(),
                     });
