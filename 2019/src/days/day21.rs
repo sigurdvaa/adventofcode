@@ -3,12 +3,15 @@ use std::fs;
 
 fn walk_hull_damage(mut prog: Program) -> i64 {
     let springscript = concat!(
+        // must jump
         "NOT A J\n",
         "NOT B T\n",
         "OR T J\n",
         "NOT C T\n",
         "OR T J\n",
+        // and can land
         "AND D J\n",
+        // start
         "WALK\n",
     );
     let mut springscript = springscript.chars().map(|c| c as i64).collect::<Vec<_>>();
@@ -26,28 +29,22 @@ fn run_hull_damage(mut prog: Program) -> i64 {
         "OR T J\n",
         "NOT C T\n",
         "OR T J\n",
-        // can land
+        // and can land
         "AND D J\n",
-        // can move after landing
+        // and can move after landing
         "OR J T\n",
         "AND E T\n",
         "AND J T\n",
-        // can jump after landing
+        // or can jump after landing
         "AND H J\n",
         "OR T J\n",
+        // start
         "RUN\n",
     );
     let mut springscript = springscript.chars().map(|c| c as i64).collect::<Vec<_>>();
     springscript.reverse();
     prog.input.extend(springscript);
     let _exitcode = prog.run();
-    println!(
-        "{}",
-        prog.output
-            .iter()
-            .map(|n| *n as u8 as char)
-            .collect::<String>()
-    );
     *prog.output.last().unwrap()
 }
 
