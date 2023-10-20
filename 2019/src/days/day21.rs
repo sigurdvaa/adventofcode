@@ -16,7 +16,7 @@ fn walk_hull_damage(mut prog: Program) -> i64 {
     );
     let mut springscript = springscript.chars().map(|c| c as i64).collect::<Vec<_>>();
     springscript.reverse();
-    prog.input.extend(springscript);
+    prog.input = springscript;
     let _exitcode = prog.run();
     *prog.output.last().unwrap()
 }
@@ -43,7 +43,7 @@ fn run_hull_damage(mut prog: Program) -> i64 {
     );
     let mut springscript = springscript.chars().map(|c| c as i64).collect::<Vec<_>>();
     springscript.reverse();
-    prog.input.extend(springscript);
+    prog.input = springscript;
     let _exitcode = prog.run();
     *prog.output.last().unwrap()
 }
@@ -56,7 +56,7 @@ pub fn run() {
 
     let prog = Program::new(&input_raw);
     println!("Part One: {}", walk_hull_damage(prog.clone()));
-    println!("Part Two: {}", run_hull_damage(prog.clone()));
+    println!("Part Two: {}", run_hull_damage(prog));
 }
 
 #[cfg(test)]
