@@ -20,13 +20,21 @@ fn walk_hull_damage(mut prog: Program) -> i64 {
 
 fn run_hull_damage(mut prog: Program) -> i64 {
     let springscript = concat!(
+        // must jump
         "NOT A J\n",
         "NOT B T\n",
         "OR T J\n",
         "NOT C T\n",
         "OR T J\n",
+        // can land
         "AND D J\n",
+        // can move after landing
+        "OR J T\n",
+        "AND E T\n",
+        "AND J T\n",
+        // can jump after landing
         "AND H J\n",
+        "OR T J\n",
         "RUN\n",
     );
     let mut springscript = springscript.chars().map(|c| c as i64).collect::<Vec<_>>();
