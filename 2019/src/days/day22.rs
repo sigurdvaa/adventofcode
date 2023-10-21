@@ -77,6 +77,39 @@ impl Deck {
     }
 }
 
+fn parse_shuffle(instructions: &str) -> Vec<Shuffle> {
+    let mut shuffle = vec![];
+    for line in instructions.lines() {
+        let mut split = line.split(" ");
+        match split.next() {
+            Some("deal") => match split.next() {
+                Some("into") => shuffle.push(Shuffle::Into),
+                Some("with") => shuffle.push(Shuffle::With(
+                    split.skip(1).next().unwrap().parse().unwrap(),
+                )),
+                _ => unreachable!(),
+            },
+            Some("cut") => shuffle.push(Shuffle::Cut(split.next().unwrap().parse().unwrap())),
+            _ => (),
+        }
+    }
+    shuffle
+}
+
+fn card_after_shuffle(shuffle: &Vec<Shuffle>, size: isize, times: usize, pos: isize) -> isize {
+    let mut value = pos;
+    for _ in 0..times {
+        for s in shuffle {
+            match s {
+                Shuffle::Cut(n) => value = (value + n).rem_euclid(size),
+                Shuffle::Into => value = size - 1 - value,
+                Shuffle::With(n) => value = (value * *n as isize).rem_euclid(size),
+            }
+        }
+    }
+    value
+}
+
 pub fn run() {
     println!("Day 22: Slam Shuffle");
     let file_path = "inputs/day22.txt";
@@ -90,6 +123,14 @@ pub fn run() {
         "Part One: {}",
         deck.cards.iter().position(|n| *n == 2019).unwrap()
     );
+
+    let shuffle = parse_shuffle(&input_raw);
+    //println!(
+    //    "Part Two: {}",
+    //    card_after_shuffle(shuffle, 119315717514047, 101741582076661, 2020)
+    //);
+    assert_eq!(card_after_shuffle(&shuffle, 10007, 1, 8379), 2019);
+    //assert_eq!(card_after_shuffle(&shuffle, 10007, 1, 2019), 8379);
 
     // deck of 119315717514047
     // shuffle 101741582076661 times
