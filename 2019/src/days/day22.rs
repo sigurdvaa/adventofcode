@@ -124,12 +124,27 @@ pub fn run() {
         deck.cards.iter().position(|n| *n == 2019).unwrap()
     );
 
-    let shuffle = parse_shuffle(&input_raw);
+    //let shuffle = parse_shuffle(&input_raw);
     //println!(
     //    "Part Two: {}",
     //    card_after_shuffle(shuffle, 119315717514047, 101741582076661, 2020)
     //);
-    assert_eq!(card_after_shuffle(&shuffle, 10007, 1, 8379), 2019);
+    let shuffle = parse_shuffle("deal into new stack");
+    println!("7: {}", card_after_shuffle(&shuffle, 10, 1, 2));
+    let shuffle = parse_shuffle("cut 3");
+    println!("4: {}", card_after_shuffle(&shuffle, 10, 1, 1));
+    let shuffle = parse_shuffle("cut 3");
+    println!("8: {}", card_after_shuffle(&shuffle, 10, 1, 5));
+    let shuffle = parse_shuffle("cut -4");
+    println!("9: {}", card_after_shuffle(&shuffle, 10, 1, 3));
+    let shuffle = parse_shuffle("cut -4");
+    println!("2: {}", card_after_shuffle(&shuffle, 10, 1, 6));
+    let shuffle = parse_shuffle("deal with increment 3");
+    println!("0: {}", card_after_shuffle(&shuffle, 10, 1, 0));
+    let shuffle = parse_shuffle("deal with increment 3");
+    println!("7: {}", card_after_shuffle(&shuffle, 10, 1, 1));
+    let shuffle = parse_shuffle("deal with increment 3");
+    println!("3: {}", card_after_shuffle(&shuffle, 10, 1, 9));
     //assert_eq!(card_after_shuffle(&shuffle, 10007, 1, 2019), 8379);
 
     // deck of 119315717514047
