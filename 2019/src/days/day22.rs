@@ -37,32 +37,47 @@ fn pos_after_shuffle(shuffle: &Vec<Shuffle>, size: i128, mut pos: i128) -> i128 
     pos
 }
 
-fn egcd(a: i128, b: i128) -> (i128, i128, i128) {
-    if a == 0 {
-        return (b, 0, 1);
+pub fn mod_exp(base: i128, exponent: i128, modulus: i128) -> i128 {
+    let mut result = 1;
+    let mut base = base % modulus;
+    let mut exponent = exponent;
+
+    loop {
+        if exponent <= 0 {
+            break;
+        }
+
+        if exponent % 2 == 1 {
+            result = (result * base) % modulus;
+        }
+
+        exponent = exponent >> 1;
+        base = (base * base) % modulus;
     }
 
-    let (g, y, x) = egcd(b % a, a);
-    (g, x - (b / a) * y, y)
+    result
 }
 
-fn modinv(a: i128, m: i128) -> Option<i128> {
-    let (g, x, _y) = egcd(a, m);
-    if g != 1 {
-        return None;
-    }
-    Some(x % m)
-}
-
-fn pos_after_shuffle_reverse(shuffle: &Vec<Shuffle>, size: i128, mut pos: i128) -> i128 {
-    for s in shuffle.iter().rev() {
+fn pos_after_shuffle_reverse(shuffle: &Vec<Shuffle>, size: i128, times: i128, pos: i128) -> i128 {
+    let mut factor: i128 = 1;
+    let mut increment: i128 = 0;
+    for s in shuffle {
         match s {
-            Shuffle::Cut(n) => pos = (pos + n).rem_euclid(size),
-            Shuffle::Into => pos = size - 1 - pos,
-            Shuffle::With(n) => pos = (modinv(*n, size).unwrap() * pos).rem_euclid(size),
+            Shuffle::Cut(n) => {
+                increment += factor * n;
+            }
+            Shuffle::Into => {
+                increment -= factor;
+                factor *= -1;
+            }
+            Shuffle::With(n) => {
+                factor = (factor * mod_exp(*n, size - 2, size)).rem_euclid(size);
+            }
         }
     }
-    pos
+    increment = (increment * mod_exp(1 - factor, size - 2, size)).rem_euclid(size);
+    factor = mod_exp(factor, times, size);
+    (pos * factor + (1 - factor) * increment).rem_euclid(size)
 }
 
 pub fn run() {
@@ -74,16 +89,10 @@ pub fn run() {
     let shuffle = parse_shuffle(&input_raw);
     println!("Part One: {}", pos_after_shuffle(&shuffle, 10007, 2019));
 
-    assert_eq!(pos_after_shuffle_reverse(&shuffle, 10007, 8379), 2019)
-
-    //println!(
-    //    "Part Two: {}",
-    //    pos_after_shuffle(shuffle, 119315717514047, 101741582076661, 2020)
-    //);
-
-    // deck of 119315717514047
-    // shuffle 101741582076661 times
-    // number at pos 2020
+    println!(
+        "Part Two: {}",
+        pos_after_shuffle_reverse(&shuffle, 119315717514047, 101741582076661, 2020)
+    );
 }
 
 #[cfg(test)]
@@ -134,50 +143,11 @@ mod tests {
 
     #[test]
     fn test_part_two() {
-        let shuffle = parse_shuffle(concat!(
-            "deal with increment 7\n",
-            "deal into new stack\n",
-            "deal into new stack",
-        ));
-        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10, 1), 3);
-        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10, 9), 7);
-
-        let shuffle = parse_shuffle(concat!(
-            "cut 6\n",
-            "deal with increment 7\n",
-            "deal into new stack",
-        ));
-        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10, 3), 4);
-        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10, 5), 8);
-
-        let shuffle = parse_shuffle(concat!(
-            "deal with increment 7\n",
-            "deal with increment 9\n",
-            "cut -2",
-        ));
-        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10, 2), 0);
-        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10, 7), 5);
-
-        let shuffle = parse_shuffle(concat!(
-            "deal into new stack\n",
-            "cut -2\n",
-            "deal with increment 7\n",
-            "cut 8\n",
-            "cut -4\n",
-            "deal with increment 7\n",
-            "cut 3\n",
-            "deal with increment 9\n",
-            "deal with increment 3\n",
-            "cut -1",
-        ));
-        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10, 0), 9);
-        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10, 5), 4);
-
         let file_path = "inputs/day22.txt";
         let input_raw = fs::read_to_string(file_path)
             .expect(format!("Error reading file '{file_path}'").as_str());
 
         let shuffle = parse_shuffle(&input_raw);
-        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10007, 8379), 2019)
+        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10007, 1, 8379), 2019)
     }
 }
