@@ -37,6 +37,34 @@ fn pos_after_shuffle(shuffle: &Vec<Shuffle>, size: i128, mut pos: i128) -> i128 
     pos
 }
 
+fn egcd(a: i128, b: i128) -> (i128, i128, i128) {
+    if a == 0 {
+        return (b, 0, 1);
+    }
+
+    let (g, y, x) = egcd(b % a, a);
+    (g, x - (b / a) * y, y)
+}
+
+fn modinv(a: i128, m: i128) -> Option<i128> {
+    let (g, x, _y) = egcd(a, m);
+    if g != 1 {
+        return None;
+    }
+    Some(x % m)
+}
+
+fn pos_after_shuffle_reverse(shuffle: &Vec<Shuffle>, size: i128, mut pos: i128) -> i128 {
+    for s in shuffle.iter().rev() {
+        match s {
+            Shuffle::Cut(n) => pos = (pos + n).rem_euclid(size),
+            Shuffle::Into => pos = size - 1 - pos,
+            Shuffle::With(n) => pos = (modinv(*n, size).unwrap() * pos).rem_euclid(size),
+        }
+    }
+    pos
+}
+
 pub fn run() {
     println!("Day 22: Slam Shuffle");
     let file_path = "inputs/day22.txt";
@@ -46,7 +74,8 @@ pub fn run() {
     let shuffle = parse_shuffle(&input_raw);
     println!("Part One: {}", pos_after_shuffle(&shuffle, 10007, 2019));
 
-    //let shuffle = parse_shuffle(&input_raw);
+    assert_eq!(pos_after_shuffle_reverse(&shuffle, 10007, 8379), 2019)
+
     //println!(
     //    "Part Two: {}",
     //    pos_after_shuffle(shuffle, 119315717514047, 101741582076661, 2020)
@@ -104,5 +133,51 @@ mod tests {
     }
 
     #[test]
-    fn test_part_two() {}
+    fn test_part_two() {
+        let shuffle = parse_shuffle(concat!(
+            "deal with increment 7\n",
+            "deal into new stack\n",
+            "deal into new stack",
+        ));
+        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10, 1), 3);
+        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10, 9), 7);
+
+        let shuffle = parse_shuffle(concat!(
+            "cut 6\n",
+            "deal with increment 7\n",
+            "deal into new stack",
+        ));
+        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10, 3), 4);
+        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10, 5), 8);
+
+        let shuffle = parse_shuffle(concat!(
+            "deal with increment 7\n",
+            "deal with increment 9\n",
+            "cut -2",
+        ));
+        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10, 2), 0);
+        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10, 7), 5);
+
+        let shuffle = parse_shuffle(concat!(
+            "deal into new stack\n",
+            "cut -2\n",
+            "deal with increment 7\n",
+            "cut 8\n",
+            "cut -4\n",
+            "deal with increment 7\n",
+            "cut 3\n",
+            "deal with increment 9\n",
+            "deal with increment 3\n",
+            "cut -1",
+        ));
+        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10, 0), 9);
+        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10, 5), 4);
+
+        let file_path = "inputs/day22.txt";
+        let input_raw = fs::read_to_string(file_path)
+            .expect(format!("Error reading file '{file_path}'").as_str());
+
+        let shuffle = parse_shuffle(&input_raw);
+        assert_eq!(pos_after_shuffle_reverse(&shuffle, 10007, 8379), 2019)
+    }
 }
