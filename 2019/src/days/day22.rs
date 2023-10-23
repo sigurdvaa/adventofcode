@@ -37,16 +37,11 @@ fn pos_after_shuffle(shuffle: &Vec<Shuffle>, size: i128, mut pos: i128) -> i128 
     pos
 }
 
-pub fn mod_exp(base: i128, exponent: i128, modulus: i128) -> i128 {
+pub fn mod_exp(mut base: i128, mut exponent: i128, modulus: i128) -> i128 {
     let mut result = 1;
-    let mut base = base % modulus;
-    let mut exponent = exponent;
+    base = base % modulus;
 
-    loop {
-        if exponent <= 0 {
-            break;
-        }
-
+    while exponent > 0 {
         if exponent % 2 == 1 {
             result = (result * base) % modulus;
         }
@@ -60,14 +55,14 @@ pub fn mod_exp(base: i128, exponent: i128, modulus: i128) -> i128 {
 
 fn pos_after_shuffle_reverse(shuffle: &Vec<Shuffle>, size: i128, times: i128, pos: i128) -> i128 {
     let mut factor: i128 = 1;
-    let mut increment: i128 = 0;
+    let mut offset: i128 = 0;
     for s in shuffle {
         match s {
             Shuffle::Cut(n) => {
-                increment += factor * n;
+                offset += factor * n;
             }
             Shuffle::Into => {
-                increment -= factor;
+                offset -= factor;
                 factor *= -1;
             }
             Shuffle::With(n) => {
@@ -75,9 +70,9 @@ fn pos_after_shuffle_reverse(shuffle: &Vec<Shuffle>, size: i128, times: i128, po
             }
         }
     }
-    increment = (increment * mod_exp(1 - factor, size - 2, size)).rem_euclid(size);
+    offset = (offset * mod_exp(1 - factor, size - 2, size)).rem_euclid(size);
     factor = mod_exp(factor, times, size);
-    (pos * factor + (1 - factor) * increment).rem_euclid(size)
+    (pos * factor + (1 - factor) * offset).rem_euclid(size)
 }
 
 pub fn run() {
@@ -88,7 +83,6 @@ pub fn run() {
 
     let shuffle = parse_shuffle(&input_raw);
     println!("Part One: {}", pos_after_shuffle(&shuffle, 10007, 2019));
-
     println!(
         "Part Two: {}",
         pos_after_shuffle_reverse(&shuffle, 119315717514047, 101741582076661, 2020)
