@@ -1,4 +1,5 @@
 use crate::intcode::Program;
+use std::collections::{HashSet, VecDeque};
 use std::fs;
 
 #[derive(Clone)]
@@ -8,58 +9,15 @@ struct Packet {
     y: i64,
 }
 
-fn run_network(prog: Program) -> Option<Packet> {
-    let size = 50;
-    let target_addr = 255;
-    let mut computers = Vec::with_capacity(size);
-    let mut packets: Vec<Vec<Packet>> = vec![vec![]; size];
-    let mut traffic = true;
-
-    for i in 0..size {
-        let mut comp = prog.clone();
-        comp.input.push(i as i64);
-        let _exitcode = comp.run();
-        computers.push(comp);
-    }
-
-    while traffic {
-        traffic = false;
-        for (i, comp) in computers.iter_mut().enumerate() {
-            for packet in packets[i].iter().rev() {
-                comp.input.push(packet.y);
-                comp.input.push(packet.x);
-            }
-            packets[i].clear();
-            if comp.input.is_empty() {
-                comp.input.push(-1);
-            }
-
-            let _exitcode = comp.run();
-            let mut output = comp.output.chunks_exact(3);
-            while let Some(&[addr, x, y]) = output.next() {
-                traffic = true;
-                let packet = Packet { addr, x, y };
-                if packet.addr == target_addr {
-                    return Some(packet);
-                }
-                packets[packet.addr as usize].push(packet);
-            }
-            comp.output.clear();
-        }
-    }
-
-    None
-}
-
-fn run_network_with_nat(prog: Program) -> Option<Packet> {
-    let size = 50;
-    let nat_addr = 255;
+fn run_network(prog: Program, with_nat: bool) -> Option<Packet> {
+    const SIZE: usize = 50;
+    const NAT_ADDR: i64 = 255;
     let mut nat = None;
-    let mut computers = Vec::with_capacity(size);
-    let mut packets: Vec<Vec<Packet>> = vec![vec![]; size];
-    let mut seen_y = std::collections::HashSet::new();
+    let mut computers = Vec::with_capacity(SIZE);
+    let mut packets: Vec<VecDeque<Packet>> = vec![VecDeque::new(); SIZE];
+    let mut seen_y = HashSet::new();
 
-    for i in 0..size {
+    for i in 0..SIZE {
         let mut comp = prog.clone();
         comp.input.push(i as i64);
         let _exitcode = comp.run();
@@ -69,11 +27,10 @@ fn run_network_with_nat(prog: Program) -> Option<Packet> {
     loop {
         let mut idle = true;
         for (i, comp) in computers.iter_mut().enumerate() {
-            for packet in packets[i].iter().rev() {
+            while let Some(packet) = packets[i].pop_front() {
                 comp.input.push(packet.y);
                 comp.input.push(packet.x);
             }
-            packets[i].clear();
             if comp.input.is_empty() {
                 comp.input.push(-1);
             }
@@ -83,21 +40,27 @@ fn run_network_with_nat(prog: Program) -> Option<Packet> {
             while let Some(&[addr, x, y]) = output.next() {
                 idle = false;
                 let packet = Packet { addr, x, y };
-                if packet.addr == nat_addr {
+                if packet.addr == NAT_ADDR {
+                    if !with_nat {
+                        return Some(packet);
+                    }
                     nat = Some(packet);
                 } else {
-                    packets[packet.addr as usize].push(packet);
+                    packets[packet.addr as usize].push_back(packet);
                 }
             }
             comp.output.clear();
         }
         if idle {
+            if !with_nat {
+                return None;
+            }
             match nat.take() {
                 Some(packet) => {
                     if !seen_y.insert(packet.y) {
                         return Some(packet);
                     }
-                    packets[0].push(packet);
+                    packets[0].push_back(packet);
                 }
                 None => return None,
             }
@@ -112,8 +75,8 @@ pub fn run() {
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 
     let prog = Program::new(&input_raw);
-    println!("Part One: {}", run_network(prog.clone()).unwrap().y);
-    println!("Part Two: {}", run_network_with_nat(prog).unwrap().y);
+    println!("Part One: {}", run_network(prog.clone(), false).unwrap().y);
+    println!("Part Two: {}", run_network(prog, true).unwrap().y);
 }
 
 #[cfg(test)]
