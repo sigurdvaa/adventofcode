@@ -1,4 +1,4 @@
-use std::collections::{HashSet, VecDeque};
+use std::collections::HashSet;
 use std::fs;
 
 fn biodiversity(cells: &Vec<Vec<char>>) -> usize {
@@ -59,6 +59,49 @@ fn count_adjacent_bugs(cells: &Vec<Vec<char>>, x: usize, y: usize) -> usize {
     count
 }
 
+fn count_adjacent_bugs_recursive(
+    levels: &Vec<Vec<Vec<char>>>,
+    i: usize,
+    x: usize,
+    y: usize,
+) -> usize {
+    let mut count = 0;
+
+    if y == 0 {
+        if levels[i - 1][1][2] == '#' {
+            count += 1;
+        }
+    } else if y > 0 {
+        if levels[i][y - 1][x] == '#' {
+            count += 1;
+        }
+    }
+
+    if y == 4 {
+        if levels[i + 1][3][2] == '#' {
+            count += 1;
+        }
+    } else if y < levels[i].len() - 1 {
+        if levels[i][y + 1][x] == '#' {
+            count += 1;
+        }
+    }
+
+    if x > 0 {
+        if cells[y][x - 1] == '#' {
+            count += 1;
+        }
+    }
+
+    if x < cells[y].len() - 1 {
+        if cells[y][x + 1] == '#' {
+            count += 1;
+        }
+    }
+
+    count
+}
+
 fn game_of_bugs(cells: &Vec<Vec<char>>) -> Vec<Vec<char>> {
     let mut next = cells.clone();
 
@@ -84,12 +127,12 @@ fn game_of_bugs(cells: &Vec<Vec<char>>) -> Vec<Vec<char>> {
     next
 }
 
-fn game_of_bugs_recusive(levels: &Vec<Vec<Vec<char>>>, idx: usize) -> Vec<Vec<char>> {
-    let mut next = levels[idx].clone();
+fn game_of_bugs_recursive(levels: &Vec<Vec<Vec<char>>>, i: usize) -> Vec<Vec<char>> {
+    let mut next = levels[i].clone();
 
-    for (y, row) in cells.iter().enumerate() {
+    for (y, row) in levels[i].iter().enumerate() {
         for (x, cell) in row.iter().enumerate() {
-            let adjacent = count_adjacent_bugs(&cells, x, y);
+            let adjacent = count_adjacent_bugs_recursive(&levels, i, x, y);
             match cell {
                 '.' => {
                     if adjacent > 0 && adjacent < 3 {
@@ -115,16 +158,31 @@ fn bugs_after_minutes(layout: &str, minutes: usize) -> usize {
         .map(|line| line.chars().collect::<Vec<_>>())
         .collect::<Vec<_>>();
     let ref_cells = vec![vec!['.'; cells[0].len()]; cells.len()];
-    let mut levels = VecDeque::from([cells]);
+    let mut levels = Vec::from([cells]);
+
     for _ in 0..minutes {
-        for (i, level) in levels.iter_mut().enumerate() {
-            let next = game_of_bugs_recursive(&levels, i);
-            level = next;
+        let mut next_levels = Vec::with_capacity(levels.len() + 2);
+        next_levels.push(ref_cells.clone());
+        for i in 0..levels.len() {
+            next_levels.push(game_of_bugs_recursive(&levels, i));
         }
-        levels.push_front(ref_cells.clone());
-        levels.push_back(ref_cells.clone());
+        next_levels.push(ref_cells.clone());
+        levels = next_levels;
     }
-    0
+
+    levels
+        .iter()
+        .map(|cells| {
+            cells
+                .iter()
+                .map(|row| {
+                    row.iter()
+                        .map(|&cell| if cell == '#' { 1 } else { 0 })
+                        .sum::<usize>()
+                })
+                .sum::<usize>()
+        })
+        .sum()
 }
 
 pub fn run() {
