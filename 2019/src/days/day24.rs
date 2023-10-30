@@ -67,34 +67,92 @@ fn count_adjacent_bugs_recursive(
 ) -> usize {
     let mut count = 0;
 
+    if y == 2 && x == 2 {
+        return count;
+    }
+
+    // check above
     if y == 0 {
-        if levels[i - 1][1][2] == '#' {
+        // should be counted only once, currently counted five times
+        if i > 0 && levels[i - 1][1][2] == '#' {
             count += 1;
+            if x == 4 && count > 4 {
+                count -= 4;
+            }
         }
+    } else if i < levels.len() - 1 && y == 3 && x == 2 {
+        count += levels[i + 1]
+            .last()
+            .unwrap()
+            .iter()
+            .filter(|&&c| c == '#')
+            .count();
     } else if y > 0 {
         if levels[i][y - 1][x] == '#' {
             count += 1;
         }
     }
 
+    // check below
     if y == 4 {
-        if levels[i + 1][3][2] == '#' {
+        // should be counted only once, currently counted five times
+        if i > 0 && levels[i - 1][3][2] == '#' {
             count += 1;
+            if x == 4 && count > 4 {
+                count -= 4;
+            }
         }
+    } else if i < levels.len() - 1 && y == 1 && x == 2 {
+        count += levels[i + 1]
+            .first()
+            .unwrap()
+            .iter()
+            .filter(|&&c| c == '#')
+            .count();
     } else if y < levels[i].len() - 1 {
         if levels[i][y + 1][x] == '#' {
             count += 1;
         }
     }
 
-    if x > 0 {
-        if cells[y][x - 1] == '#' {
+    // check left
+    if x == 0 {
+        // should be counted only once, currently counted five times
+        if i > 0 && levels[i - 1][2][1] == '#' {
+            count += 1;
+            if y == 4 && count > 4 {
+                count -= 4;
+            }
+        }
+    } else if i < levels.len() - 1 && y == 2 && x == 3 {
+        count += levels[i + 1]
+            .iter()
+            .map(|row| row.last().unwrap())
+            .filter(|&&c| c == '#')
+            .count();
+    } else if x > 0 {
+        if levels[i][y][x - 1] == '#' {
             count += 1;
         }
     }
 
-    if x < cells[y].len() - 1 {
-        if cells[y][x + 1] == '#' {
+    // check right
+    if x == 4 {
+        // should be counted only once, currently counted five times
+        if i > 0 && levels[i - 1][2][3] == '#' {
+            count += 1;
+            if y == 4 && count > 4 {
+                count -= 4;
+            }
+        }
+    } else if i < levels.len() - 1 && y == 2 && x == 1 {
+        count += levels[i + 1]
+            .iter()
+            .map(|row| row.first().unwrap())
+            .filter(|&&c| c == '#')
+            .count();
+    } else if x < levels[i][y].len() - 1 {
+        if levels[i][y][x + 1] == '#' {
             count += 1;
         }
     }
@@ -153,7 +211,7 @@ fn game_of_bugs_recursive(levels: &Vec<Vec<Vec<char>>>, i: usize) -> Vec<Vec<cha
 }
 
 fn bugs_after_minutes(layout: &str, minutes: usize) -> usize {
-    let mut cells = layout
+    let cells = layout
         .lines()
         .map(|line| line.chars().collect::<Vec<_>>())
         .collect::<Vec<_>>();
@@ -175,11 +233,7 @@ fn bugs_after_minutes(layout: &str, minutes: usize) -> usize {
         .map(|cells| {
             cells
                 .iter()
-                .map(|row| {
-                    row.iter()
-                        .map(|&cell| if cell == '#' { 1 } else { 0 })
-                        .sum::<usize>()
-                })
+                .map(|row| row.iter().filter(|&&c| c == '#').count())
                 .sum::<usize>()
         })
         .sum()
