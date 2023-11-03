@@ -67,20 +67,12 @@ fn count_adjacent_bugs_recursive(
 ) -> usize {
     let mut count = 0;
 
-    if y == 2 && x == 2 {
-        return count;
-    }
-
     // check above
     if y == 0 {
-        // should be counted only once, currently counted five times
         if i > 0 && levels[i - 1][1][2] == '#' {
             count += 1;
-            if x == 4 && count > 4 {
-                count -= 4;
-            }
         }
-    } else if i < levels.len() - 1 && y == 3 && x == 2 {
+    } else if y == 3 && x == 2 && i < levels.len() - 1 {
         count += levels[i + 1]
             .last()
             .unwrap()
@@ -95,14 +87,10 @@ fn count_adjacent_bugs_recursive(
 
     // check below
     if y == 4 {
-        // should be counted only once, currently counted five times
         if i > 0 && levels[i - 1][3][2] == '#' {
             count += 1;
-            if x == 4 && count > 4 {
-                count -= 4;
-            }
         }
-    } else if i < levels.len() - 1 && y == 1 && x == 2 {
+    } else if y == 1 && x == 2 && i < levels.len() - 1 {
         count += levels[i + 1]
             .first()
             .unwrap()
@@ -117,14 +105,10 @@ fn count_adjacent_bugs_recursive(
 
     // check left
     if x == 0 {
-        // should be counted only once, currently counted five times
         if i > 0 && levels[i - 1][2][1] == '#' {
             count += 1;
-            if y == 4 && count > 4 {
-                count -= 4;
-            }
         }
-    } else if i < levels.len() - 1 && y == 2 && x == 3 {
+    } else if y == 2 && x == 3 && i < levels.len() - 1 {
         count += levels[i + 1]
             .iter()
             .map(|row| row.last().unwrap())
@@ -138,14 +122,10 @@ fn count_adjacent_bugs_recursive(
 
     // check right
     if x == 4 {
-        // should be counted only once, currently counted five times
         if i > 0 && levels[i - 1][2][3] == '#' {
             count += 1;
-            if y == 4 && count > 4 {
-                count -= 4;
-            }
         }
-    } else if i < levels.len() - 1 && y == 2 && x == 1 {
+    } else if y == 2 && x == 1 && i < levels.len() - 1 {
         count += levels[i + 1]
             .iter()
             .map(|row| row.first().unwrap())
@@ -190,6 +170,10 @@ fn game_of_bugs_recursive(levels: &Vec<Vec<Vec<char>>>, i: usize) -> Vec<Vec<cha
 
     for (y, row) in levels[i].iter().enumerate() {
         for (x, cell) in row.iter().enumerate() {
+            if *cell == '?' {
+                continue;
+            }
+
             let adjacent = count_adjacent_bugs_recursive(&levels, i, x, y);
             match cell {
                 '.' => {
@@ -211,20 +195,40 @@ fn game_of_bugs_recursive(levels: &Vec<Vec<Vec<char>>>, i: usize) -> Vec<Vec<cha
 }
 
 fn bugs_after_minutes(layout: &str, minutes: usize) -> usize {
-    let cells = layout
+    let mut cells = layout
         .lines()
         .map(|line| line.chars().collect::<Vec<_>>())
         .collect::<Vec<_>>();
-    let ref_cells = vec![vec!['.'; cells[0].len()]; cells.len()];
-    let mut levels = Vec::from([cells]);
+    let mut ref_cells = vec![vec!['.'; cells[0].len()]; cells.len()];
+    cells[2][2] = '?';
+    ref_cells[2][2] = '?';
+    let mut levels = Vec::from([ref_cells.clone(), cells, ref_cells.clone()]);
 
     for _ in 0..minutes {
-        let mut next_levels = Vec::with_capacity(levels.len() + 2);
-        next_levels.push(ref_cells.clone());
+        let mut next_levels = Vec::with_capacity(levels.capacity());
+
+        if let Some(_) = levels
+            .first()
+            .unwrap()
+            .iter()
+            .find(|row| row.iter().find(|&&c| c == '#').is_some())
+        {
+            next_levels.push(ref_cells.clone());
+        }
+
         for i in 0..levels.len() {
             next_levels.push(game_of_bugs_recursive(&levels, i));
         }
-        next_levels.push(ref_cells.clone());
+
+        if let Some(_) = levels
+            .last()
+            .unwrap()
+            .iter()
+            .find(|row| row.iter().find(|&&c| c == '#').is_some())
+        {
+            next_levels.push(ref_cells.clone());
+        }
+
         levels = next_levels;
     }
 
@@ -255,16 +259,15 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    const INPUT_TEST: &str = "....#\n#..#.\n#..##\n..#..\n#....";
 
     #[test]
     fn test_part_one() {
-        let input_test = "....#\n#..#.\n#..##\n..#..\n#....";
-        assert_eq!(biodiversity_first_repeating_layout(&input_test), 2129920);
+        assert_eq!(biodiversity_first_repeating_layout(&INPUT_TEST), 2129920);
     }
 
     #[test]
     fn test_part_two() {
-        let input_test = "....#\n#..#.\n#..##\n..#..\n#....";
-        assert_eq!(bugs_after_minutes(&input_test, 10), 99);
+        assert_eq!(bugs_after_minutes(&INPUT_TEST, 10), 99);
     }
 }
