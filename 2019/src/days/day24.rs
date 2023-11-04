@@ -13,7 +13,7 @@ fn biodiversity(cells: &Vec<Vec<char>>) -> usize {
     sum
 }
 
-fn biodiversity_first_repeating_layout(layout: &str) -> usize {
+fn biodiversity_repeated(layout: &str) -> usize {
     let mut seen = HashSet::new();
     let mut cells = layout
         .lines()
@@ -72,15 +72,12 @@ fn count_adjacent_bugs_recursive(
         if i > 0 && levels[i - 1][1][2] == '#' {
             count += 1;
         }
-    } else if y == 3 && x == 2 && i < levels.len() - 1 {
-        count += levels[i + 1]
-            .last()
-            .unwrap()
-            .iter()
-            .filter(|&&c| c == '#')
-            .count();
-    } else if y > 0 {
-        if levels[i][y - 1][x] == '#' {
+    } else if y == 3 && x == 2 {
+        if let Some(row) = levels.get(i + 1).and_then(|level| level.last()) {
+            count += row.iter().filter(|&&c| c == '#').count();
+        }
+    } else if let Some(row) = levels[i].get(y - 1) {
+        if row[x] == '#' {
             count += 1;
         }
     }
@@ -90,15 +87,12 @@ fn count_adjacent_bugs_recursive(
         if i > 0 && levels[i - 1][3][2] == '#' {
             count += 1;
         }
-    } else if y == 1 && x == 2 && i < levels.len() - 1 {
-        count += levels[i + 1]
-            .first()
-            .unwrap()
-            .iter()
-            .filter(|&&c| c == '#')
-            .count();
-    } else if y < levels[i].len() - 1 {
-        if levels[i][y + 1][x] == '#' {
+    } else if y == 1 && x == 2 {
+        if let Some(row) = levels.get(i + 1).and_then(|level| level.first()) {
+            count += row.iter().filter(|&&c| c == '#').count();
+        }
+    } else if let Some(row) = levels[i].get(y + 1) {
+        if row[x] == '#' {
             count += 1;
         }
     }
@@ -108,14 +102,18 @@ fn count_adjacent_bugs_recursive(
         if i > 0 && levels[i - 1][2][1] == '#' {
             count += 1;
         }
-    } else if y == 2 && x == 3 && i < levels.len() - 1 {
-        count += levels[i + 1]
-            .iter()
-            .map(|row| row.last().unwrap())
-            .filter(|&&c| c == '#')
-            .count();
-    } else if x > 0 {
-        if levels[i][y][x - 1] == '#' {
+    } else if y == 2 && x == 3 {
+        if let Some(level) = levels.get(i + 1) {
+            count += level
+                .iter()
+                .map(|row| match row.last() {
+                    Some('#') => 1,
+                    _ => 0,
+                })
+                .sum::<usize>();
+        }
+    } else if let Some(cell) = levels[i][y].get(x - 1) {
+        if *cell == '#' {
             count += 1;
         }
     }
@@ -125,14 +123,18 @@ fn count_adjacent_bugs_recursive(
         if i > 0 && levels[i - 1][2][3] == '#' {
             count += 1;
         }
-    } else if y == 2 && x == 1 && i < levels.len() - 1 {
-        count += levels[i + 1]
-            .iter()
-            .map(|row| row.first().unwrap())
-            .filter(|&&c| c == '#')
-            .count();
-    } else if x < levels[i][y].len() - 1 {
-        if levels[i][y][x + 1] == '#' {
+    } else if y == 2 && x == 1 {
+        if let Some(level) = levels.get(i + 1) {
+            count += level
+                .iter()
+                .map(|row| match row.first() {
+                    Some('#') => 1,
+                    _ => 0,
+                })
+                .sum::<usize>();
+        }
+    } else if let Some(cell) = levels[i][y].get(x + 1) {
+        if *cell == '#' {
             count += 1;
         }
     }
@@ -195,39 +197,33 @@ fn game_of_bugs_recursive(levels: &Vec<Vec<Vec<char>>>, i: usize) -> Vec<Vec<cha
 }
 
 fn bugs_after_minutes(layout: &str, minutes: usize) -> usize {
-    let mut cells = layout
+    let mut start_lvl = layout
         .lines()
         .map(|line| line.chars().collect::<Vec<_>>())
         .collect::<Vec<_>>();
-    let mut ref_cells = vec![vec!['.'; cells[0].len()]; cells.len()];
-    cells[2][2] = '?';
-    ref_cells[2][2] = '?';
-    let mut levels = Vec::from([ref_cells.clone(), cells, ref_cells.clone()]);
+    let mut empty_lvl = vec![vec!['.'; start_lvl[0].len()]; start_lvl.len()];
+    start_lvl[2][2] = '?';
+    empty_lvl[2][2] = '?';
+    let mut levels = Vec::from([empty_lvl.clone(), start_lvl, empty_lvl.clone()]);
 
     for _ in 0..minutes {
         let mut next_levels = Vec::with_capacity(levels.capacity());
 
-        if let Some(_) = levels
-            .first()
-            .unwrap()
-            .iter()
-            .find(|row| row.iter().find(|&&c| c == '#').is_some())
-        {
-            next_levels.push(ref_cells.clone());
-        }
+        if let Some(level) = levels.first() {
+            if level.iter().any(|row| row.contains(&'#')) {
+                next_levels.push(empty_lvl.clone());
+            }
+        };
 
         for i in 0..levels.len() {
             next_levels.push(game_of_bugs_recursive(&levels, i));
         }
 
-        if let Some(_) = levels
-            .last()
-            .unwrap()
-            .iter()
-            .find(|row| row.iter().find(|&&c| c == '#').is_some())
-        {
-            next_levels.push(ref_cells.clone());
-        }
+        if let Some(level) = levels.last() {
+            if level.iter().any(|row| row.contains(&'#')) {
+                next_levels.push(empty_lvl.clone());
+            }
+        };
 
         levels = next_levels;
     }
@@ -249,10 +245,7 @@ pub fn run() {
     let input_raw =
         fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
 
-    println!(
-        "Part One: {}",
-        biodiversity_first_repeating_layout(&input_raw)
-    );
+    println!("Part One: {}", biodiversity_repeated(&input_raw));
     println!("Part Two: {}", bugs_after_minutes(&input_raw, 200));
 }
 
@@ -263,7 +256,7 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        assert_eq!(biodiversity_first_repeating_layout(&INPUT_TEST), 2129920);
+        assert_eq!(biodiversity_repeated(&INPUT_TEST), 2129920);
     }
 
     #[test]
