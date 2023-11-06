@@ -1,19 +1,16 @@
 use std::fs;
 
-fn product_of_entries_eq_sum(numbers: &[usize], sum: usize) -> Option<usize> {
-    for (i, n1) in numbers.iter().enumerate() {
-        for n2 in numbers.iter().skip(i + 1) {
-            if n1 + n2 == sum {
-                return Some(n1 * n2);
-            }
-        }
-    }
-    None
+fn get_combinations(numbers: &[usize], size: usize) -> Vec<Vec<usize>> {
+    vec![]
 }
 
-fn product_of_entries_eq_sum2(numbers: &[usize], size: usize, sum: usize) -> Option<usize> {
-    // combinations of size
-    // for each comb, do sum and return product if sum eq sum
+fn product_of_entries_eq_sum(numbers: &[usize], size: usize, sum: usize) -> Option<usize> {
+    let combinations = get_combinations(numbers, size);
+    for comb in combinations {
+        if comb.iter().sum::<usize>() == sum {
+            return Some(comb.iter().product());
+        }
+    }
     None
 }
 pub fn run() {
@@ -28,11 +25,11 @@ pub fn run() {
         .collect::<Vec<_>>();
     println!(
         "Part One: {}",
-        product_of_entries_eq_sum(&numbers, 2020).unwrap()
+        product_of_entries_eq_sum(&numbers, 2, 2020).unwrap()
     );
     println!(
         "Part Two: {}",
-        product_of_entries_eq_sum2(&numbers, 3, 2020).unwrap()
+        product_of_entries_eq_sum(&numbers, 3, 2020).unwrap()
     );
 }
 
@@ -44,7 +41,7 @@ mod tests {
     #[test]
     fn test_part_one() {
         assert_eq!(
-            product_of_entries_eq_sum(&INPUT_TEST, 2020).unwrap(),
+            product_of_entries_eq_sum(&INPUT_TEST, 2, 2020).unwrap(),
             514579
         );
     }
@@ -52,7 +49,7 @@ mod tests {
     #[test]
     fn test_part_two() {
         assert_eq!(
-            product_of_entries_eq_sum2(&INPUT_TEST, 3, 2020).unwrap(),
+            product_of_entries_eq_sum(&INPUT_TEST, 3, 2020).unwrap(),
             241861950
         );
     }
