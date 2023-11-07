@@ -56,6 +56,7 @@ fn parse_droid_output(output: &mut Vec<i64>) -> Location {
                 }
                 doors.push(door[2..].into());
             }
+            continue;
         }
 
         if line.starts_with("Items here:") {
@@ -65,6 +66,7 @@ fn parse_droid_output(output: &mut Vec<i64>) -> Location {
                 }
                 items.push(item[2..].into());
             }
+            continue;
         }
 
         msg = line.into();
