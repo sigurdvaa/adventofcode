@@ -21,8 +21,7 @@ fn get_combinations(items: &[usize], size: usize) -> Vec<Vec<usize>> {
 }
 
 fn product_of_entries_eq_sum(numbers: &[usize], size: usize, sum: usize) -> Option<usize> {
-    let combinations = get_combinations(numbers, size);
-    for comb in combinations {
+    for comb in get_combinations(numbers, size) {
         if comb.iter().sum::<usize>() == sum {
             return Some(comb.iter().product());
         }
