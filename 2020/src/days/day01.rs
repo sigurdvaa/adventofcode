@@ -1,7 +1,23 @@
 use std::fs;
 
-fn get_combinations(numbers: &[usize], size: usize) -> Vec<Vec<usize>> {
-    vec![]
+fn combinations(items: &[usize], size: usize, comb: Vec<usize>, combs: &mut Vec<Vec<usize>>) {
+    if items.is_empty() {
+        return;
+    }
+    for (i, n) in items.iter().enumerate() {
+        let next_comb = comb.iter().chain([n]).cloned().collect::<Vec<_>>();
+        if next_comb.len() == size {
+            combs.push(next_comb);
+        } else {
+            combinations(&items[i + 1..], size, next_comb, combs);
+        }
+    }
+}
+
+fn get_combinations(items: &[usize], size: usize) -> Vec<Vec<usize>> {
+    let mut combs = vec![];
+    combinations(&items, size, vec![], &mut combs);
+    combs
 }
 
 fn product_of_entries_eq_sum(numbers: &[usize], size: usize, sum: usize) -> Option<usize> {
