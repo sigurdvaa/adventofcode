@@ -28,6 +28,27 @@ fn product_of_entries_eq_sum(numbers: &[usize], size: usize, sum: usize) -> Opti
     }
     None
 }
+
+fn product_of_entries_eq_sum2(numbers: &[usize], size: usize, sum: usize) -> Option<Vec<usize>> {
+    if size == 1 {
+        if numbers.contains(&sum) {
+            return Some(vec![sum]);
+        }
+        return None;
+    }
+
+    for (i, n) in numbers.iter().enumerate() {
+        if *n > sum {
+            continue;
+        }
+        if let Some(combo) = product_of_entries_eq_sum2(&numbers[i + 1..], size - 1, sum - n) {
+            return Some(combo.iter().chain([n]).cloned().collect());
+        }
+    }
+
+    None
+}
+
 pub fn run() {
     println!("Day 1: Report Repair");
     let file_path = "inputs/day01.txt";
@@ -36,15 +57,18 @@ pub fn run() {
 
     let numbers = input_raw
         .lines()
-        .map(|line| line.parse::<usize>().unwrap())
+        .map(|line| line.parse::<usize>().expect("only integers"))
         .collect::<Vec<_>>();
     println!(
-        "Part One: {}",
+        "Part One: {:?}",
         product_of_entries_eq_sum(&numbers, 2, 2020).unwrap()
     );
     println!(
-        "Part Two: {}",
-        product_of_entries_eq_sum(&numbers, 3, 2020).unwrap()
+        "Part Two: {:?}",
+        product_of_entries_eq_sum2(&numbers, 3, 2020)
+            .unwrap()
+            .iter()
+            .product::<usize>()
     );
 }
 
@@ -64,7 +88,10 @@ mod tests {
     #[test]
     fn test_part_two() {
         assert_eq!(
-            product_of_entries_eq_sum(&INPUT_TEST, 3, 2020).unwrap(),
+            product_of_entries_eq_sum2(&INPUT_TEST, 3, 2020)
+                .unwrap()
+                .iter()
+                .product::<usize>(),
             241861950
         );
     }
