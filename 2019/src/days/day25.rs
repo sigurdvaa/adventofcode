@@ -31,60 +31,59 @@ struct Location {
 }
 
 fn parse_droid_output(output: &mut Vec<i64>) -> Location {
-    let output_str = output.iter().map(|&i| i as u8 as char).collect::<String>();
-    output.clear();
-    let mut lines = output_str.lines();
-    let mut name = String::new();
-    let mut desc = String::new();
+    let output_string = output
+        .drain(..)
+        .map(|i| i as u8 as char)
+        .collect::<String>();
+    let mut lines = output_string.lines();
+    let mut name = "";
+    let mut desc = "";
     let mut doors = vec![];
     let mut items = vec![];
-    let mut msg = String::new();
+    let mut msg = "";
 
     while let Some(line) = lines.next() {
-        if line.starts_with("==") {
-            name = line.into();
-            if let Some(d) = lines.next() {
-                desc = d.into();
-            }
-            continue;
-        }
-
-        if line.starts_with("Doors here lead:") {
-            while let Some(door) = lines.next() {
-                if !door.starts_with("- ") {
-                    break;
+        match line {
+            "" => continue,
+            line if line.starts_with("==") => {
+                name = line;
+                if let Some(d) = lines.next() {
+                    desc = d;
                 }
-                doors.push(door[2..].into());
             }
-            continue;
-        }
-
-        if line.starts_with("Items here:") {
-            while let Some(item) = lines.next() {
-                if !item.starts_with("- ") {
-                    break;
+            line if line.starts_with("Doors here lead:") => {
+                while let Some(door) = lines.next() {
+                    if !door.starts_with("- ") {
+                        break;
+                    }
+                    doors.push(door[2..].into());
                 }
-                items.push(item[2..].into());
             }
-            continue;
+            line if line.starts_with("Items here:") => {
+                while let Some(item) = lines.next() {
+                    if !item.starts_with("- ") {
+                        break;
+                    }
+                    items.push(item[2..].into());
+                }
+            }
+            _ => msg = line,
         }
-
-        msg = line.into();
     }
 
     Location {
-        name,
-        desc,
+        name: name.into(),
+        desc: desc.into(),
         doors,
         items,
-        msg,
+        msg: msg.into(),
     }
 }
 
 fn find_airlock_password(prog: &Program) -> Option<String> {
     let mut queue = VecDeque::from([(prog.clone(), vec![])]);
     let mut seen = HashSet::new();
-    let skip_items = vec![
+    let skip_items = [
         "photons".to_string(),
         "infinite loop".to_string(),
         "molten lava".to_string(),
@@ -95,6 +94,7 @@ fn find_airlock_password(prog: &Program) -> Option<String> {
     while let Some((mut curr_prog, curr_items)) = queue.pop_front() {
         let exitcode = curr_prog.run();
         let curr_loc = parse_droid_output(&mut curr_prog.output);
+
         if curr_loc.name == "== Pressure-Sensitive Floor ==" {
             if !curr_loc.msg.contains("Alert!") {
                 return Some(curr_loc.msg.clone());
@@ -105,7 +105,7 @@ fn find_airlock_password(prog: &Program) -> Option<String> {
             continue;
         }
 
-        if !seen.insert((curr_loc.clone(), curr_items.clone())) {
+        if !seen.insert((curr_loc.name, curr_items.clone())) {
             continue;
         }
 
@@ -126,8 +126,7 @@ fn find_airlock_password(prog: &Program) -> Option<String> {
                 }
 
                 let mut prog_next_item = prog_next_loc.clone();
-                let mut next_items = curr_items.clone();
-                next_items.push(item.to_string());
+                let mut next_items = curr_items.iter().chain([item]).cloned().collect::<Vec<_>>();
                 next_items.sort();
                 prog_next_item.input.extend(
                     Command::Take(item.into())
@@ -150,11 +149,10 @@ fn control_droid(mut prog: Program) {
         println!(
             "{}",
             prog.output
-                .iter()
-                .map(|&i| i as u8 as char)
+                .drain(..)
+                .map(|i| i as u8 as char)
                 .collect::<String>()
         );
-        prog.output.clear();
 
         print!("cmd: ");
         io::stdout().flush().unwrap();
@@ -183,7 +181,9 @@ pub fn run() {
     let prog = Program::new(&input_raw);
     println!("Part One: {}", find_airlock_password(&prog).unwrap());
     println!("Part Two: {}", "n/a");
-    //control_droid(prog);
+
+    // Uncomment to play the game
+    // control_droid(prog);
 }
 
 #[cfg(test)]
