@@ -1,9 +1,6 @@
 use std::fs;
 
 fn combinations(items: &[usize], size: usize, comb: Vec<usize>, combs: &mut Vec<Vec<usize>>) {
-    if items.is_empty() {
-        return;
-    }
     for (i, n) in items.iter().enumerate() {
         let next_comb = comb.iter().chain([n]).cloned().collect::<Vec<_>>();
         if next_comb.len() == size {
