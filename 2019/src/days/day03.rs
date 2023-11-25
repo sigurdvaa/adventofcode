@@ -5,7 +5,7 @@ fn parse_path(wire_path: &str) -> HashMap<(i32, i32), i32> {
     let mut path = HashMap::new();
     let mut pos = (0, 0);
     let mut s = 1;
-    for step in wire_path.split(",") {
+    for step in wire_path.split(',') {
         let d = step.chars().next().unwrap();
         let n = step[1..].parse::<usize>().unwrap();
         let add = match d {
@@ -17,7 +17,7 @@ fn parse_path(wire_path: &str) -> HashMap<(i32, i32), i32> {
         };
         for _ in 0..n {
             pos = (pos.0 + add.0, pos.1 + add.1);
-            path.insert(pos.clone(), s);
+            path.insert(pos, s);
             s += 1;
         }
     }
@@ -48,8 +48,8 @@ fn closest_and_shortest_intersection(
 pub fn run() {
     println!("Day 3: Crossed Wires");
     let file_path = "inputs/day03.txt";
-    let input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
 
     let mut wires = input_raw.lines();
     let wire1 = parse_path(wires.next().unwrap());

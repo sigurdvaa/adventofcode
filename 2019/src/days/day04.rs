@@ -16,10 +16,8 @@ fn valid_password(password: &str, strict_double: bool) -> bool {
                 }
                 prev_count = 1;
             }
-        } else {
-            if *d == digits[i] {
-                double = true;
-            }
+        } else if *d == digits[i] {
+            double = true;
         }
     }
 
@@ -52,15 +50,15 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        assert_eq!(valid_password("111111", false), true);
-        assert_eq!(valid_password("223450", false), false);
-        assert_eq!(valid_password("123789", false), false);
+        assert!(valid_password("111111", false));
+        assert!(!valid_password("223450", false));
+        assert!(!valid_password("123789", false));
     }
 
     #[test]
     fn test_part_two() {
-        assert_eq!(valid_password("112233", true), true);
-        assert_eq!(valid_password("123444", true), false);
-        assert_eq!(valid_password("111122", true), true);
+        assert!(valid_password("112233", true));
+        assert!(!valid_password("123444", true));
+        assert!(valid_password("111122", true));
     }
 }

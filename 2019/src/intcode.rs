@@ -28,7 +28,7 @@ impl Program {
     }
 
     fn parse(code: &str) -> Vec<i64> {
-        code.split(",")
+        code.split(',')
             .map(|x| x.trim().parse::<i64>().unwrap())
             .collect()
     }
@@ -89,7 +89,7 @@ impl Program {
                 }
                 3 => {
                     // input
-                    if self.input.len() == 0 {
+                    if self.input.is_empty() {
                         return ExitCode::Input;
                     }
                     let a = self.intcode[self.ip + 1];
