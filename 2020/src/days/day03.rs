@@ -27,8 +27,8 @@ fn trees_encountered_product(map: &Vec<Vec<char>>, slopes: &[(usize, usize)]) ->
 pub fn run() {
     println!("Day 3: Toboggan Trajectory");
     let file_path = "inputs/day03.txt";
-    let input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
 
     let map = input_raw
         .lines()

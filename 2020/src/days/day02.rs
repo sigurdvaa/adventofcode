@@ -7,7 +7,7 @@ struct Password<'a> {
     password: &'a str,
 }
 
-fn count_valid_passwords_char_count(passwords: &Vec<Password>) -> usize {
+fn count_valid_passwords_char_count(passwords: &[Password]) -> usize {
     passwords
         .iter()
         .filter(|pw| {
@@ -17,7 +17,7 @@ fn count_valid_passwords_char_count(passwords: &Vec<Password>) -> usize {
         .count()
 }
 
-fn count_valid_passwords_char_pos(passwords: &Vec<Password>) -> usize {
+fn count_valid_passwords_char_pos(passwords: &[Password]) -> usize {
     passwords
         .iter()
         .filter(|pw| {
@@ -32,10 +32,10 @@ fn count_valid_passwords_char_pos(passwords: &Vec<Password>) -> usize {
 fn parse_policy_and_password(input: &str) -> Vec<Password> {
     input
         .lines()
-        .filter(|&line| line != "")
+        .filter(|line| line.is_empty())
         .map(|line| {
-            let mut split = line.split(" ");
-            let mut range = split.next().unwrap().split("-");
+            let mut split = line.split(' ');
+            let mut range = split.next().unwrap().split('-');
             let min = range.next().unwrap().parse::<usize>().unwrap();
             let max = range.next().unwrap().parse::<usize>().unwrap();
             let letter = split.next().unwrap().chars().next().unwrap();
@@ -53,8 +53,8 @@ fn parse_policy_and_password(input: &str) -> Vec<Password> {
 pub fn run() {
     println!("Day 2: Password Philosophy");
     let file_path = "inputs/day02.txt";
-    let input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
 
     let passwords = parse_policy_and_password(&input_raw);
     println!("Part One: {}", count_valid_passwords_char_count(&passwords));
@@ -64,17 +64,17 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    const INPUT_TEST: &'static str = "1-3 a: abcde\n1-3 b: cdefg\n2-9 c: ccccccccc";
+    const INPUT_TEST: &str = "1-3 a: abcde\n1-3 b: cdefg\n2-9 c: ccccccccc";
 
     #[test]
     fn test_part_one() {
-        let passwords = parse_policy_and_password(&INPUT_TEST);
+        let passwords = parse_policy_and_password(INPUT_TEST);
         assert_eq!(count_valid_passwords_char_count(&passwords), 2);
     }
 
     #[test]
     fn test_part_two() {
-        let passwords = parse_policy_and_password(&INPUT_TEST);
+        let passwords = parse_policy_and_password(INPUT_TEST);
         assert_eq!(count_valid_passwords_char_pos(&passwords), 1);
     }
 }
