@@ -13,7 +13,7 @@ fn combinations(items: &[usize], size: usize, comb: Vec<usize>, combs: &mut Vec<
 
 fn get_combinations(items: &[usize], size: usize) -> Vec<Vec<usize>> {
     let mut combs = vec![];
-    combinations(&items, size, vec![], &mut combs);
+    combinations(items, size, vec![], &mut combs);
     combs
 }
 
@@ -48,8 +48,8 @@ fn entries_eq_sum(numbers: &[usize], size: usize, sum: usize) -> Option<Vec<usiz
 pub fn run() {
     println!("Day 1: Report Repair");
     let file_path = "inputs/day01.txt";
-    let input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
 
     let numbers = input_raw
         .lines()
