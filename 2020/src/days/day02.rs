@@ -32,7 +32,7 @@ fn count_valid_passwords_char_pos(passwords: &[Password]) -> usize {
 fn parse_policy_and_password(input: &str) -> Vec<Password> {
     input
         .lines()
-        .filter(|line| line.is_empty())
+        .filter(|line| !line.is_empty())
         .map(|line| {
             let mut split = line.split(' ');
             let mut range = split.next().unwrap().split('-');
