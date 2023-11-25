@@ -49,7 +49,7 @@ pub fn run() {
     println!("Day 1: Report Repair");
     let file_path = "inputs/day01.txt";
     let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
+        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
 
     let numbers = input_raw
         .lines()
