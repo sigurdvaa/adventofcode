@@ -1,6 +1,6 @@
 mod days;
 
-fn usage(args: &Vec<String>) {
+fn usage(args: &[String]) {
     eprintln!(
         "Usage: {} {{ all | day1..day{} }}",
         args[0],
