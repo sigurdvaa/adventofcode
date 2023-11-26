@@ -29,7 +29,7 @@ impl Graph {
     }
 
     fn add(&mut self, node: char, adj: Vec<Adjacent>) -> Result<(), &'static str> {
-        if let Some(_) = self.nodes.get(&node) {
+        if self.nodes.get(&node).is_some() {
             return Err("Node already added");
         }
         self.nodes.insert(node, self.adjacency.len());
@@ -124,20 +124,19 @@ impl<T: Ord + Clone> MinHeap<T> {
     }
 }
 
-fn find_entrances(map: &Vec<Vec<char>>) -> Vec<(usize, usize)> {
+fn find_entrances(map: &[Vec<char>]) -> Vec<(usize, usize)> {
     let mut entrances = vec![];
     for (y, line) in map.iter().enumerate() {
         for (x, c) in line.iter().enumerate() {
-            match c {
-                '@' => entrances.push((x, y)),
-                _ => (),
+            if *c == '@' {
+                entrances.push((x, y));
             }
         }
     }
     entrances
 }
 
-fn find_node(map: &Vec<Vec<char>>, node: &char) -> Option<(usize, usize)> {
+fn find_node(map: &[Vec<char>], node: &char) -> Option<(usize, usize)> {
     for (y, line) in map.iter().enumerate() {
         for (x, c) in line.iter().enumerate() {
             match c {
@@ -149,7 +148,7 @@ fn find_node(map: &Vec<Vec<char>>, node: &char) -> Option<(usize, usize)> {
     None
 }
 
-fn find_adjacent_nodes(map: &Vec<Vec<char>>, start: &(usize, usize)) -> Vec<Adjacent> {
+fn find_adjacent_nodes(map: &[Vec<char>], start: &(usize, usize)) -> Vec<Adjacent> {
     let mut adj = Vec::new();
     let mut seen = HashSet::new();
     let mut queue = VecDeque::new();
@@ -171,7 +170,7 @@ fn find_adjacent_nodes(map: &Vec<Vec<char>>, start: &(usize, usize)) -> Vec<Adja
             if seen.contains(&next_pos) {
                 continue;
             }
-            seen.insert(next_pos.clone());
+            seen.insert(next_pos);
 
             let mut next_doors = doors.clone();
             let next_steps = steps + 1;
@@ -192,13 +191,13 @@ fn find_adjacent_nodes(map: &Vec<Vec<char>>, start: &(usize, usize)) -> Vec<Adja
     adj
 }
 
-fn create_key_graph(map: &Vec<Vec<char>>, start: &(usize, usize)) -> Result<Graph, &'static str> {
+fn create_key_graph(map: &[Vec<char>], start: &(usize, usize)) -> Result<Graph, &'static str> {
     let mut graph = Graph::new();
     graph.add(map[start.1][start.0], find_adjacent_nodes(map, start))?;
     let mut i = 0;
     while i < graph.nodes.len() {
         for edge in graph.adjacency[i].clone() {
-            if let Some(_) = graph.nodes.get(&edge.to) {
+            if graph.nodes.get(&edge.to).is_some() {
                 continue;
             }
             graph.add(
@@ -211,7 +210,7 @@ fn create_key_graph(map: &Vec<Vec<char>>, start: &(usize, usize)) -> Result<Grap
     Ok(graph)
 }
 
-fn bfs_dist_collect_keys(map: &Vec<Vec<char>>) -> Option<usize> {
+fn bfs_dist_collect_keys(map: &[Vec<char>]) -> Option<usize> {
     #[derive(PartialEq, Eq, Clone, Debug, PartialOrd, Ord)]
     struct State {
         dist: usize,
@@ -222,7 +221,7 @@ fn bfs_dist_collect_keys(map: &Vec<Vec<char>>) -> Option<usize> {
     let entrances = find_entrances(map);
     let mut graphs = vec![];
     for e in &entrances {
-        graphs.push(create_key_graph(&map, e).unwrap());
+        graphs.push(create_key_graph(map, e).unwrap());
     }
     let num_keys = graphs.iter().map(|g| g.nodes.len()).sum::<usize>() - entrances.len();
     let mut minheap = MinHeap::new();
@@ -307,8 +306,8 @@ fn shortest_dist_collect_keys_four_entrances(map: &str) -> Option<usize> {
 pub fn run() {
     println!("Day 18: Many-Worlds Interpretation");
     let file_path = "inputs/day18.txt";
-    let input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
 
     println!(
         "Part One: {}",

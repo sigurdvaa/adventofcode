@@ -49,8 +49,8 @@ fn print_panels(panels: &HashMap<(i32, i32), i64>) {
 pub fn run() {
     println!("Day 11: Space Police");
     let file_path = "inputs/day11.txt";
-    let input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
 
     let prog = Program::new(&input_raw);
     let panels = painted_panels(prog.clone(), 0);

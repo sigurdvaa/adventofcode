@@ -44,7 +44,7 @@ fn best_detection(points: &Vec<Point>) -> HashMap<String, Vec<Point>> {
 }
 
 fn bet_200th(mut targets: HashMap<String, Vec<Point>>) -> i32 {
-    let mut dir: Vec<String> = targets.keys().map(|x| x.clone()).collect();
+    let mut dir: Vec<String> = targets.keys().cloned().collect();
     dir.sort();
     let mut i = 0;
     let mut prev = -1;
@@ -52,7 +52,7 @@ fn bet_200th(mut targets: HashMap<String, Vec<Point>>) -> i32 {
         prev = i;
         for d in &dir {
             let t = targets.get_mut(d).unwrap();
-            if t.len() == 0 {
+            if t.is_empty() {
                 continue;
             }
             let p = t.first().unwrap();
@@ -80,8 +80,8 @@ fn parse_map(map: &str) -> Vec<Point> {
 pub fn run() {
     println!("Day 10: Monitoring Station");
     let file_path = "inputs/day10.txt";
-    let input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
 
     let points = parse_map(&input_raw);
     let best = best_detection(&points);
@@ -96,22 +96,22 @@ mod tests {
     #[test]
     fn test_part_one() {
         let map = ".#..#\n.....\n#####\n....#\n...##";
-        let points = parse_map(&map);
+        let points = parse_map(map);
         assert_eq!(best_detection(&points).len(), 8);
 
         let map = "......#.#.\n#..#.#....\n..#######.\n.#.#.###..\n.#..#.....\n\
                    ..#....#.#\n#..#....#.\n.##.#..###\n##...#..#.\n.#....####";
-        let points = parse_map(&map);
+        let points = parse_map(map);
         assert_eq!(best_detection(&points).len(), 33);
 
         let map = "#.#...#.#.\n.###....#.\n.#....#...\n##.#.#.#.#\n....#.#.#.\n\
                    .##..###.#\n..#...##..\n..##....##\n......#...\n.####.###.";
-        let points = parse_map(&map);
+        let points = parse_map(map);
         assert_eq!(best_detection(&points).len(), 35);
 
         let map = ".#..#..###\n####.###.#\n....###.#.\n..###.##.#\n##.##.#.#.\n\
                    ....###..#\n..#.#..#.#\n#..#.#.###\n.##...##.#\n.....#.#..";
-        let points = parse_map(&map);
+        let points = parse_map(map);
         assert_eq!(best_detection(&points).len(), 41);
     }
 
@@ -124,7 +124,7 @@ mod tests {
             .#####..#.######.###\n##...#.##########...\n#.##########.#######\n\
             .####.#.###.###.#.##\n....##.##.###..#####\n.#.#.###########.###\n\
             #.#.#.#####.####.###\n###.##.####.##.#..##";
-        let points = parse_map(&map);
+        let points = parse_map(map);
         let best = best_detection(&points);
         assert_eq!(best.len(), 210);
         assert_eq!(bet_200th(best), 802);

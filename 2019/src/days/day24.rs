@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::fs;
 
-fn biodiversity(cells: &Vec<Vec<char>>) -> usize {
+fn biodiversity(cells: &[Vec<char>]) -> usize {
     let mut sum = 0;
     for (y, row) in cells.iter().enumerate() {
         for (x, cell) in row.iter().enumerate() {
@@ -32,39 +32,26 @@ fn biodiversity_repeated(layout: &str) -> usize {
 fn count_adjacent_bugs(cells: &Vec<Vec<char>>, x: usize, y: usize) -> usize {
     let mut count = 0;
 
-    if y > 0 {
-        if cells[y - 1][x] == '#' {
-            count += 1;
-        }
+    if y > 0 && cells[y - 1][x] == '#' {
+        count += 1;
     }
 
-    if y < cells.len() - 1 {
-        if cells[y + 1][x] == '#' {
-            count += 1;
-        }
+    if y < cells.len() - 1 && cells[y + 1][x] == '#' {
+        count += 1;
     }
 
-    if x > 0 {
-        if cells[y][x - 1] == '#' {
-            count += 1;
-        }
+    if x > 0 && cells[y][x - 1] == '#' {
+        count += 1;
     }
 
-    if x < cells[y].len() - 1 {
-        if cells[y][x + 1] == '#' {
-            count += 1;
-        }
+    if x < cells[y].len() - 1 && cells[y][x + 1] == '#' {
+        count += 1;
     }
 
     count
 }
 
-fn count_adjacent_bugs_recursive(
-    levels: &Vec<Vec<Vec<char>>>,
-    i: usize,
-    x: usize,
-    y: usize,
-) -> usize {
+fn count_adjacent_bugs_recursive(levels: &[Vec<Vec<char>>], i: usize, x: usize, y: usize) -> usize {
     let mut count = 0;
 
     // check above
@@ -147,7 +134,7 @@ fn game_of_bugs(cells: &Vec<Vec<char>>) -> Vec<Vec<char>> {
 
     for (y, row) in cells.iter().enumerate() {
         for (x, cell) in row.iter().enumerate() {
-            let adjacent = count_adjacent_bugs(&cells, x, y);
+            let adjacent = count_adjacent_bugs(cells, x, y);
             match cell {
                 '.' => {
                     if adjacent > 0 && adjacent < 3 {
@@ -167,7 +154,7 @@ fn game_of_bugs(cells: &Vec<Vec<char>>) -> Vec<Vec<char>> {
     next
 }
 
-fn game_of_bugs_recursive(levels: &Vec<Vec<Vec<char>>>, i: usize) -> Vec<Vec<char>> {
+fn game_of_bugs_recursive(levels: &[Vec<Vec<char>>], i: usize) -> Vec<Vec<char>> {
     let mut next = levels[i].clone();
 
     for (y, row) in levels[i].iter().enumerate() {
@@ -176,7 +163,7 @@ fn game_of_bugs_recursive(levels: &Vec<Vec<Vec<char>>>, i: usize) -> Vec<Vec<cha
                 continue;
             }
 
-            let adjacent = count_adjacent_bugs_recursive(&levels, i, x, y);
+            let adjacent = count_adjacent_bugs_recursive(levels, i, x, y);
             match cell {
                 '.' => {
                     if adjacent > 0 && adjacent < 3 {
@@ -242,8 +229,8 @@ fn bugs_after_minutes(layout: &str, minutes: usize) -> usize {
 pub fn run() {
     println!("Day 24: Planet of Discord");
     let file_path = "inputs/day24.txt";
-    let input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
 
     println!("Part One: {}", biodiversity_repeated(&input_raw));
     println!("Part Two: {}", bugs_after_minutes(&input_raw, 200));
@@ -256,11 +243,11 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        assert_eq!(biodiversity_repeated(&INPUT_TEST), 2129920);
+        assert_eq!(biodiversity_repeated(INPUT_TEST), 2129920);
     }
 
     #[test]
     fn test_part_two() {
-        assert_eq!(bugs_after_minutes(&INPUT_TEST, 10), 99);
+        assert_eq!(bugs_after_minutes(INPUT_TEST, 10), 99);
     }
 }

@@ -49,8 +49,8 @@ fn find_santas_ship(mut prog: Program) -> (i64, i64) {
 pub fn run() {
     println!("Day 19: Tractor Beam");
     let file_path = "inputs/day19.txt";
-    let input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
 
     let prog = Program::new(&input_raw);
 

@@ -52,7 +52,7 @@ fn parse_droid_output(output: &mut Vec<i64>) -> Location {
                 }
             }
             line if line.starts_with("Doors here lead:") => {
-                while let Some(door) = lines.next() {
+                for door in lines.by_ref() {
                     if !door.starts_with("- ") {
                         break;
                     }
@@ -60,7 +60,7 @@ fn parse_droid_output(output: &mut Vec<i64>) -> Location {
                 }
             }
             line if line.starts_with("Items here:") => {
-                while let Some(item) = lines.next() {
+                for item in lines.by_ref() {
                     if !item.starts_with("- ") {
                         break;
                     }
@@ -95,10 +95,8 @@ fn find_airlock_password(prog: &Program) -> Option<String> {
         let exitcode = curr_prog.run();
         let curr_loc = parse_droid_output(&mut curr_prog.output);
 
-        if curr_loc.name == "== Pressure-Sensitive Floor ==" {
-            if !curr_loc.msg.contains("Alert!") {
-                return Some(curr_loc.msg.clone());
-            }
+        if curr_loc.name == "== Pressure-Sensitive Floor ==" && !curr_loc.msg.contains("Alert!") {
+            return Some(curr_loc.msg.clone());
         }
 
         if exitcode == ExitCode::Halted {
@@ -175,12 +173,12 @@ fn control_droid(mut prog: Program) {
 pub fn run() {
     println!("Day 25: Cryostasis");
     let file_path = "inputs/day25.txt";
-    let input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
 
     let prog = Program::new(&input_raw);
     println!("Part One: {}", find_airlock_password(&prog).unwrap());
-    println!("Part Two: {}", "n/a");
+    println!("Part Two: n/a");
 
     // Uncomment to play the game
     // control_droid(prog);

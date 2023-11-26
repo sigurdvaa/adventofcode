@@ -10,13 +10,11 @@ enum Shuffle {
 fn parse_shuffle(instructions: &str) -> Vec<Shuffle> {
     let mut shuffle = vec![];
     for line in instructions.lines() {
-        let mut split = line.split(" ");
+        let mut split = line.split(' ');
         match split.next() {
             Some("deal") => match split.next() {
                 Some("into") => shuffle.push(Shuffle::Into),
-                Some("with") => shuffle.push(Shuffle::With(
-                    split.skip(1).next().unwrap().parse().unwrap(),
-                )),
+                Some("with") => shuffle.push(Shuffle::With(split.nth(1).unwrap().parse().unwrap())),
                 _ => unreachable!(),
             },
             Some("cut") => shuffle.push(Shuffle::Cut(split.next().unwrap().parse().unwrap())),
@@ -39,14 +37,14 @@ fn pos_after_shuffle(shuffle: &Vec<Shuffle>, size: i128, mut pos: i128) -> i128 
 
 pub fn mod_exp(mut base: i128, mut exponent: i128, modulus: i128) -> i128 {
     let mut result = 1;
-    base = base % modulus;
+    base %= modulus;
 
     while exponent > 0 {
         if exponent % 2 == 1 {
             result = (result * base) % modulus;
         }
 
-        exponent = exponent >> 1;
+        exponent >>= 1;
         base = (base * base) % modulus;
     }
 
@@ -78,8 +76,8 @@ fn pos_after_shuffle_reverse(shuffle: &Vec<Shuffle>, size: i128, times: i128, po
 pub fn run() {
     println!("Day 22: Slam Shuffle");
     let file_path = "inputs/day22.txt";
-    let input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
 
     let shuffle = parse_shuffle(&input_raw);
     println!("Part One: {}", pos_after_shuffle(&shuffle, 10007, 2019));
@@ -139,7 +137,7 @@ mod tests {
     fn test_part_two() {
         let file_path = "inputs/day22.txt";
         let input_raw = fs::read_to_string(file_path)
-            .expect(format!("Error reading file '{file_path}'").as_str());
+            .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
 
         let shuffle = parse_shuffle(&input_raw);
         assert_eq!(pos_after_shuffle_reverse(&shuffle, 10007, 1, 8379), 2019)

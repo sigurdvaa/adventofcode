@@ -49,15 +49,14 @@ fn run_amp_feedback(prog: &Program, input: &mut Vec<i64>) -> i64 {
             progs[i].input.push(value);
 
             // settings
-            if input.len() > 0 {
+            if !input.is_empty() {
                 progs[i].input.push(input.pop().unwrap());
             }
 
             exitcode = progs[i].run();
         }
-        match exitcode {
-            ExitCode::Halted => break,
-            _ => (),
+        if exitcode == ExitCode::Halted {
+            break;
         }
     }
 
@@ -68,8 +67,8 @@ fn max_thrust_signal(prog: &Program, input: &Vec<i64>, feedback: bool) -> i64 {
     let mut max = 0;
     for mut perm in permutations(input) {
         let thrust_signal = match feedback {
-            true => run_amp_feedback(&prog, &mut perm),
-            false => run_amp(&prog, &mut perm),
+            true => run_amp_feedback(prog, &mut perm),
+            false => run_amp(prog, &mut perm),
         };
         if thrust_signal > max {
             max = thrust_signal;
@@ -81,8 +80,8 @@ fn max_thrust_signal(prog: &Program, input: &Vec<i64>, feedback: bool) -> i64 {
 pub fn run() {
     println!("Day 7: Amplification Circuit");
     let file_path = "inputs/day07.txt";
-    let input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
 
     let prog = Program::new(&input_raw);
     let input = (0..5).collect();

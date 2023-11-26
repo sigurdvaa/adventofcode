@@ -16,14 +16,14 @@ fn parse_reactions(input: &str) -> HashMap<String, Reaction> {
             .unwrap()
             .split(", ")
             .map(|x| {
-                let mut s = x.split(" ");
+                let mut s = x.split(' ');
                 (
                     s.next().unwrap().parse().unwrap(),
                     s.next().unwrap().to_string(),
                 )
             })
             .collect::<Vec<(i64, String)>>();
-        let mut produces = parts.next().unwrap().split(" ");
+        let mut produces = parts.next().unwrap().split(' ');
         let amount = produces.next().unwrap().parse().unwrap();
         let product = produces.next().unwrap();
         reactions.insert(product.to_string(), Reaction { amount, reactants });
@@ -57,7 +57,7 @@ fn ores_required(
 }
 
 fn ores_required_for_fuel(reactions: &HashMap<String, Reaction>) -> i64 {
-    ores_required(&reactions, &mut HashMap::new(), "FUEL", 1)
+    ores_required(reactions, &mut HashMap::new(), "FUEL", 1)
 }
 
 fn max_fuel(reactions: &HashMap<String, Reaction>) -> i64 {
@@ -65,10 +65,10 @@ fn max_fuel(reactions: &HashMap<String, Reaction>) -> i64 {
     let ores_per_fuel = ores_required_for_fuel(reactions);
     let mut max_fuel = available_ore / ores_per_fuel;
 
-    let mut ores = ores_required(&reactions, &mut HashMap::new(), "FUEL", max_fuel);
+    let mut ores = ores_required(reactions, &mut HashMap::new(), "FUEL", max_fuel);
     while ores <= available_ore {
         max_fuel += (available_ore - ores - 1) / ores_per_fuel + 1;
-        ores = ores_required(&reactions, &mut HashMap::new(), "FUEL", max_fuel);
+        ores = ores_required(reactions, &mut HashMap::new(), "FUEL", max_fuel);
     }
     max_fuel - 1
 }
@@ -76,8 +76,8 @@ fn max_fuel(reactions: &HashMap<String, Reaction>) -> i64 {
 pub fn run() {
     println!("Day 14: Space Stoichiometry");
     let file_path = "inputs/day14.txt";
-    let input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
 
     let reactions = parse_reactions(&input_raw);
     println!("Part One: {}", ores_required_for_fuel(&reactions));
@@ -117,33 +117,33 @@ mod tests {
     fn test_part_one() {
         let input_raw = "10 ORE => 10 A\n1 ORE => 1 B\n7 A, 1 B => 1 C\n\
             7 A, 1 C => 1 D\n7 A, 1 D => 1 E\n7 A, 1 E => 1 FUEL";
-        let reactions = parse_reactions(&input_raw);
+        let reactions = parse_reactions(input_raw);
         assert_eq!(ores_required_for_fuel(&reactions), 31);
 
         let input_raw = "9 ORE => 2 A\n8 ORE => 3 B\n7 ORE => 5 C\n3 A, 4 B => 1 AB\n\
             5 B, 7 C => 1 BC\n4 C, 1 A => 1 CA\n2 AB, 3 BC, 4 CA => 1 FUEL";
-        let reactions = parse_reactions(&input_raw);
+        let reactions = parse_reactions(input_raw);
         assert_eq!(ores_required_for_fuel(&reactions), 165);
 
-        let reactions = parse_reactions(&INPUT_TEST1);
+        let reactions = parse_reactions(INPUT_TEST1);
         assert_eq!(ores_required_for_fuel(&reactions), 13312);
 
-        let reactions = parse_reactions(&INPUT_TEST2);
+        let reactions = parse_reactions(INPUT_TEST2);
         assert_eq!(ores_required_for_fuel(&reactions), 180697);
 
-        let reactions = parse_reactions(&INPUT_TEST3);
+        let reactions = parse_reactions(INPUT_TEST3);
         assert_eq!(ores_required_for_fuel(&reactions), 2210736);
     }
 
     #[test]
     fn test_part_two() {
-        let reactions = parse_reactions(&INPUT_TEST1);
+        let reactions = parse_reactions(INPUT_TEST1);
         assert_eq!(max_fuel(&reactions), 82892753);
 
-        let reactions = parse_reactions(&INPUT_TEST2);
+        let reactions = parse_reactions(INPUT_TEST2);
         assert_eq!(max_fuel(&reactions), 5586022);
 
-        let reactions = parse_reactions(&INPUT_TEST3);
+        let reactions = parse_reactions(INPUT_TEST3);
         assert_eq!(max_fuel(&reactions), 460664);
     }
 }

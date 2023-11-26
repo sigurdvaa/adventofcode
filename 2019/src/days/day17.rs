@@ -2,7 +2,7 @@ use crate::intcode::Program;
 use std::collections::{HashSet, VecDeque};
 use std::fs;
 
-fn parse_map(map: &Vec<i64>) -> Vec<Vec<char>> {
+fn parse_map(map: &[i64]) -> Vec<Vec<char>> {
     map.iter()
         .map(|&x| x as u8 as char)
         .collect::<String>()
@@ -12,7 +12,7 @@ fn parse_map(map: &Vec<i64>) -> Vec<Vec<char>> {
         .collect::<Vec<Vec<char>>>()
 }
 
-fn find_start(map: &Vec<Vec<char>>) -> Option<(usize, usize)> {
+fn find_start(map: &[Vec<char>]) -> Option<(usize, usize)> {
     for (y, line) in map.iter().enumerate() {
         for (x, c) in line.iter().enumerate() {
             if *c == '^' {
@@ -72,7 +72,7 @@ fn compact_path(path: &Vec<u32>) -> Vec<String> {
         compact.push(format!(
             "{},{}",
             get_turn(path[i - 1], prev).unwrap(),
-            count.to_string()
+            count
         ));
         prev = path[i - 1];
         count = 1;
@@ -80,7 +80,7 @@ fn compact_path(path: &Vec<u32>) -> Vec<String> {
     compact.push(format!(
         "{},{}",
         get_turn(*path.last().unwrap(), prev).unwrap(),
-        count.to_string(),
+        count,
     ));
     compact
 }
@@ -89,7 +89,7 @@ fn sum_alignment_parameters(map: &Vec<Vec<char>>) -> usize {
     let mut sum = 0;
     for y in 1..map.len() - 1 {
         for x in 1..map[y].len() - 1 {
-            let units = vec![
+            let units = [
                 map[y][x],
                 map[y][x + 1],
                 map[y][x - 1],
@@ -118,11 +118,11 @@ fn path_patterns(path: &Vec<String>) -> Vec<String> {
         .collect()
 }
 
-fn compression_indexes(path: &String, patterns: &Vec<String>) -> Option<Vec<usize>> {
+fn compression_indexes(path: &String, patterns: &[String]) -> Option<Vec<usize>> {
     let mut deque = VecDeque::new();
     deque.push_back((0, vec![]));
 
-    while deque.len() > 0 {
+    while !deque.is_empty() {
         let (s, indexes) = deque.pop_front().unwrap();
         for (i, p) in patterns.iter().enumerate() {
             let next_s = s + p.len();
@@ -150,7 +150,7 @@ fn compression_indexes(path: &String, patterns: &Vec<String>) -> Option<Vec<usiz
     None
 }
 
-fn pattern_combinations(path: &String, patterns: &Vec<String>) -> Vec<Vec<String>> {
+fn pattern_combinations(path: &str, patterns: &Vec<String>) -> Vec<Vec<String>> {
     let mut combs = vec![];
     for base in patterns
         .iter()
@@ -180,7 +180,7 @@ fn pattern_combinations(path: &String, patterns: &Vec<String>) -> Vec<Vec<String
 }
 
 fn compressed_path_funcs(map: &Vec<Vec<char>>) -> Option<Vec<String>> {
-    let path = trace_path(&map);
+    let path = trace_path(map);
     let compact = compact_path(&path);
     let compact_str = compact.join(",");
     let patterns = path_patterns(&compact);
@@ -202,8 +202,8 @@ fn compressed_path_funcs(map: &Vec<Vec<char>>) -> Option<Vec<String>> {
 pub fn run() {
     println!("Day 17: Set and Forget");
     let file_path = "inputs/day17.txt";
-    let input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
 
     let mut prog = Program::new(&input_raw);
 
@@ -240,7 +240,7 @@ mod tests {
             #############\n\
             ..#...#...#..\n\
             ..#####...^..";
-        let map = parse_map(&map_str.chars().map(|x| x as i64).collect());
+        let map = parse_map(&map_str.chars().map(|x| x as i64).collect::<Vec<_>>());
         assert_eq!(sum_alignment_parameters(&map), 76);
     }
 
@@ -262,7 +262,7 @@ mod tests {
             ....#...#......\n\
             ....#...#......\n\
             ....#####......";
-        let map = parse_map(&map_str.chars().map(|x| x as i64).collect());
+        let map = parse_map(&map_str.chars().map(|x| x as i64).collect::<Vec<_>>());
         let path = trace_path(&map);
         let compact = compact_path(&path);
         assert_eq!(

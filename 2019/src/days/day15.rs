@@ -7,7 +7,7 @@ fn walk_map(prog: Program) -> (HashSet<(i32, i32)>, (i32, i32), u32) {
     let mut queue = VecDeque::from([(prog.clone(), (0, 0), 0)]);
     let mut oxygen_pos = (0, 0);
     let mut oxygen_moves = 0;
-    while queue.len() > 0 {
+    while !queue.is_empty() {
         let (curr_prog, pos, moves) = queue.pop_front().unwrap();
         seen.insert(pos);
         for i in 1..5 {
@@ -46,7 +46,7 @@ fn minutes_to_fill(map: HashSet<(i32, i32)>, start: (i32, i32)) -> u32 {
     let mut seen = HashSet::new();
     let mut queue = VecDeque::from([(start, 0)]);
     let mut max_minutes = 0;
-    while queue.len() > 0 {
+    while !queue.is_empty() {
         let (curr_pos, minutes) = queue.pop_front().unwrap();
         seen.insert(curr_pos);
         max_minutes = max_minutes.max(minutes);
@@ -72,8 +72,8 @@ fn minutes_to_fill(map: HashSet<(i32, i32)>, start: (i32, i32)) -> u32 {
 pub fn run() {
     println!("Day 15: Oxygen System");
     let file_path = "inputs/day15.txt";
-    let input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
 
     let prog = Program::new(&input_raw);
     let (map, oxygen_pos, oxygen_moves) = walk_map(prog);

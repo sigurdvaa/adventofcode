@@ -45,7 +45,7 @@ fn parse_moons(input: &str) -> Vec<RefCell<Moon>> {
     let mut moons = vec![];
     for line in input.lines() {
         let coords = line
-            .replace(&['<', '>', '=', 'x', 'y', 'z'], "")
+            .replace(['<', '>', '=', 'x', 'y', 'z'], "")
             .split(',')
             .map(|x| x.trim().parse::<i32>().unwrap())
             .collect::<Vec<i32>>();
@@ -54,17 +54,18 @@ fn parse_moons(input: &str) -> Vec<RefCell<Moon>> {
     moons
 }
 
-fn run_sim_step(moons: &Vec<RefCell<Moon>>) {
-    for i in 0..moons.len() {
-        let mut moon = moons[i].borrow_mut();
-        for j in 0..moons.len() {
-            if i == j {
+fn run_sim_step(moons: &[RefCell<Moon>]) {
+    for moon in moons.iter() {
+        for other in moons.iter() {
+            if moon.as_ptr() == other.as_ptr() {
                 continue;
             }
-            let other = moons[j].borrow();
-            moon.update_velocities(&other);
+            let mut curr = moon.borrow_mut();
+            curr.update_velocities(&other.borrow());
         }
     }
+
+    // Apply new velocity after all moons have been updated
     for moon in moons.iter() {
         moon.borrow_mut().apply_velocity();
     }
@@ -100,27 +101,30 @@ fn lcm(a: usize, b: usize) -> usize {
 }
 
 fn steps_to_repeat(moons: Vec<RefCell<Moon>>) -> usize {
-    let mut periods_axis = vec![0; 3];
+    let mut periods_axis = [0; 3];
     let mut steps = 0;
     while periods_axis.contains(&0) {
         run_sim_step(&moons);
         steps += 1;
 
-        for i in 0..3 {
-            if periods_axis[i] != 0 {
+        for (i, axis) in periods_axis.iter_mut().enumerate() {
+            if *axis != 0 {
                 continue;
             }
+
             let mut all = 0;
             for moon in moons.iter() {
                 if moon.borrow().repeated(i) {
                     all += 1;
                 }
             }
+
             if all == moons.len() {
-                periods_axis[i] = steps;
+                *axis = steps;
             }
         }
     }
+
     let mut total = 1;
     for p in periods_axis.iter() {
         total = lcm(total, *p);
@@ -131,7 +135,7 @@ fn steps_to_repeat(moons: Vec<RefCell<Moon>>) -> usize {
 pub fn run() {
     println!("Day 12: The N-Body Problem");
     let input_raw = "<x=-1, y=-4, z=0>\n<x=4, y=7, z=-1>\n<x=-14, y=-10, z=9>\n<x=1, y=2, z=17>";
-    let moons = parse_moons(&input_raw);
+    let moons = parse_moons(input_raw);
     let total = total_energy_in_system(moons.clone(), 1000);
     println!("Part One: {}", total);
     let steps = steps_to_repeat(moons);
@@ -145,22 +149,22 @@ mod tests {
     #[test]
     fn test_part_one() {
         let input_raw = "<x=-1, y=0, z=2>\n<x=2, y=-10, z=-7>\n<x=4, y=-8, z=8>\n<x=3, y=5, z=-1>";
-        let moons = parse_moons(&input_raw);
+        let moons = parse_moons(input_raw);
         assert_eq!(total_energy_in_system(moons, 10), 179);
 
         let input_raw = "<x=-8, y=-10, z=0>\n<x=5, y=5, z=10>\n<x=2, y=-7, z=3>\n<x=9, y=-8, z=-3>";
-        let moons = parse_moons(&input_raw);
+        let moons = parse_moons(input_raw);
         assert_eq!(total_energy_in_system(moons, 100), 1940);
     }
 
     #[test]
     fn test_part_two() {
         let input_raw = "<x=-1, y=0, z=2>\n<x=2, y=-10, z=-7>\n<x=4, y=-8, z=8>\n<x=3, y=5, z=-1>";
-        let moons = parse_moons(&input_raw);
+        let moons = parse_moons(input_raw);
         assert_eq!(steps_to_repeat(moons), 2772);
 
         let input_raw = "<x=-8, y=-10, z=0>\n<x=5, y=5, z=10>\n<x=2, y=-7, z=3>\n<x=9, y=-8, z=-3>";
-        let moons = parse_moons(&input_raw);
+        let moons = parse_moons(input_raw);
         assert_eq!(steps_to_repeat(moons), 4686774924);
     }
 }

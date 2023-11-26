@@ -51,8 +51,8 @@ fn run_hull_damage(mut prog: Program) -> i64 {
 pub fn run() {
     println!("Day 21: Springdroid Adventure");
     let file_path = "inputs/day21.txt";
-    let input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
 
     let prog = Program::new(&input_raw);
     println!("Part One: {}", walk_hull_damage(prog.clone()));

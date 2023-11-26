@@ -24,10 +24,8 @@ fn find_portal(
     pos: (usize, usize),
     dir: (usize, usize),
 ) -> Option<(usize, usize)> {
-    if pos.1 > 1 && pos.0 > 1 {
-        if map[pos.1 - dir.1][pos.0 - dir.0] == '.' {
-            return Some((pos.0 - dir.0, pos.1 - dir.1));
-        }
+    if pos.1 > 1 && pos.0 > 1 && map[pos.1 - dir.1][pos.0 - dir.0] == '.' {
+        return Some((pos.0 - dir.0, pos.1 - dir.1));
     }
     if pos.1 < map.len() - 2 && pos.0 < map[pos.1].len() - 2 {
         let x = pos.0 + (dir.0 * 2);
@@ -48,7 +46,7 @@ fn find_portals(map: &Vec<Vec<char>>) -> Vec<Portal> {
                 for dir in dirs {
                     if map[y + dir.1][x + dir.0].is_uppercase() {
                         let p = format!("{}{}", map[y][x], map[y + dir.1][x + dir.0]);
-                        if let Some(pos) = find_portal(&map, (x, y), dir) {
+                        if let Some(pos) = find_portal(map, (x, y), dir) {
                             let is_outer = pos.0 == 2
                                 || pos.1 == 2
                                 || pos.0 == map[pos.1].len() - 3
@@ -199,8 +197,8 @@ fn shortest_path(map: &Vec<Vec<char>>, with_levels: bool) -> Option<usize> {
 pub fn run() {
     println!("Day 20: Donut Maze");
     let file_path = "inputs/day20.txt";
-    let _input_raw =
-        fs::read_to_string(file_path).expect(format!("Error reading file '{file_path}'").as_str());
+    let _input_raw = fs::read_to_string(file_path)
+        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
 
     let map = map_str_to_vec(_input_raw.as_str());
     println!("Part One: {}", shortest_path(&map, false).unwrap());
@@ -211,7 +209,7 @@ pub fn run() {
 mod tests {
     use super::*;
 
-    const TESTINPUT1: &'static str = concat!(
+    const TESTINPUT1: &str = concat!(
         "         A           \n",
         "         A           \n",
         "  #######.#########  \n",
@@ -233,7 +231,7 @@ mod tests {
         "             Z       "
     );
 
-    const TESTINPUT2: &'static str = concat!(
+    const TESTINPUT2: &str = concat!(
         "                   A               \n",
         "                   A               \n",
         "  #################.#############  \n",
@@ -273,7 +271,7 @@ mod tests {
         "           U   P   P               "
     );
 
-    const TESTINPUT3: &'static str = concat!(
+    const TESTINPUT3: &str = concat!(
         "             Z L X W       C                 \n",
         "             Z P Q B       K                 \n",
         "  ###########.#.#.#.#######.###############  \n",
