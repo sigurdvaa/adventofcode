@@ -1,4 +1,4 @@
-use std::fs;
+use std::{any::Any, fs};
 
 #[derive(Default)]
 struct Passport {
@@ -56,6 +56,25 @@ impl Passport {
                     _ => false,
                 }
             }
+            None => false,
+        } && match &self.hcl {
+            Some(value) => {
+                if value.len() != 7 || value.get(0..1) != Some("#") {
+                    return false;
+                }
+                value
+                    .chars()
+                    .skip(1)
+                    .filter(|c| c.is_ascii_hexdigit())
+                    .count()
+                    == 6
+            }
+            None => false,
+        } && match &self.ecl {
+            Some(value) => matches!(
+                *value,
+                "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth"
+            ),
             None => false,
         }
     }
