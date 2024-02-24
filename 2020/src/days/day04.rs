@@ -1,5 +1,6 @@
 use std::fs;
 
+#[derive(Default)]
 struct Passport {
     byr: Option<String>,
     iyr: Option<String>,
@@ -14,14 +15,7 @@ struct Passport {
 impl Passport {
     fn new() -> Self {
         Self {
-            byr: None,
-            iyr: None,
-            eyr: None,
-            hgt: None,
-            hcl: None,
-            ecl: None,
-            pid: None,
-            cid: None,
+            ..Default::default()
         }
     }
 
@@ -33,6 +27,10 @@ impl Passport {
             && self.hcl.is_some()
             && self.ecl.is_some()
             && self.pid.is_some()
+    }
+
+    fn validate(&mut self) {
+        todo!();
     }
 }
 
@@ -80,6 +78,17 @@ fn parse_passports(file: &str) -> Vec<Passport> {
 fn valid_passports(file: &str) -> usize {
     let passports = parse_passports(file);
     passports.iter().filter(|p| p.valid()).count()
+}
+
+fn valid_passports_with_data(file: &str) -> usize {
+    let passports = parse_passports(file);
+    passports
+        .into_iter()
+        .filter_map(|p| {
+            p.validate();
+            p.valid()
+        })
+        .count()
 }
 
 pub fn run() {
