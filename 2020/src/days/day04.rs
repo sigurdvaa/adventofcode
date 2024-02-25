@@ -1,4 +1,4 @@
-use std::{any::Any, fs};
+use std::fs;
 
 #[derive(Default)]
 struct Passport {
@@ -30,56 +30,78 @@ impl Passport {
     }
 
     fn valid_data(&self) -> bool {
-        (match &self.byr {
-            Some(value) => matches!(value.parse(), Ok(1920..=2002)),
-            None => false,
-        }) && match &self.iyr {
-            Some(value) => matches!(value.parse(), Ok(2010..=2020)),
-            None => false,
-        } && match &self.eyr {
-            Some(value) => matches!(value.parse(), Ok(2020..=2030)),
-            None => false,
-        } && match &self.hgt {
-            Some(value) => {
-                if value.len() < 4 {
-                    return false;
-                }
-                let value = &value[..value.len() - 2];
-                let suffix = &value[(value.len() - 2)..];
-                match suffix {
-                    "cm" => {
-                        matches!(value.parse(), Ok(150..=193))
-                    }
-                    "in" => {
-                        matches!(value.parse(), Ok(59..=76))
-                    }
-                    _ => false,
-                }
+        if !self.valid() {
+            return false;
+        }
+
+        if let Some(value) = &self.byr {
+            if !matches!(value.parse(), Ok(1920..=2002)) {
+                return false;
             }
-            None => false,
-        } && match &self.hcl {
-            Some(value) => {
-                if value.len() != 7 || value.get(0..1) != Some("#") {
-                    return false;
-                }
-                value
-                    .chars()
-                    .skip(1)
-                    .filter(|c| c.is_ascii_hexdigit())
-                    .count()
-                    == 6
+        }
+
+        if let Some(value) = &self.iyr {
+            if !matches!(value.parse(), Ok(2010..=2020)) {
+                return false;
             }
-            None => false,
-        } && match &self.ecl {
-            Some(value) => matches!(
+        }
+
+        if let Some(value) = &self.eyr {
+            if !matches!(value.parse(), Ok(2020..=2030)) {
+                return false;
+            }
+        }
+
+        if let Some(value) = &self.hgt {
+            if value.len() < 4 {
+                return false;
+            }
+            let height = &value[..value.len() - 2];
+            let suffix = &value[(value.len() - 2)..];
+            if !match suffix {
+                "cm" => {
+                    matches!(height.parse(), Ok(150..=193))
+                }
+                "in" => {
+                    matches!(height.parse(), Ok(59..=76))
+                }
+                _ => false,
+            } {
+                return false;
+            }
+        }
+
+        if let Some(value) = &self.hcl {
+            if !(value.len() == 7 && value.get(0..1) == Some("#")) {
+                return false;
+            }
+            if value
+                .chars()
+                .skip(1)
+                .filter(|c| c.is_ascii_hexdigit())
+                .count()
+                != 6
+            {
+                return false;
+            }
+        }
+
+        if let Some(value) = &self.ecl {
+            if !matches!(
                 value.as_str(),
                 "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth"
-            ),
-            None => false,
-        } && match &self.pid {
-            Some(value) => value.parse::<usize>().is_ok(),
-            None => false,
+            ) {
+                return false;
+            }
         }
+
+        if let Some(value) = &self.pid {
+            if !(value.len() == 9 && value.parse::<usize>().is_ok()) {
+                return false;
+            }
+        }
+
+        true
     }
 }
 
@@ -171,7 +193,7 @@ mod tests {
 
     #[test]
     fn test_part_two() {
-        const TEST_INPUT: &str = concat!(
+        const TEST_INPUT_INVALID: &str = concat!(
             "eyr:1972 cid:100\n",
             "hcl:#18171d ecl:amb hgt:170 pid:186cm iyr:2018 byr:1926\n",
             "\n",
@@ -185,7 +207,10 @@ mod tests {
             "hgt:59cm ecl:zzz\n",
             "eyr:2038 hcl:74454a iyr:2023\n",
             "pid:3556412378 byr:2007\n",
-            "\n",
+        );
+        assert_eq!(valid_passports_with_data(TEST_INPUT_INVALID), 0);
+
+        const TEST_INPUT_VALID: &str = concat!(
             "pid:087499704 hgt:74in ecl:grn iyr:2012 eyr:2030 byr:1980\n",
             "hcl:#623a2f\n",
             "\n",
@@ -199,6 +224,6 @@ mod tests {
             "\n",
             "iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021 pid:093154719",
         );
-        assert_eq!(valid_passports(TEST_INPUT), 4);
+        assert_eq!(valid_passports_with_data(TEST_INPUT_VALID), 4);
     }
 }
