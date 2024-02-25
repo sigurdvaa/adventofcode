@@ -72,9 +72,12 @@ impl Passport {
             None => false,
         } && match &self.ecl {
             Some(value) => matches!(
-                *value,
+                value.as_str(),
                 "amb" | "blu" | "brn" | "gry" | "grn" | "hzl" | "oth"
             ),
+            None => false,
+        } && match &self.pid {
+            Some(value) => value.parse::<usize>().is_ok(),
             None => false,
         }
     }
