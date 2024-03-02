@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 
 const MYBAG: &str = "shiny gold";
@@ -20,7 +21,18 @@ fn num_bags_can_contain_bag(rules: &str, bag: &str) -> usize {
     outer.len() - 1
 }
 
+fn parse_rules(rules: &str) -> HashMap<String, Vec<(usize, String)>> {
+    let mut bags = HashMap::new();
+    for line in rules.lines() {
+        let mut split = line.split(" bags contain ");
+        let name = split.next().unwrap();
+        let contain = split.next().unwrap().split(", ");
+    }
+    bags
+}
+
 fn num_bags_in_bag(rules: &str, bag: &str) -> usize {
+    let bags = parse_rules(rules);
     0
 }
 
