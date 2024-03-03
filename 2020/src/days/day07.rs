@@ -1,19 +1,19 @@
 use std::collections::HashMap;
 use std::fs;
 
+type BagEdges = HashMap<String, Vec<(usize, String)>>;
 const MYBAG: &str = "shiny gold";
 
-fn num_bags_can_contain_bag(rules: &str, bag: &str) -> usize {
+fn num_bags_can_contain_bag(bags: &BagEdges, bag: &str) -> usize {
     let mut outer = vec![bag];
-    let lines = rules.lines().collect::<Vec<_>>();
     let mut i = 0;
     while i < outer.len() {
-        for line in lines.iter() {
-            let mut split = line.split(" bags contain ");
-            let name = split.next().unwrap();
-            let contain = split.next().unwrap();
-            if contain.contains(outer[i]) && !outer.contains(&name) {
-                outer.push(name);
+        for (name, edges) in bags.iter() {
+            for (_num, edge) in edges.iter() {
+                if edge == outer[i] && !outer.contains(&name.as_str()) {
+                    outer.push(name);
+                    break;
+                }
             }
         }
         i += 1;
@@ -21,12 +21,12 @@ fn num_bags_can_contain_bag(rules: &str, bag: &str) -> usize {
     outer.len() - 1
 }
 
-fn parse_rules(rules: &str) -> HashMap<String, Vec<(usize, String)>> {
+fn parse_rules_to_edgegraph(rules: &str) -> BagEdges {
     let mut bags = HashMap::new();
     for line in rules.lines() {
         let mut split = line.split(" bags contain ");
         let name = split.next().unwrap();
-        let contain = split.next().unwrap().split(", ");
+        let contain = split.next().expect("invalid rule").split(", ");
 
         let edges = bags.entry(name.to_string()).or_insert(vec![]);
         for bag2 in contain {
@@ -41,7 +41,7 @@ fn parse_rules(rules: &str) -> HashMap<String, Vec<(usize, String)>> {
     bags
 }
 
-fn recurse_bags(bags: &HashMap<String, Vec<(usize, String)>>, bag: &str) -> usize {
+fn recurse_bags(bags: &BagEdges, bag: &str) -> usize {
     let mut num = 1;
     if let Some(edges) = bags.get(bag) {
         for edge in edges.iter() {
@@ -51,9 +51,8 @@ fn recurse_bags(bags: &HashMap<String, Vec<(usize, String)>>, bag: &str) -> usiz
     num
 }
 
-fn num_bags_in_bag(rules: &str, bag: &str) -> usize {
-    let bags = parse_rules(rules);
-    recurse_bags(&bags, bag) - 1
+fn num_bags_in_bag(bags: &BagEdges, bag: &str) -> usize {
+    recurse_bags(bags, bag) - 1
 }
 
 pub fn run() {
@@ -62,8 +61,9 @@ pub fn run() {
     let input_raw = fs::read_to_string(file_path)
         .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
 
-    println!("Part One: {}", num_bags_can_contain_bag(&input_raw, MYBAG));
-    println!("Part Two: {}", num_bags_in_bag(&input_raw, MYBAG));
+    let bags = parse_rules_to_edgegraph(&input_raw);
+    println!("Part One: {}", num_bags_can_contain_bag(&bags, MYBAG));
+    println!("Part Two: {}", num_bags_in_bag(&bags, MYBAG));
 }
 
 #[cfg(test)]
@@ -83,7 +83,8 @@ mod tests {
             "faded blue bags contain no other bags.\n",
             "dotted black bags contain no other bags.",
         );
-        assert_eq!(num_bags_can_contain_bag(INPUT_TEST, MYBAG), 4);
+        let bags = parse_rules_to_edgegraph(INPUT_TEST);
+        assert_eq!(num_bags_can_contain_bag(&bags, MYBAG), 4);
     }
 
     #[test]
@@ -97,6 +98,7 @@ mod tests {
             "dark blue bags contain 2 dark violet bags.\n",
             "dark violet bags contain no other bags.",
         );
-        assert_eq!(num_bags_in_bag(INPUT_TEST, MYBAG), 126);
+        let bags = parse_rules_to_edgegraph(INPUT_TEST);
+        assert_eq!(num_bags_in_bag(&bags, MYBAG), 126);
     }
 }
