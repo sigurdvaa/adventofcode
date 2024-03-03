@@ -27,13 +27,33 @@ fn parse_rules(rules: &str) -> HashMap<String, Vec<(usize, String)>> {
         let mut split = line.split(" bags contain ");
         let name = split.next().unwrap();
         let contain = split.next().unwrap().split(", ");
+
+        let edges = bags.entry(name.to_string()).or_insert(vec![]);
+        for bag2 in contain {
+            let mut split = bag2.split(' ');
+            let num = split.next().unwrap().parse().unwrap_or(0);
+            let name2 = format!("{} {}", split.next().unwrap(), split.next().unwrap());
+            if num > 0 {
+                edges.push((num, name2));
+            }
+        }
     }
     bags
 }
 
+fn recurse_bags(bags: &HashMap<String, Vec<(usize, String)>>, bag: &str) -> usize {
+    let mut num = 1;
+    if let Some(edges) = bags.get(bag) {
+        for edge in edges.iter() {
+            num += edge.0 * recurse_bags(bags, &edge.1);
+        }
+    }
+    num
+}
+
 fn num_bags_in_bag(rules: &str, bag: &str) -> usize {
     let bags = parse_rules(rules);
-    0
+    recurse_bags(&bags, bag) - 1
 }
 
 pub fn run() {
@@ -43,7 +63,7 @@ pub fn run() {
         .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
 
     println!("Part One: {}", num_bags_can_contain_bag(&input_raw, MYBAG));
-    println!("Part Two: {}", "TODO");
+    println!("Part Two: {}", num_bags_in_bag(&input_raw, MYBAG));
 }
 
 #[cfg(test)]
