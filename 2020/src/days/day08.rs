@@ -22,7 +22,7 @@ impl Acc {
     }
 }
 
-fn run_prog(prog: &Vec<Ins>) -> Acc {
+fn run_prog(prog: &[Ins]) -> Acc {
     let mut visited = vec![false; prog.len()];
     let mut ip: i32 = 0;
     let mut acc = 0;
@@ -43,7 +43,7 @@ fn run_prog(prog: &Vec<Ins>) -> Acc {
     Acc::Done(acc)
 }
 
-fn acc_after_repair(prog: &Vec<Ins>) -> Option<i32> {
+fn acc_after_repair(prog: &[Ins]) -> Option<i32> {
     for i in 0..prog.len() {
         match run_prog(prog) {
             Acc::Loop(_) => {
