@@ -30,28 +30,27 @@ fn chain_jolt_diff(diffs: &[usize]) -> usize {
     one * three
 }
 
-fn permutation(diffs: &[usize]) -> usize {
-    if diffs.is_empty() {
-        return 1;
-    }
-
-    if diffs.len() > 2 && diffs.iter().take(3).sum::<usize>() == 3 {
-        return 4 * permutation(&diffs[2..]);
-    }
-
-    if diffs.len() > 1 && diffs.iter().take(2).sum::<usize>() == 2 {
-        return 2 * permutation(&diffs[2..]);
-    }
-
-    permutation(&diffs[1..])
-}
-
 fn chain_permutation(diffs: &[usize]) -> usize {
-    let len = diffs.len();
     let mut perms = 1;
     let mut i = 0;
 
-    perms = permutation(diffs);
+    for &n in diffs {
+        if n == 1 {
+            i += 1;
+            if i == 4 {
+                perms *= 7;
+                i = 0;
+            }
+            continue;
+        } else {
+            if i == 3 {
+                perms *= 4;
+            } else if i == 2 {
+                perms *= 2;
+            }
+            i = 0;
+        }
+    }
 
     perms
 }
