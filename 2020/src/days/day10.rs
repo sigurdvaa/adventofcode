@@ -9,7 +9,8 @@ fn parse_numbers(input: &str) -> Vec<usize> {
     numbers
 }
 
-fn chain_jolt_diff(numbers: &[usize]) -> usize {
+fn get_diffs(input: &str) -> Vec<usize> {
+    let numbers = parse_numbers(input);
     let mut diffs = vec![3];
     let mut prev = 0;
     for n in numbers {
@@ -18,15 +19,41 @@ fn chain_jolt_diff(numbers: &[usize]) -> usize {
             break;
         }
         diffs.push(diff);
-        prev = *n;
+        prev = n;
     }
+    diffs
+}
+
+fn chain_jolt_diff(diffs: &[usize]) -> usize {
     let one = diffs.iter().filter(|&n| *n == 1).count();
     let three = diffs.iter().filter(|&n| *n == 3).count();
     one * three
 }
 
-fn chain_permutation(numbers: &[usize]) -> usize {
-    0
+fn permutation(diffs: &[usize]) -> usize {
+    if diffs.is_empty() {
+        return 1;
+    }
+
+    if diffs.len() > 2 && diffs.iter().take(3).sum::<usize>() == 3 {
+        return 4 * permutation(&diffs[2..]);
+    }
+
+    if diffs.len() > 1 && diffs.iter().take(2).sum::<usize>() == 2 {
+        return 2 * permutation(&diffs[2..]);
+    }
+
+    permutation(&diffs[1..])
+}
+
+fn chain_permutation(diffs: &[usize]) -> usize {
+    let len = diffs.len();
+    let mut perms = 1;
+    let mut i = 0;
+
+    perms = permutation(diffs);
+
+    perms
 }
 
 pub fn run() {
@@ -35,9 +62,9 @@ pub fn run() {
     let input_raw = fs::read_to_string(file_path)
         .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
 
-    let numbers = parse_numbers(&input_raw);
-    println!("Part One: {}", chain_jolt_diff(&numbers));
-    println!("Part Two: {}", chain_permutation(&numbers));
+    let diffs = get_diffs(&input_raw);
+    println!("Part One: {}", chain_jolt_diff(&diffs));
+    println!("Part Two: {}", chain_permutation(&diffs));
 }
 
 #[cfg(test)]
@@ -55,19 +82,19 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let numbers = parse_numbers(INPUT_TEST1);
-        assert_eq!(chain_jolt_diff(&numbers), 7 * 5);
+        let diffs = get_diffs(INPUT_TEST1);
+        assert_eq!(chain_jolt_diff(&diffs), 7 * 5);
 
-        let numbers = parse_numbers(INPUT_TEST2);
-        assert_eq!(chain_jolt_diff(&numbers), 22 * 10);
+        let diffs = get_diffs(INPUT_TEST2);
+        assert_eq!(chain_jolt_diff(&diffs), 22 * 10);
     }
 
     #[test]
     fn test_part_two() {
-        let numbers = parse_numbers(INPUT_TEST1);
-        assert_eq!(chain_permutation(&numbers), 8);
+        let diffs = get_diffs(INPUT_TEST1);
+        assert_eq!(chain_permutation(&diffs), 8);
 
-        let numbers = parse_numbers(INPUT_TEST2);
-        assert_eq!(chain_permutation(&numbers), 19208);
+        let diffs = get_diffs(INPUT_TEST2);
+        assert_eq!(chain_permutation(&diffs), 19208);
     }
 }
