@@ -25,9 +25,16 @@ fn get_diffs(input: &str) -> Vec<usize> {
 }
 
 fn chain_jolt_diff(diffs: &[usize]) -> usize {
-    let one = diffs.iter().filter(|&n| *n == 1).count();
-    let three = diffs.iter().filter(|&n| *n == 3).count();
-    one * three
+    let mut ones = 0;
+    let mut threes = 0;
+    for &n in diffs {
+        if n == 1 {
+            ones += 1;
+        } else if n == 3 {
+            threes += 1;
+        }
+    }
+    ones * threes
 }
 
 fn chain_permutation(diffs: &[usize]) -> usize {
@@ -41,7 +48,6 @@ fn chain_permutation(diffs: &[usize]) -> usize {
                 perms *= 7;
                 i = 0;
             }
-            continue;
         } else {
             if i == 3 {
                 perms *= 4;
