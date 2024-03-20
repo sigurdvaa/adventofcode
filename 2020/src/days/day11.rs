@@ -1,8 +1,17 @@
 use std::fs;
 
+fn count_neighbors(cells: &[char], i: usize) -> usize {
+    let mut count = 0;
+    count
+}
+
 fn occupied_cells(cells: &mut [char]) -> usize {
     let prev = "".to_string();
-    while prev != cells.iter().collect::<String>() {}
+    while prev != cells.iter().collect::<String>() {
+        for (i, c) in cells.iter().enumerate() {
+            let neighbors = count_neighbors(cells, i);
+        }
+    }
     cells.iter().filter(|&c| *c == 'L').count()
 }
 
