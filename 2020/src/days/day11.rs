@@ -1,22 +1,80 @@
 use std::fs;
 
-fn count_neighbors(cells: &[char], i: usize) -> usize {
+fn count_neighbors(width: usize, cells: &[char], i: usize, neighbor: char) -> usize {
     let mut count = 0;
+    let rows = cells.len() / width;
+    let x = i % width;
+    let y = i / width;
+
+    // left
+    if x > 0 && cells[i - 1] == neighbor {
+        count += 1;
+    }
+
+    // right
+    if x < width - 1 && cells[i + 1] == neighbor {
+        count += 1;
+    }
+
+    // up
+    if y > 0 && cells[i - width] == neighbor {
+        count += 1;
+    }
+
+    // down
+    if y < rows - 1 && cells[i + width] == neighbor {
+        count += 1;
+    }
+
+    // left up
+    if x > 0 && y > 0 && cells[i - width - 1] == neighbor {
+        count += 1;
+    }
+
+    // right up
+    if x < width - 1 && y > 0 && cells[i - width + 1] == neighbor {
+        count += 1;
+    }
+
+    // left down
+    if x > 0 && y < rows - 1 && cells[i - 1 + width] == neighbor {
+        count += 1;
+    }
+
+    // right down
+    if x < width - 1 && y < rows - 1 && cells[i + 1 + width] == neighbor {
+        count += 1;
+    }
+
     count
 }
 
-fn occupied_cells(cells: &mut [char]) -> usize {
-    let prev = "".to_string();
-    while prev != cells.iter().collect::<String>() {
-        for (i, c) in cells.iter().enumerate() {
-            let neighbors = count_neighbors(cells, i);
+fn occupied_cells(width: usize, cells: &[char]) -> usize {
+    const OCCUPIED: char = '#';
+    const EMPTY: char = 'L';
+    let mut prev = cells.to_vec();
+    loop {
+        let mut next = prev.clone();
+        for (i, c) in prev.iter().enumerate() {
+            let neighbors = count_neighbors(width, &prev, i, OCCUPIED);
+            if *c == EMPTY && neighbors == 0 {
+                next[i] = OCCUPIED;
+            } else if *c == OCCUPIED && neighbors > 3 {
+                next[i] = EMPTY;
+            }
         }
+        if prev == next {
+            break;
+        }
+        prev = next;
     }
-    cells.iter().filter(|&c| *c == 'L').count()
+    prev.iter().filter(|&c| *c == OCCUPIED).count()
 }
 
-fn parse_cells(input: &str) -> Vec<char> {
-    input.chars().filter(|c| *c != '\n').collect()
+fn parse_cells(input: &str) -> (usize, Vec<char>) {
+    let width = input.chars().position(|c| c == '\n').unwrap();
+    let cells = input.chars().filter(|c| *c != '\n').collect();
+    (width, cells)
 }
 
 pub fn run() {
@@ -25,8 +83,8 @@ pub fn run() {
     let input_raw = fs::read_to_string(file_path)
         .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
 
-    let mut cells = parse_cells(&input_raw);
-    println!("Part One: {}", occupied_cells(&mut cells));
+    let (width, cells) = parse_cells(&input_raw);
+    println!("Part One: {}", occupied_cells(width, &cells));
     println!("Part Two: {}", "TODO");
 }
 
@@ -49,8 +107,8 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let mut cells = parse_cells(INPUT_TEST);
-        assert_eq!(occupied_cells(&mut cells), 37);
+        let (width, cells) = parse_cells(INPUT_TEST);
+        assert_eq!(occupied_cells(width, &cells), 37);
     }
 
     #[test]
