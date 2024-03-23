@@ -1,66 +1,50 @@
 use std::fs;
 
-fn count_neighbors(width: usize, cells: &[char], i: usize, neighbor: char) -> usize {
+fn count_neighbors_immediately(cells: &[Vec<char>], (x, y): (i32, i32), neighbor: char) -> usize {
     let mut count = 0;
-    let rows = cells.len() / width;
-    let x = i % width;
-    let y = i / width;
+    let len = cells.len() as i32;
+    let width = cells[0].len() as i32;
+    let dirs: &[(i32, i32)] = &[
+        (-1, 0),  // left
+        (1, 0),   // right
+        (0, -1),  // up
+        (0, 1),   // down
+        (-1, -1), // left up
+        (-1, 1),  // left down
+        (1, -1),  // right up
+        (1, 1),   // right down
+    ];
 
-    // left
-    if x > 0 && cells[i - 1] == neighbor {
-        count += 1;
-    }
-
-    // right
-    if x < width - 1 && cells[i + 1] == neighbor {
-        count += 1;
-    }
-
-    // up
-    if y > 0 && cells[i - width] == neighbor {
-        count += 1;
-    }
-
-    // down
-    if y < rows - 1 && cells[i + width] == neighbor {
-        count += 1;
-    }
-
-    // left up
-    if x > 0 && y > 0 && cells[i - width - 1] == neighbor {
-        count += 1;
-    }
-
-    // right up
-    if x < width - 1 && y > 0 && cells[i - width + 1] == neighbor {
-        count += 1;
-    }
-
-    // left down
-    if x > 0 && y < rows - 1 && cells[i - 1 + width] == neighbor {
-        count += 1;
-    }
-
-    // right down
-    if x < width - 1 && y < rows - 1 && cells[i + 1 + width] == neighbor {
-        count += 1;
+    for d in dirs {
+        let dx = x + d.0;
+        let dy = y + d.1;
+        if dx >= 0
+            && dy >= 0
+            && dx < width
+            && dy < len
+            && cells[dy as usize][dx as usize] == neighbor
+        {
+            count += 1;
+        }
     }
 
     count
 }
 
-fn occupied_cells(width: usize, cells: &[char]) -> usize {
+fn occupied_cells_immediately(cells: &[Vec<char>]) -> usize {
     const OCCUPIED: char = '#';
     const EMPTY: char = 'L';
     let mut prev = cells.to_vec();
     loop {
         let mut next = prev.clone();
-        for (i, c) in prev.iter().enumerate() {
-            let neighbors = count_neighbors(width, &prev, i, OCCUPIED);
-            if *c == EMPTY && neighbors == 0 {
-                next[i] = OCCUPIED;
-            } else if *c == OCCUPIED && neighbors > 3 {
-                next[i] = EMPTY;
+        for (y, row) in prev.iter().enumerate() {
+            for (x, cell) in row.iter().enumerate() {
+                let neighbors = count_neighbors_immediately(&prev, (x as i32, y as i32), OCCUPIED);
+                if *cell == EMPTY && neighbors == 0 {
+                    next[y][x] = OCCUPIED;
+                } else if *cell == OCCUPIED && neighbors > 3 {
+                    next[y][x] = EMPTY;
+                }
             }
         }
         if prev == next {
@@ -68,13 +52,84 @@ fn occupied_cells(width: usize, cells: &[char]) -> usize {
         }
         prev = next;
     }
-    prev.iter().filter(|&c| *c == OCCUPIED).count()
+    prev.iter()
+        .map(|row| row.iter().filter(|&c| *c == OCCUPIED).count())
+        .sum()
 }
 
-fn parse_cells(input: &str) -> (usize, Vec<char>) {
-    let width = input.chars().position(|c| c == '\n').unwrap();
-    let cells = input.chars().filter(|c| *c != '\n').collect();
-    (width, cells)
+fn count_neighbors_direction(
+    cells: &[Vec<char>],
+    (x, y): (i32, i32),
+    neighbor: char,
+    free: char,
+) -> usize {
+    let mut count = 0;
+    let len = cells.len() as i32;
+    let width = cells[0].len() as i32;
+    let dirs: &[(i32, i32)] = &[
+        (-1, 0),  // left
+        (1, 0),   // right
+        (0, -1),  // up
+        (0, 1),   // down
+        (-1, -1), // left up
+        (-1, 1),  // left down
+        (1, -1),  // right up
+        (1, 1),   // right down
+    ];
+
+    for d in dirs {
+        let mut s = 1;
+        let mut dx = x + (d.0 * s);
+        let mut dy = y + (d.1 * s);
+        while dx >= 0 && dy >= 0 && dx < width && dy < len {
+            if cells[dy as usize][dx as usize] == neighbor {
+                count += 1;
+                break;
+            } else if cells[dy as usize][dx as usize] == free {
+                break;
+            }
+            s += 1;
+            dx = x + (d.0 * s);
+            dy = y + (d.1 * s);
+        }
+    }
+
+    count
+}
+
+fn occupied_cells_direction(cells: &[Vec<char>]) -> usize {
+    const OCCUPIED: char = '#';
+    const EMPTY: char = 'L';
+    let mut prev = cells.to_vec();
+    loop {
+        let mut next = prev.clone();
+        for (y, row) in prev.iter().enumerate() {
+            for (x, cell) in row.iter().enumerate() {
+                let neighbors =
+                    count_neighbors_direction(&prev, (x as i32, y as i32), OCCUPIED, EMPTY);
+                if *cell == EMPTY && neighbors == 0 {
+                    next[y][x] = OCCUPIED;
+                } else if *cell == OCCUPIED && neighbors > 4 {
+                    next[y][x] = EMPTY;
+                }
+            }
+        }
+        if prev == next {
+            break;
+        }
+        prev = next;
+    }
+    prev.iter()
+        .map(|row| row.iter().filter(|&c| *c == OCCUPIED).count())
+        .sum()
+}
+
+fn parse_cells(input: &str) -> Vec<Vec<char>> {
+    input
+        .lines()
+        .filter(|line| !line.is_empty())
+        .map(|line| line.chars().collect())
+        .collect()
 }
 
 pub fn run() {
@@ -83,9 +138,9 @@ pub fn run() {
     let input_raw = fs::read_to_string(file_path)
         .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
 
-    let (width, cells) = parse_cells(&input_raw);
-    println!("Part One: {}", occupied_cells(width, &cells));
-    println!("Part Two: {}", "TODO");
+    let cells = parse_cells(&input_raw);
+    println!("Part One: {}", occupied_cells_immediately(&cells));
+    // println!("Part Two: {}", occupied_cells_direction(&cells));
 }
 
 #[cfg(test)]
@@ -107,10 +162,13 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let (width, cells) = parse_cells(INPUT_TEST);
-        assert_eq!(occupied_cells(width, &cells), 37);
+        let cells = parse_cells(INPUT_TEST);
+        assert_eq!(occupied_cells_immediately(&cells), 37);
     }
 
     #[test]
-    fn test_part_two() {}
+    fn test_part_two() {
+        let cells = parse_cells(INPUT_TEST);
+        assert_eq!(occupied_cells_direction(&cells), 26);
+    }
 }
