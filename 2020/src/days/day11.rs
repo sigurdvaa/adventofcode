@@ -1,6 +1,6 @@
 use std::fs;
 
-fn count_neighbors_immediately(cells: &[char], width: usize, i: usize, neighbor: char) -> usize {
+fn count_neighbors_immediately(cells: &[char], width: usize, i: usize, occupied: char) -> usize {
     let mut count = 0;
     let len = (cells.len() / width) as i32;
     let width = width as i32;
@@ -24,7 +24,7 @@ fn count_neighbors_immediately(cells: &[char], width: usize, i: usize, neighbor:
             && dy >= 0
             && dx < width
             && dy < len
-            && cells[((dy * width) + dx) as usize] == neighbor
+            && cells[((dy * width) + dx) as usize] == occupied
         {
             count += 1;
         }
@@ -59,8 +59,8 @@ fn count_neighbors_direction(
     cells: &[char],
     width: usize,
     i: usize,
-    neighbor: char,
-    free: char,
+    occupied: char,
+    empty: char,
 ) -> usize {
     let mut count = 0;
     let len = (cells.len() / width) as i32;
@@ -79,20 +79,18 @@ fn count_neighbors_direction(
     ];
 
     for dir in dirs {
-        let mut s = 1;
-        let mut dx = x + (dir.0 * s);
-        let mut dy = y + (dir.1 * s);
+        let mut dx = x + dir.0;
+        let mut dy = y + dir.1;
         while dx >= 0 && dy >= 0 && dx < width && dy < len {
             let di = ((dy * width) + dx) as usize;
-            if cells[di] == neighbor {
+            if cells[di] == occupied {
                 count += 1;
                 break;
-            } else if cells[di] == free {
+            } else if cells[di] == empty {
                 break;
             }
-            s += 1;
-            dx = x + (dir.0 * s);
-            dy = y + (dir.1 * s);
+            dx += dir.0;
+            dy += dir.1;
         }
     }
 
