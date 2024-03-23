@@ -140,7 +140,7 @@ pub fn run() {
 
     let cells = parse_cells(&input_raw);
     println!("Part One: {}", occupied_cells_immediately(&cells));
-    // println!("Part Two: {}", occupied_cells_direction(&cells));
+    println!("Part Two: {}", occupied_cells_direction(&cells));
 }
 
 #[cfg(test)]
