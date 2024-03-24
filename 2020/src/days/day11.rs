@@ -1,87 +1,42 @@
 use std::fs;
 
-fn find_seat_neighbors_immediately(
-    cells: &[char],
-    width: usize,
-    seat: char,
-    floor: char,
-) -> Vec<(usize, Vec<usize>)> {
-    let mut seat_neighbors = vec![];
-    let len = (cells.len() / width) as i32;
-    let width = width as i32;
-    let dirs: &[(i32, i32)] = &[
-        (-1, 0),  // left
-        (1, 0),   // right
-        (0, -1),  // up
-        (0, 1),   // down
-        (-1, -1), // left up
-        (-1, 1),  // left down
-        (1, -1),  // right up
-        (1, 1),   // right down
-    ];
-
-    for i in 0..cells.len() {
-        if cells[i] == floor {
-            continue;
-        }
-
-        let mut neighbors = vec![];
-        let x = i as i32 % width;
-        let y = i as i32 / width;
-
-        for dir in dirs {
-            let dx = x + dir.0;
-            let dy = y + dir.1;
-            if dx >= 0
-                && dy >= 0
-                && dx < width
-                && dy < len
-                && cells[((dy * width) + dx) as usize] == seat
-            {
-                neighbors.push(((dy * width) + dx) as usize);
-            }
-        }
-        seat_neighbors.push((i, neighbors));
-    }
-    seat_neighbors
-}
-
-fn occupied_cells_immediately(cells: &[char], width: usize) -> usize {
-    const OCCUPIED: char = '#';
+fn occupied_seats(cells: &[char], width: usize, visible: bool) -> usize {
     const EMPTY: char = 'L';
     const FLOOR: char = '.';
-    let seat_neighbors = find_seat_neighbors_immediately(cells, width, EMPTY, FLOOR);
-    let mut occupied_cells = cells.iter().map(|&c| c == OCCUPIED).collect::<Vec<bool>>();
-    let mut change = vec![];
+    let threshold = if visible { 4 } else { 3 };
+    let seat_neighbors = find_seat_neighbors(cells, width, EMPTY, FLOOR, visible);
+    let mut curr = vec![false; cells.len()];
+    let mut next = curr.clone();
     loop {
-        for (i, neighbors) in &seat_neighbors {
-            let count = neighbors.iter().filter(|&n| occupied_cells[*n]).count();
-            let cell = occupied_cells[*i];
-            if (!cell && count == 0) || (cell && count > 3) {
-                change.push(i);
+        for (i, neighbors) in seat_neighbors.iter() {
+            let count = neighbors.iter().filter(|&n| curr[*n]).count();
+            let curr_seat = curr[*i];
+            let next_seat = &mut next[*i];
+            if (!curr_seat && count == 0) || (curr_seat && count > threshold) {
+                *next_seat = !curr_seat;
+            } else {
+                *next_seat = curr_seat;
             }
         }
-
-        if change.is_empty() {
+        std::mem::swap(&mut curr, &mut next);
+        if curr == next {
             break;
         }
-        for i in change.drain(..) {
-            occupied_cells[*i] = !occupied_cells[*i];
-        }
     }
-    occupied_cells.iter().filter(|&c| *c).count()
+    curr.iter().filter(|&c| *c).count()
 }
 
-fn find_seat_neighbors_direction(
+fn find_seat_neighbors(
     cells: &[char],
     width: usize,
     seat: char,
     floor: char,
+    visible: bool,
 ) -> Vec<(usize, Vec<usize>)> {
     let mut seat_neighbors = vec![];
-    let len = (cells.len() / width) as i32;
-    let width = width as i32;
-    let dirs: &[(i32, i32)] = &[
+    let len = (cells.len() / width) as isize;
+    let width = width as isize;
+    let dirs: &[(isize, isize)] = &[
         (-1, 0),  // left
         (1, 0),   // right
         (0, -1),  // up
@@ -98,8 +53,8 @@ fn find_seat_neighbors_direction(
         }
 
         let mut neighbors = vec![];
-        let x = i as i32 % width;
-        let y = i as i32 / width;
+        let x = i as isize % width;
+        let y = i as isize / width;
 
         for dir in dirs {
             let mut dx = x + dir.0;
@@ -110,6 +65,9 @@ fn find_seat_neighbors_direction(
                     neighbors.push(di);
                     break;
                 }
+                if !visible {
+                    break;
+                }
                 dx += dir.0;
                 dy += dir.1;
             }
@@ -117,32 +75,6 @@ fn find_seat_neighbors_direction(
         seat_neighbors.push((i, neighbors));
     }
     seat_neighbors
-}
-
-fn occupied_cells_direction(cells: &[char], width: usize) -> usize {
-    const OCCUPIED: char = '#';
-    const EMPTY: char = 'L';
-    const FLOOR: char = '.';
-    let seat_neighbors = find_seat_neighbors_direction(cells, width, EMPTY, FLOOR);
-    let mut occupied_cells = cells.iter().map(|&c| c == OCCUPIED).collect::<Vec<bool>>();
-    let mut change = vec![];
-    loop {
-        for (i, neighbors) in &seat_neighbors {
-            let count = neighbors.iter().filter(|&n| occupied_cells[*n]).count();
-            let cell = occupied_cells[*i];
-            if (!cell && count == 0) || (cell && count > 4) {
-                change.push(i);
-            }
-        }
-
-        if change.is_empty() {
-            break;
-        }
-        for i in change.drain(..) {
-            occupied_cells[*i] = !occupied_cells[*i];
-        }
-    }
-    occupied_cells.iter().filter(|&c| *c).count()
 }
 
 fn parse_cells(input: &str) -> (Vec<char>, usize) {
@@ -158,8 +90,8 @@ pub fn run() {
         .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
 
     let (cells, width) = parse_cells(&input_raw);
-    println!("Part One: {}", occupied_cells_immediately(&cells, width));
-    println!("Part Two: {}", occupied_cells_direction(&cells, width));
+    println!("Part One: {}", occupied_seats(&cells, width, false));
+    println!("Part Two: {}", occupied_seats(&cells, width, true));
 }
 
 #[cfg(test)]
@@ -182,12 +114,12 @@ mod tests {
     #[test]
     fn test_part_one() {
         let (cells, width) = parse_cells(INPUT_TEST);
-        assert_eq!(occupied_cells_immediately(&cells, width), 37);
+        assert_eq!(occupied_seats(&cells, width, false), 37);
     }
 
     #[test]
     fn test_part_two() {
         let (cells, width) = parse_cells(INPUT_TEST);
-        assert_eq!(occupied_cells_direction(&cells, width), 26);
+        assert_eq!(occupied_seats(&cells, width, true), 26);
     }
 }
