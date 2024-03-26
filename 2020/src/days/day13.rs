@@ -29,7 +29,22 @@ fn earliest_id_times_minutes(timestamp: usize, ids: &[usize]) -> usize {
 }
 
 fn earliest_timestamp_match_list(ids: &[usize]) -> usize {
-    0
+    let interval = ids[0];
+    let mut timestamp = 0;
+
+    let mut search = true;
+    while search {
+        search = false;
+        timestamp += interval;
+        for (i, id) in ids.iter().enumerate().filter(|(_, i)| **i != 0) {
+            if (timestamp + i) % id > 0 {
+                search = true;
+                break;
+            }
+        }
+    }
+
+    timestamp
 }
 
 pub fn run() {
@@ -63,7 +78,7 @@ mod tests {
         assert_eq!(earliest_timestamp_match_list(&ids), 1068781);
 
         let (_timestamp, ids) = parse_timestamp_and_ids("0\n17,x,13,19");
-        assert_eq!(earliest_timestamp_match_list(&ids), 1068781);
+        assert_eq!(earliest_timestamp_match_list(&ids), 3417);
 
         let (_timestamp, ids) = parse_timestamp_and_ids("0\n67,7,59,61");
         assert_eq!(earliest_timestamp_match_list(&ids), 754018);
