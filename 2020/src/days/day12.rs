@@ -71,24 +71,29 @@ fn distance_after_waypoint(moves: &[Move]) -> isize {
                 ship_x += waypoint_x * v;
                 ship_y += waypoint_y * v;
             }
-            Move::Right(v) => match v {
+            Move::Left(v) | Move::Right(v) => match v {
                 90 => {
-                    waypoint_y = waypoint_x;
-                    waypoint_x = -waypoint_y;
+                    std::mem::swap(&mut waypoint_x, &mut waypoint_y);
+                    if let Move::Left(_) = m {
+                        waypoint_y *= -1;
+                    } else {
+                        waypoint_x *= -1;
+                    }
                 }
                 180 => {
                     waypoint_x *= -1;
                     waypoint_y *= -1;
                 }
                 270 => {
-                    waypoint_y = waypoint_x;
-                    waypoint_x = -waypoint_y;
-                    waypoint_x *= -1;
-                    waypoint_y *= -1;
+                    std::mem::swap(&mut waypoint_x, &mut waypoint_y);
+                    if let Move::Left(_) = m {
+                        waypoint_x *= -1;
+                    } else {
+                        waypoint_y *= -1;
+                    }
                 }
                 _ => panic!("Invalid turn angle: {}", v),
             },
-            Move::Left(v) => todo!(),
         }
     }
     ship_x.abs() + ship_y.abs()
