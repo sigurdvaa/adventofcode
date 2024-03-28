@@ -29,19 +29,23 @@ fn earliest_id_times_minutes(timestamp: usize, ids: &[usize]) -> usize {
 }
 
 fn earliest_timestamp_match_list(ids: &[usize]) -> usize {
-    let interval = ids[0];
-    let mut timestamp = 0;
+    let ids = ids
+        .iter()
+        .enumerate()
+        .filter(|(_, id)| **id != 0)
+        .collect::<Vec<_>>();
+    let mut step = 1;
+    let mut timestamp = 1;
+    let mut prev_i = 0;
+    let mut prev_t = 0;
 
-    let mut search = true;
-    while search {
-        search = false;
-        timestamp += interval;
-        for (i, id) in ids.iter().enumerate().filter(|(_, i)| **i != 0) {
-            if (timestamp + i) % id > 0 {
-                search = true;
-                break;
-            }
+    while let Some((i, _id)) = ids.iter().find(|(i, id)| (timestamp + i) % *id > 0) {
+        if *i >= prev_i {
+            step = step.max(timestamp - prev_t);
+            prev_i = *i;
+            prev_t = timestamp;
         }
+        timestamp += step;
     }
 
     timestamp
