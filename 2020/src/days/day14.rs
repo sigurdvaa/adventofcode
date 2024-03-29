@@ -1,13 +1,13 @@
 use std::{collections::HashMap, fs};
 
-struct Ins {
+struct InsV1 {
     addr: usize,
     mask_ones: u64,
     mask_zeros: u64,
     value: u64,
 }
 
-fn parse_prog_v1(input: &str) -> Vec<Ins> {
+fn parse_prog_v1(input: &str) -> Vec<InsV1> {
     let mut prog = Vec::new();
     let mut mask_zeros = 0;
     let mut mask_ones = 0;
@@ -31,7 +31,7 @@ fn parse_prog_v1(input: &str) -> Vec<Ins> {
                     let addr = line[4..addr_end].parse::<usize>().unwrap();
                     if let Some(value_start) = line.find('=') {
                         let value = line[value_start + 2..].parse::<u64>().unwrap();
-                        prog.push(Ins {
+                        prog.push(InsV1 {
                             addr,
                             mask_ones,
                             mask_zeros,
@@ -46,7 +46,7 @@ fn parse_prog_v1(input: &str) -> Vec<Ins> {
     prog
 }
 
-fn sum_after_init_v1(prog: &[Ins]) -> u64 {
+fn sum_after_init_v1(prog: &[InsV1]) -> u64 {
     let mut mem = vec![];
     for ins in prog {
         if ins.addr >= mem.len() {
@@ -59,14 +59,14 @@ fn sum_after_init_v1(prog: &[Ins]) -> u64 {
     mem.iter().sum()
 }
 
-struct Ins2 {
+struct InsV2 {
     addr: usize,
-    mask: u64,
+    mask: usize,
     floats: Vec<usize>,
     value: u64,
 }
 
-fn parse_prog_v2(input: &str) -> Vec<Ins2> {
+fn parse_prog_v2(input: &str) -> Vec<InsV2> {
     let mut prog = Vec::new();
     let mut mask = 0;
     let mut floats = Vec::new();
@@ -90,7 +90,7 @@ fn parse_prog_v2(input: &str) -> Vec<Ins2> {
                     let addr = line[4..addr_end].parse::<usize>().unwrap();
                     if let Some(value_start) = line.find('=') {
                         let value = line[value_start + 2..].parse::<u64>().unwrap();
-                        prog.push(Ins2 {
+                        prog.push(InsV2 {
                             addr,
                             mask,
                             floats: floats.clone(),
@@ -105,10 +105,10 @@ fn parse_prog_v2(input: &str) -> Vec<Ins2> {
     prog
 }
 
-fn sum_after_init_v2(prog: &[Ins2]) -> u64 {
+fn sum_after_init_v2(prog: &[InsV2]) -> u64 {
     let mut mem = HashMap::new();
     for ins in prog {
-        let mut addrs_curr = vec![ins.addr | ins.mask as usize];
+        let mut addrs_curr = vec![ins.addr | ins.mask];
         let mut addrs_next = vec![];
 
         for i in ins.floats.iter() {
