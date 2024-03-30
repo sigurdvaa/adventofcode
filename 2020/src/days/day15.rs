@@ -57,5 +57,13 @@ mod tests {
     }
 
     #[test]
-    fn test_part_two() {}
+    fn test_part_two() {
+        assert_eq!(number_spoken(&[0, 3, 6], 30000000), 175594);
+        assert_eq!(number_spoken(&[1, 3, 2], 30000000), 2578);
+        assert_eq!(number_spoken(&[2, 1, 3], 30000000), 3544142);
+        assert_eq!(number_spoken(&[1, 2, 3], 30000000), 261214);
+        assert_eq!(number_spoken(&[2, 3, 1], 30000000), 6895259);
+        assert_eq!(number_spoken(&[3, 2, 1], 30000000), 18);
+        assert_eq!(number_spoken(&[3, 1, 2], 30000000), 362);
+    }
 }
