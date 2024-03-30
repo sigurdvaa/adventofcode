@@ -38,7 +38,7 @@ pub fn run() {
 
     let start = parse_start_numbers(&input_raw);
     println!("Part One: {}", number_spoken(&start, 2020));
-    println!("Part Two: {}", "TODO");
+    println!("Part Two: {}", number_spoken(&start, 30000000));
 }
 
 #[cfg(test)]
