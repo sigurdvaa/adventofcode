@@ -1,6 +1,6 @@
-use std::{collections::HashMap, fs};
+use std::fs;
 
-fn parse_start_numbers(input: &str) -> Vec<usize> {
+fn parse_start_numbers(input: &str) -> Vec<u32> {
     input
         .lines()
         .flat_map(|line| {
@@ -11,23 +11,23 @@ fn parse_start_numbers(input: &str) -> Vec<usize> {
         .collect()
 }
 
-fn number_spoken(nums: &[usize], spoken: usize) -> usize {
-    let mut last_spoken = HashMap::new();
-    let mut prev = 0;
-
+fn number_spoken(nums: &[u32], spoken: u32) -> u32 {
+    let mut last_spoken = vec![0; spoken as usize];
     for (i, n) in nums.iter().enumerate() {
-        last_spoken.insert(*n, (i + 1, i + 1));
-        prev = *n;
+        last_spoken[*n as usize] = (i + 1) as u32;
     }
 
-    for i in (nums.len() + 1)..spoken + 1 {
-        let last = last_spoken.entry(prev).or_insert((i, i));
-        prev = last.1 - last.0;
-        let next = last_spoken.entry(prev).or_insert((i, i));
-        *next = (next.1, i);
+    let mut prev = 0;
+    for i in (nums.len() as u32 + 1)..spoken {
+        let last = last_spoken[prev];
+        last_spoken[prev] = i;
+        prev = match last {
+            0 => 0usize,
+            _ => (i - last) as usize,
+        }
     }
 
-    prev
+    prev as u32
 }
 
 pub fn run() {
