@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs};
+use std::fs;
 
 struct InsV1 {
     addr: usize,
@@ -106,7 +106,7 @@ fn parse_prog_v2(input: &str) -> Vec<InsV2> {
 }
 
 fn sum_after_init_v2(prog: &[InsV2]) -> u64 {
-    let mut mem = HashMap::new();
+    let mut mem = vec![];
     for ins in prog {
         let mut addrs_curr = vec![ins.addr | ins.mask];
         let mut addrs_next = vec![];
@@ -121,10 +121,19 @@ fn sum_after_init_v2(prog: &[InsV2]) -> u64 {
         }
 
         for addr in addrs_curr.iter() {
-            mem.insert(*addr, ins.value);
+            mem.push((*addr, ins.value));
         }
     }
-    mem.values().sum()
+
+    mem.sort_by(|a, b| a.0.cmp(&b.0));
+    let mut sum = 0;
+    for i in 1..mem.len() {
+        if mem[i - 1].0 != mem[i].0 {
+            sum += mem[i - 1].1;
+        }
+    }
+    sum += mem[mem.len() - 1].1;
+    sum
 }
 
 pub fn run() {
