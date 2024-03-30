@@ -12,22 +12,20 @@ fn parse_start_numbers(input: &str) -> Vec<u32> {
 }
 
 fn number_spoken(nums: &[u32], spoken: u32) -> u32 {
-    let mut last_spoken = vec![0; spoken as usize];
+    let mut spoken_last = vec![0; spoken as usize];
     for (i, n) in nums.iter().enumerate() {
-        last_spoken[*n as usize] = (i + 1) as u32;
+        spoken_last[*n as usize] = (i + 1) as u32;
     }
 
-    let mut prev = 0;
+    let mut num = 0;
+    let mut when;
     for i in (nums.len() as u32 + 1)..spoken {
-        let last = last_spoken[prev];
-        last_spoken[prev] = i;
-        prev = match last {
-            0 => 0usize,
-            _ => (i - last) as usize,
-        }
+        when = &mut spoken_last[num];
+        num = if *when == 0 { 0 } else { (i - *when) as usize };
+        *when = i;
     }
 
-    prev as u32
+    num as u32
 }
 
 pub fn run() {
