@@ -3,11 +3,7 @@ use std::fs;
 fn parse_start_numbers(input: &str) -> Vec<u32> {
     input
         .lines()
-        .flat_map(|line| {
-            line.split(',')
-                .map(|s| s.parse().unwrap())
-                .collect::<Vec<_>>()
-        })
+        .flat_map(|line| line.split(',').map(|s| s.parse().unwrap()))
         .collect()
 }
 
@@ -45,6 +41,8 @@ mod tests {
 
     #[test]
     fn test_part_one() {
+        let nums = parse_start_numbers("1,2,3");
+        assert_eq!(nums, [1, 2, 3]);
         assert_eq!(number_spoken(&[0, 3, 6], 2020), 436);
         assert_eq!(number_spoken(&[1, 3, 2], 2020), 1);
         assert_eq!(number_spoken(&[2, 1, 3], 2020), 10);
