@@ -16,9 +16,9 @@ fn number_spoken(nums: &[u32], spoken: u32) -> u32 {
     let mut num = 0;
     let mut when;
     for i in (nums.len() as u32 + 1)..spoken {
-        when = &mut spoken_last[num];
-        num = if *when == 0 { 0 } else { (i - *when) as usize };
-        *when = i;
+        when = spoken_last[num];
+        spoken_last[num] = i;
+        num = if when == 0 { 0 } else { (i - when) as usize };
     }
 
     num as u32
