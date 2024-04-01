@@ -46,17 +46,19 @@ fn validate_tickets(fields: &[Field], tickets: &[Ticket]) -> (Vec<Ticket>, u32) 
     let mut invalid_fields = vec![];
     let mut valid_tickets = vec![];
     for ticket in tickets {
-        let mut valid = false;
+        let mut valid = true;
         for &value in ticket {
+            let mut value_valid = false;
             for field in fields {
                 if (field.0 <= value && value <= field.1) || (field.2 <= value && value <= field.3)
                 {
-                    valid = true;
+                    value_valid = true;
                     break;
                 }
             }
-            if !valid {
+            if !value_valid {
                 invalid_fields.push(value);
+                valid = false;
             }
         }
         if valid {
@@ -75,7 +77,6 @@ fn multiply_ticket_fields_like(
 ) -> u32 {
     let mut fields_ticket_val_i = vec![vec![]; fields.len()];
     for ticket in tickets.iter() {
-        println!("{ticket:?}");
         for (ti, v) in ticket.iter().enumerate() {
             for (fi, f) in fields.iter().enumerate() {
                 if (f.0 >= *v && *v <= f.1) || (f.2 <= *v && *v <= f.3) {
