@@ -1,5 +1,4 @@
 use crate::intcode::{ExitCode, Program};
-use std::fs;
 
 fn permutations(items: &Vec<i64>) -> Vec<Vec<i64>> {
     let mut perms = vec![vec![]];
@@ -79,11 +78,9 @@ fn max_thrust_signal(prog: &Program, input: &Vec<i64>, feedback: bool) -> i64 {
 
 pub fn run() {
     println!("Day 7: Amplification Circuit");
-    let file_path = "inputs/day07.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
-
+    let input_raw = crate::load_input(module_path!());
     let prog = Program::new(&input_raw);
+
     let input = (0..5).collect();
     println!("Part One: {}", max_thrust_signal(&prog, &input, false));
     let input = (5..10).collect();

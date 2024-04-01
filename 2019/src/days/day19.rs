@@ -1,5 +1,4 @@
 use crate::intcode::Program;
-use std::fs;
 
 fn point_affected(prog: &mut Program, x: i64, y: i64) -> bool {
     prog.reset();
@@ -48,10 +47,7 @@ fn find_santas_ship(mut prog: Program) -> (i64, i64) {
 
 pub fn run() {
     println!("Day 19: Tractor Beam");
-    let file_path = "inputs/day19.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
-
+    let input_raw = crate::load_input(module_path!());
     let prog = Program::new(&input_raw);
 
     println!(

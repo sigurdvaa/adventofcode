@@ -1,5 +1,4 @@
 use crate::intcode::Program;
-use std::fs;
 
 fn walk_hull_damage(mut prog: Program) -> i64 {
     let springscript = concat!(
@@ -50,10 +49,7 @@ fn run_hull_damage(mut prog: Program) -> i64 {
 
 pub fn run() {
     println!("Day 21: Springdroid Adventure");
-    let file_path = "inputs/day21.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
-
+    let input_raw = crate::load_input(module_path!());
     let prog = Program::new(&input_raw);
     println!("Part One: {}", walk_hull_damage(prog.clone()));
     println!("Part Two: {}", run_hull_damage(prog));

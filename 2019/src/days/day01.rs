@@ -1,5 +1,3 @@
-use std::fs;
-
 fn fuel_required(mass: u32) -> u32 {
     (mass / 3) - 2
 }
@@ -14,9 +12,7 @@ fn fuel_required_recur(mass: i32) -> i32 {
 
 pub fn run() {
     println!("Day 1: The Tyranny of the Rocket Equation");
-    let file_path = "inputs/day01.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
+    let input_raw = crate::load_input(module_path!());
 
     let sum_fuel: u32 = input_raw
         .lines()

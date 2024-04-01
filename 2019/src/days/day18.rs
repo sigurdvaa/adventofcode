@@ -1,5 +1,4 @@
 use std::collections::{HashMap, HashSet, VecDeque};
-use std::fs;
 
 #[derive(Debug, Clone)]
 struct Adjacent {
@@ -305,9 +304,7 @@ fn shortest_dist_collect_keys_four_entrances(map: &str) -> Option<usize> {
 
 pub fn run() {
     println!("Day 18: Many-Worlds Interpretation");
-    let file_path = "inputs/day18.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
+    let input_raw = crate::load_input(module_path!());
 
     println!(
         "Part One: {}",

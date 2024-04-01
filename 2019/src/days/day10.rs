@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fs;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Point {
@@ -79,10 +78,7 @@ fn parse_map(map: &str) -> Vec<Point> {
 
 pub fn run() {
     println!("Day 10: Monitoring Station");
-    let file_path = "inputs/day10.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
-
+    let input_raw = crate::load_input(module_path!());
     let points = parse_map(&input_raw);
     let best = best_detection(&points);
     println!("Part One: {}", best.len());

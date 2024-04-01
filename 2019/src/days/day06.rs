@@ -1,5 +1,4 @@
 use std::collections::{HashMap, HashSet};
-use std::fs;
 
 fn parse_orbits(input: &str) -> HashMap<&str, Vec<&str>> {
     let mut orbits = HashMap::new();
@@ -62,13 +61,12 @@ fn count_transfers_between(
 
 pub fn run() {
     println!("Day 6: Universal Orbit Map");
-    let file_path = "inputs/day06.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
+    let input_raw = crate::load_input(module_path!());
 
     let orbits = parse_orbits(&input_raw);
     let count = count_orbits(&orbits, "COM", 0);
     println!("Part One: {}", count);
+
     let transfers = parse_transfers(&input_raw);
     let count = count_transfers_between(&transfers, &mut HashSet::new(), "YOU", "SAN", 0);
     println!("Part Two: {}", count);

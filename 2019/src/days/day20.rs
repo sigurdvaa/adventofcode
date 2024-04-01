@@ -1,6 +1,5 @@
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
-use std::fs;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 struct Portal {
@@ -196,11 +195,8 @@ fn shortest_path(map: &Vec<Vec<char>>, with_levels: bool) -> Option<usize> {
 
 pub fn run() {
     println!("Day 20: Donut Maze");
-    let file_path = "inputs/day20.txt";
-    let _input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
-
-    let map = map_str_to_vec(_input_raw.as_str());
+    let input_raw = crate::load_input(module_path!());
+    let map = map_str_to_vec(input_raw.as_str());
     println!("Part One: {}", shortest_path(&map, false).unwrap());
     println!("Part Two: {}", shortest_path(&map, true).unwrap());
 }

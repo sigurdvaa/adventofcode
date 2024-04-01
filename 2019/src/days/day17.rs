@@ -1,6 +1,5 @@
 use crate::intcode::Program;
 use std::collections::{HashSet, VecDeque};
-use std::fs;
 
 fn parse_map(map: &[i64]) -> Vec<Vec<char>> {
     map.iter()
@@ -201,10 +200,7 @@ fn compressed_path_funcs(map: &Vec<Vec<char>>) -> Option<Vec<String>> {
 
 pub fn run() {
     println!("Day 17: Set and Forget");
-    let file_path = "inputs/day17.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
-
+    let input_raw = crate::load_input(module_path!());
     let mut prog = Program::new(&input_raw);
 
     let mut prog1 = prog.clone();

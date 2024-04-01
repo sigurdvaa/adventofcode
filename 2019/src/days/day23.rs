@@ -1,6 +1,5 @@
 use crate::intcode::Program;
 use std::collections::{HashSet, VecDeque};
-use std::fs;
 
 #[derive(Clone)]
 struct Packet {
@@ -70,10 +69,7 @@ fn run_network(prog: Program, with_nat: bool) -> Option<Packet> {
 
 pub fn run() {
     println!("Day 23: Category Six");
-    let file_path = "inputs/day23.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
-
+    let input_raw = crate::load_input(module_path!());
     let prog = Program::new(&input_raw);
     println!("Part One: {}", run_network(prog.clone(), false).unwrap().y);
     println!("Part Two: {}", run_network(prog, true).unwrap().y);

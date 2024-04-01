@@ -1,6 +1,5 @@
 use crate::intcode::Program;
 use std::collections::{HashSet, VecDeque};
-use std::fs;
 
 fn walk_map(prog: Program) -> (HashSet<(i32, i32)>, (i32, i32), u32) {
     let mut seen = HashSet::new();
@@ -71,11 +70,9 @@ fn minutes_to_fill(map: HashSet<(i32, i32)>, start: (i32, i32)) -> u32 {
 
 pub fn run() {
     println!("Day 15: Oxygen System");
-    let file_path = "inputs/day15.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
-
+    let input_raw = crate::load_input(module_path!());
     let prog = Program::new(&input_raw);
+
     let (map, oxygen_pos, oxygen_moves) = walk_map(prog);
     println!("Part One: {}", oxygen_moves);
 

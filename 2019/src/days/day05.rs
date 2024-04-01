@@ -1,12 +1,8 @@
 use crate::intcode::Program;
-use std::fs;
 
 pub fn run() {
     println!("Day 5: Sunny with a Chance of Asteroids");
-    let file_path = "inputs/day05.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
-
+    let input_raw = crate::load_input(module_path!());
     let prog = Program::new(&input_raw);
     let input = vec![5, 1];
 

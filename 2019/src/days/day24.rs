@@ -1,5 +1,4 @@
 use std::collections::HashSet;
-use std::fs;
 
 fn biodiversity(cells: &[Vec<char>]) -> usize {
     let mut sum = 0;
@@ -228,10 +227,7 @@ fn bugs_after_minutes(layout: &str, minutes: usize) -> usize {
 
 pub fn run() {
     println!("Day 24: Planet of Discord");
-    let file_path = "inputs/day24.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
-
+    let input_raw = crate::load_input(module_path!());
     println!("Part One: {}", biodiversity_repeated(&input_raw));
     println!("Part Two: {}", bugs_after_minutes(&input_raw, 200));
 }

@@ -1,5 +1,3 @@
-use std::fs;
-
 fn parse_layers(str: &str, width: usize, height: usize) -> Vec<Vec<Vec<u32>>> {
     let digits: Vec<u32> = str
         .trim()
@@ -65,9 +63,7 @@ fn decode_layers(layers: &Vec<Vec<Vec<u32>>>) -> Vec<Vec<u32>> {
 
 pub fn run() {
     println!("Day 8: Space Image Format");
-    let file_path = "inputs/day08.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
+    let input_raw = crate::load_input(module_path!());
 
     let layers = parse_layers(&input_raw, 25, 6);
     println!("Part One: {}", fewest_zero_layer_num(&layers));

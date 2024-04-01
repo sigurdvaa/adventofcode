@@ -1,11 +1,8 @@
 use crate::intcode::Program;
-use std::fs;
 
 pub fn run() {
     println!("Day 9: Sensor Boost");
-    let file_path = "inputs/day09.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
+    let input_raw = crate::load_input(module_path!());
 
     let mut prog = Program::new(&input_raw);
     prog.input.push(1);

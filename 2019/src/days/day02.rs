@@ -1,5 +1,4 @@
 use crate::intcode::Program;
-use std::fs;
 
 fn find_noun_verb(prog: &Program) -> i64 {
     for noun in 0..100 {
@@ -18,9 +17,7 @@ fn find_noun_verb(prog: &Program) -> i64 {
 
 pub fn run() {
     println!("Day 2: 1202 Program Alarm");
-    let file_path = "inputs/day02.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
+    let input_raw = crate::load_input(module_path!());
 
     let mut prog = Program::new(&input_raw);
     prog.intcode[1] = 12;

@@ -1,3 +1,5 @@
+use std::fs;
+
 mod days;
 mod intcode;
 
@@ -8,6 +10,13 @@ fn usage(args: &[String]) {
         days::DAYS.len()
     );
     std::process::exit(1);
+}
+
+fn load_input(module: &str) -> String {
+    let day = module.split("::").last().unwrap();
+    let file_path = format!("inputs/{day}.txt");
+    fs::read_to_string(&file_path)
+        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"))
 }
 
 fn main() {

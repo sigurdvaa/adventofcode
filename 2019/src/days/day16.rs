@@ -1,5 +1,3 @@
-use std::fs;
-
 fn parse_numbers(input: &str) -> Vec<i32> {
     input
         .trim()
@@ -76,10 +74,7 @@ fn fft_real(numbers: Vec<i32>) -> Vec<i32> {
 
 pub fn run() {
     println!("Day 16: Flawed Frequency Transmission");
-    let file_path = "inputs/day16.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
-
+    let input_raw = crate::load_input(module_path!());
     let numbers = parse_numbers(&input_raw);
 
     println!(

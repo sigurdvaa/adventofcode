@@ -1,5 +1,3 @@
-use std::fs;
-
 #[derive(Debug, Clone)]
 enum Shuffle {
     Cut(i128),
@@ -75,10 +73,7 @@ fn pos_after_shuffle_reverse(shuffle: &Vec<Shuffle>, size: i128, times: i128, po
 
 pub fn run() {
     println!("Day 22: Slam Shuffle");
-    let file_path = "inputs/day22.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
-
+    let input_raw = crate::load_input(module_path!());
     let shuffle = parse_shuffle(&input_raw);
     println!("Part One: {}", pos_after_shuffle(&shuffle, 10007, 2019));
     println!(
@@ -135,10 +130,7 @@ mod tests {
 
     #[test]
     fn test_part_two() {
-        let file_path = "inputs/day22.txt";
-        let input_raw = fs::read_to_string(file_path)
-            .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
-
+        let input_raw = crate::load_input("day22");
         let shuffle = parse_shuffle(&input_raw);
         assert_eq!(pos_after_shuffle_reverse(&shuffle, 10007, 1, 8379), 2019)
     }

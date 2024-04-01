@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fs;
 
 #[derive(Debug)]
 struct Reaction {
@@ -75,10 +74,7 @@ fn max_fuel(reactions: &HashMap<String, Reaction>) -> i64 {
 
 pub fn run() {
     println!("Day 14: Space Stoichiometry");
-    let file_path = "inputs/day14.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
-
+    let input_raw = crate::load_input(module_path!());
     let reactions = parse_reactions(&input_raw);
     println!("Part One: {}", ores_required_for_fuel(&reactions));
     println!("Part Two: {}", max_fuel(&reactions));

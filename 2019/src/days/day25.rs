@@ -1,6 +1,5 @@
 use crate::intcode::{ExitCode, Program};
 use std::collections::{HashSet, VecDeque};
-use std::fs;
 
 #[allow(dead_code)]
 enum Command {
@@ -172,10 +171,7 @@ fn control_droid(mut prog: Program) {
 
 pub fn run() {
     println!("Day 25: Cryostasis");
-    let file_path = "inputs/day25.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
-
+    let input_raw = crate::load_input(module_path!());
     let prog = Program::new(&input_raw);
     println!("Part One: {}", find_airlock_password(&prog).unwrap());
     println!("Part Two: n/a");

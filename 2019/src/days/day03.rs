@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fs;
 
 fn parse_path(wire_path: &str) -> HashMap<(i32, i32), i32> {
     let mut path = HashMap::new();
@@ -47,14 +46,10 @@ fn closest_and_shortest_intersection(
 
 pub fn run() {
     println!("Day 3: Crossed Wires");
-    let file_path = "inputs/day03.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = crate::load_input(module_path!());
     let mut wires = input_raw.lines();
     let wire1 = parse_path(wires.next().unwrap());
     let wire2 = parse_path(wires.next().unwrap());
-
     let (closest, shortest) = closest_and_shortest_intersection(&wire1, &wire2);
     println!("Part One: {}", closest);
     println!("Part Two: {}", shortest);

@@ -1,5 +1,4 @@
 use crate::intcode::{ExitCode, Program};
-use std::fs;
 
 fn game_score(mut prog: Program) -> i64 {
     prog.intcode[0] = 2;
@@ -37,9 +36,7 @@ fn game_score(mut prog: Program) -> i64 {
 
 pub fn run() {
     println!("Day 13: Care Package");
-    let file_path = "inputs/day13.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
+    let input_raw = crate::load_input(module_path!());
     let prog = Program::new(&input_raw);
 
     let mut prog1 = prog.clone();

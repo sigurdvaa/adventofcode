@@ -1,6 +1,5 @@
 use crate::intcode::{ExitCode, Program};
 use std::collections::HashMap;
-use std::fs;
 
 fn painted_panels(mut prog: Program, start_color: i64) -> HashMap<(i32, i32), i64> {
     let mut panels: HashMap<(i32, i32), i64> = HashMap::new();
@@ -48,11 +47,9 @@ fn print_panels(panels: &HashMap<(i32, i32), i64>) {
 
 pub fn run() {
     println!("Day 11: Space Police");
-    let file_path = "inputs/day11.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|_| panic!("Error reading file '{file_path}'"));
-
+    let input_raw = crate::load_input(module_path!());
     let prog = Program::new(&input_raw);
+
     let panels = painted_panels(prog.clone(), 0);
     println!("Part One: {}", panels.len());
     let panels = painted_panels(prog, 1);
