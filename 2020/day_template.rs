@@ -1,7 +1,5 @@
-use crate::load_input;
-
 pub fn run() {
-    let input_raw = load_input(module_path!());
+    let input_raw = crate::load_input(module_path!());
     println!("Day 00: Name of task");
     println!("Part One: {}", "TODO");
     println!("Part Two: {}", "TODO");
