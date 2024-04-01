@@ -1,5 +1,3 @@
-use std::fs;
-
 fn parse_timestamp_and_ids(input: &str) -> (usize, Vec<usize>) {
     let mut lines = input.lines();
     let timestamp = lines.next().unwrap().parse::<usize>().unwrap();
@@ -53,10 +51,7 @@ fn earliest_timestamp_match_list(ids: &[usize]) -> usize {
 
 pub fn run() {
     println!("Day 13: Shuttle Search");
-    let file_path = "inputs/day13.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = crate::load_input(module_path!());
     let (timestamp, ids) = parse_timestamp_and_ids(&input_raw);
     println!("Part One: {}", earliest_id_times_minutes(timestamp, &ids));
     println!("Part Two: {}", earliest_timestamp_match_list(&ids));

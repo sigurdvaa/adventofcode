@@ -1,5 +1,3 @@
-use std::fs;
-
 #[derive(Clone)]
 enum Ins {
     Acc(i32),
@@ -88,10 +86,7 @@ fn parse_ins(input: &str) -> Vec<Ins> {
 
 pub fn run() {
     println!("Day 8: Handheld Halting");
-    let file_path = "inputs/day08.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = crate::load_input(module_path!());
     let prog = parse_ins(&input_raw);
     println!("Part One: {}", run_prog(&prog).get_value());
     println!("Part Two: {}", acc_after_repair(&prog).unwrap());

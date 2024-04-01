@@ -1,11 +1,8 @@
-use std::fs;
+use crate::load_input;
 
 pub fn run() {
-    println!("");
-    let file_path = "inputs/day00.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = load_input(module_path!());
+    println!("Day 00: Name of task");
     println!("Part One: {}", "TODO");
     println!("Part Two: {}", "TODO");
 }

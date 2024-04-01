@@ -1,4 +1,4 @@
-use std::fs;
+use crate::load_input;
 
 type Field = (u32, u32, u32, u32, String);
 type Ticket = Vec<u32>;
@@ -78,10 +78,7 @@ fn multiply_ticket_fields_like(
 
 pub fn run() {
     println!("Day 16: Ticket Translation");
-    let file_path = "inputs/day16.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = load_input(module_path!());
     let (fields, my_ticket, tickets) = parse_input(&input_raw);
     let (valid_tickets, error_rate) = validate_tickets(&fields, &tickets);
     println!("Part One: {}", error_rate);

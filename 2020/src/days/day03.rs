@@ -1,8 +1,6 @@
-use std::fs;
-
 const SLOPES: &[(usize, usize); 5] = &[(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)];
 
-fn trees_encountered_product(map: &Vec<Vec<char>>, slopes: &[(usize, usize)]) -> usize {
+fn trees_encountered_product(map: &[Vec<char>], slopes: &[(usize, usize)]) -> usize {
     let mut product = 1;
 
     for slope in slopes {
@@ -26,10 +24,7 @@ fn trees_encountered_product(map: &Vec<Vec<char>>, slopes: &[(usize, usize)]) ->
 
 pub fn run() {
     println!("Day 3: Toboggan Trajectory");
-    let file_path = "inputs/day03.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = crate::load_input(module_path!());
     let map = input_raw
         .lines()
         .map(|line| line.chars().collect())

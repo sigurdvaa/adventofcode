@@ -1,5 +1,3 @@
-use std::fs;
-
 fn parse_numbers(input: &str) -> Vec<usize> {
     let mut numbers = input
         .lines()
@@ -63,10 +61,7 @@ fn chain_permutation(diffs: &[usize]) -> usize {
 
 pub fn run() {
     println!("Day 10: Adapter Array");
-    let file_path = "inputs/day10.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = crate::load_input(module_path!());
     let diffs = get_diffs(&input_raw);
     println!("Part One: {}", chain_jolt_diff(&diffs));
     println!("Part Two: {}", chain_permutation(&diffs));

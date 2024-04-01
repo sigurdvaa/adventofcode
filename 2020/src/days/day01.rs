@@ -1,5 +1,3 @@
-use std::fs;
-
 fn combinations(items: &[usize], size: usize, comb: Vec<usize>, combs: &mut Vec<Vec<usize>>) {
     for (i, n) in items.iter().enumerate() {
         let next_comb = comb.iter().chain([n]).cloned().collect::<Vec<_>>();
@@ -47,10 +45,7 @@ fn entries_eq_sum(numbers: &[usize], size: usize, sum: usize) -> Option<Vec<usiz
 
 pub fn run() {
     println!("Day 1: Report Repair");
-    let file_path = "inputs/day01.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = crate::load_input(module_path!());
     let numbers = input_raw
         .lines()
         .map(|line| line.parse::<usize>().expect("only positive integers"))

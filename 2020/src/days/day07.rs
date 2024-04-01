@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fs;
 
 type BagEdges = HashMap<String, Vec<(usize, String)>>;
 const MYBAG: &str = "shiny gold";
@@ -57,10 +56,7 @@ fn num_bags_in_bag(bags: &BagEdges, bag: &str) -> usize {
 
 pub fn run() {
     println!("Day 7: Handy Haversacks");
-    let file_path = "inputs/day07.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = crate::load_input(module_path!());
     let bags = parse_rules_to_edgegraph(&input_raw);
     println!("Part One: {}", num_bags_can_contain_bag(&bags, MYBAG));
     println!("Part Two: {}", num_bags_in_bag(&bags, MYBAG));

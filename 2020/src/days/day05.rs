@@ -1,5 +1,3 @@
-use std::fs;
-
 fn get_loc(pass: &str, start: usize, end: usize) -> usize {
     if pass.is_empty() {
         return end;
@@ -37,10 +35,7 @@ fn my_seat_id(boarding_passes: &str) -> usize {
 
 pub fn run() {
     println!("Day 5: Binary Boarding");
-    let file_path = "inputs/day05.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = crate::load_input(module_path!());
     println!("Part One: {}", highest_seat_id(&input_raw));
     println!("Part Two: {}", my_seat_id(&input_raw));
 }

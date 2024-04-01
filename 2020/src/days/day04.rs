@@ -1,5 +1,3 @@
-use std::fs;
-
 #[derive(Default)]
 struct Passport {
     byr: Option<String>,
@@ -158,10 +156,7 @@ fn valid_passports_with_data(file: &str) -> usize {
 
 pub fn run() {
     println!("Day 4: Passport Processing");
-    let file_path = "inputs/day04.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = crate::load_input(module_path!());
     println!("Part One: {}", valid_passports(&input_raw));
     println!("Part Two: {}", valid_passports_with_data(&input_raw));
 }

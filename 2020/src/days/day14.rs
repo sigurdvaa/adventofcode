@@ -1,5 +1,3 @@
-use std::fs;
-
 struct InsV1 {
     addr: usize,
     mask_ones: u64,
@@ -138,10 +136,7 @@ fn sum_after_init_v2(prog: &[InsV2]) -> u64 {
 
 pub fn run() {
     println!("Day 14: Docking Data");
-    let file_path = "inputs/day14.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = crate::load_input(module_path!());
     let prog = parse_prog_v1(&input_raw);
     println!("Part One: {}", sum_after_init_v1(&prog));
     let prog = parse_prog_v2(&input_raw);

@@ -1,5 +1,3 @@
-use std::fs;
-
 enum Move {
     North(isize),
     South(isize),
@@ -101,10 +99,7 @@ fn distance_after_waypoint(moves: &[Move]) -> isize {
 
 pub fn run() {
     println!("Day 12: Rain Risk");
-    let file_path = "inputs/day12.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = crate::load_input(module_path!());
     let moves = parse_moves(&input_raw);
     println!("Part One: {}", distance_after_moves(&moves));
     println!("Part Two: {}", distance_after_waypoint(&moves));

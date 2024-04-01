@@ -1,5 +1,3 @@
-use std::fs;
-
 fn parse_numbers(input: &str) -> Vec<usize> {
     input.lines().map(|line| line.parse().unwrap()).collect()
 }
@@ -55,10 +53,7 @@ fn find_encryption_weakness(numbers: &[usize], target: usize) -> Option<usize> {
 
 pub fn run() {
     println!("Day 9: Encoding Error");
-    let file_path = "inputs/day09.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = crate::load_input(module_path!());
     let numbers = parse_numbers(&input_raw);
     let invalid = first_invalid_number(&numbers, 25).unwrap();
     println!("Part One: {}", invalid);

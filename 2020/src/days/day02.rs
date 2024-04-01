@@ -1,5 +1,3 @@
-use std::fs;
-
 struct Password<'a> {
     min: usize,
     max: usize,
@@ -52,10 +50,7 @@ fn parse_policy_and_password(input: &str) -> Vec<Password> {
 
 pub fn run() {
     println!("Day 2: Password Philosophy");
-    let file_path = "inputs/day02.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = crate::load_input(module_path!());
     let passwords = parse_policy_and_password(&input_raw);
     println!("Part One: {}", count_valid_passwords_char_count(&passwords));
     println!("Part Two: {}", count_valid_passwords_char_pos(&passwords));

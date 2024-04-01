@@ -1,5 +1,3 @@
-use std::fs;
-
 fn parse_start_numbers(input: &str) -> Vec<u32> {
     input
         .lines()
@@ -26,10 +24,7 @@ fn number_spoken(nums: &[u32], spoken: u32) -> u32 {
 
 pub fn run() {
     println!("Day 15: Rambunctious Recitation");
-    let file_path = "inputs/day15.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = crate::load_input(module_path!());
     let start = parse_start_numbers(&input_raw);
     println!("Part One: {}", number_spoken(&start, 2020));
     println!("Part Two: {}", number_spoken(&start, 30000000));

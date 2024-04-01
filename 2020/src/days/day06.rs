@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fs;
 
 fn parse_groups(input: &str) -> Vec<Vec<String>> {
     let mut groups = vec![];
@@ -45,10 +44,7 @@ fn sum_group_all_yes(input: &str) -> usize {
 
 pub fn run() {
     println!("Day 6: Custom Customs");
-    let file_path = "inputs/day06.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = crate::load_input(module_path!());
     println!("Part One: {}", sum_group_any_yes(&input_raw));
     println!("Part Two: {}", sum_group_all_yes(&input_raw));
 }

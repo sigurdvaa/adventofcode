@@ -1,5 +1,3 @@
-use std::fs;
-
 fn occupied_seats(cells: &[char], width: usize, visible: bool) -> usize {
     const EMPTY: char = 'L';
     const FLOOR: char = '.';
@@ -85,10 +83,7 @@ fn parse_cells(input: &str) -> (Vec<char>, usize) {
 
 pub fn run() {
     println!("Day 11: Seating System");
-    let file_path = "inputs/day11.txt";
-    let input_raw = fs::read_to_string(file_path)
-        .unwrap_or_else(|err| panic!("Error reading file '{file_path}': {err}"));
-
+    let input_raw = crate::load_input(module_path!());
     let (cells, width) = parse_cells(&input_raw);
     println!("Part One: {}", occupied_seats(&cells, width, false));
     println!("Part Two: {}", occupied_seats(&cells, width, true));
