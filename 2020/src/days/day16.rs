@@ -1,5 +1,3 @@
-use crate::load_input;
-
 type Field = (u32, u32, u32, u32, String);
 type Ticket = Vec<u32>;
 
@@ -48,19 +46,21 @@ fn validate_tickets(fields: &[Field], tickets: &[Ticket]) -> (Vec<Ticket>, u32) 
     let mut invalid_fields = vec![];
     let mut valid_tickets = vec![];
     for ticket in tickets {
+        let mut valid = false;
         for &value in ticket {
-            let mut valid = false;
             for field in fields {
                 if (field.0 <= value && value <= field.1) || (field.2 <= value && value <= field.3)
                 {
                     valid = true;
-                    valid_tickets.push(ticket.clone());
                     break;
                 }
             }
             if !valid {
                 invalid_fields.push(value);
             }
+        }
+        if valid {
+            valid_tickets.push(ticket.clone());
         }
     }
 
@@ -73,12 +73,24 @@ fn multiply_ticket_fields_like(
     my_ticket: &Ticket,
     like: &str,
 ) -> u32 {
+    let mut fields_ticket_val_i = vec![vec![]; fields.len()];
+    for ticket in tickets.iter() {
+        println!("{ticket:?}");
+        for (ti, v) in ticket.iter().enumerate() {
+            for (fi, f) in fields.iter().enumerate() {
+                if (f.0 >= *v && *v <= f.1) || (f.2 <= *v && *v <= f.3) {
+                    fields_ticket_val_i[fi].push(ti);
+                }
+            }
+        }
+    }
+    dbg!(fields_ticket_val_i);
     0
 }
 
 pub fn run() {
     println!("Day 16: Ticket Translation");
-    let input_raw = load_input(module_path!());
+    let input_raw = crate::load_input(module_path!());
     let (fields, my_ticket, tickets) = parse_input(&input_raw);
     let (valid_tickets, error_rate) = validate_tickets(&fields, &tickets);
     println!("Part One: {}", error_rate);
@@ -147,7 +159,7 @@ mod tests {
             "5,14,9",
         );
         let (fields, my_ticket, tickets) = parse_input(INPUT_TEST);
-        let (valid_tickets, error_rate) = validate_tickets(&fields, &tickets);
+        let (valid_tickets, _error_rate) = validate_tickets(&fields, &tickets);
         assert_eq!(
             multiply_ticket_fields_like(&fields, &valid_tickets, &my_ticket, "row"),
             11
