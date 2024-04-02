@@ -1,5 +1,5 @@
-type Field = (u32, u32, u32, u32, String);
-type Ticket = Vec<u32>;
+type Field = (usize, usize, usize, usize, String);
+type Ticket = Vec<usize>;
 
 fn parse_input(input: &str) -> (Vec<Field>, Ticket, Vec<Ticket>) {
     let mut lines = input.lines();
@@ -42,11 +42,11 @@ fn parse_input(input: &str) -> (Vec<Field>, Ticket, Vec<Ticket>) {
     (fields, my_ticket, tickets)
 }
 
-fn validate_tickets(fields: &[Field], tickets: &[Ticket]) -> (Vec<Ticket>, u32) {
-    let mut invalid_fields = vec![];
+fn validate_tickets(fields: &[Field], tickets: &[Ticket]) -> (Vec<Ticket>, usize) {
+    let mut invalid_values = vec![];
     let mut valid_tickets = vec![];
     for ticket in tickets {
-        let mut valid = true;
+        let mut valid_ticket = true;
         for &value in ticket {
             let mut value_valid = false;
             for field in fields {
@@ -57,16 +57,16 @@ fn validate_tickets(fields: &[Field], tickets: &[Ticket]) -> (Vec<Ticket>, u32) 
                 }
             }
             if !value_valid {
-                invalid_fields.push(value);
-                valid = false;
+                invalid_values.push(value);
+                valid_ticket = false;
             }
         }
-        if valid {
+        if valid_ticket {
             valid_tickets.push(ticket.clone());
         }
     }
 
-    (valid_tickets, invalid_fields.iter().sum())
+    (valid_tickets, invalid_values.iter().sum())
 }
 
 fn multiply_ticket_fields_like(
@@ -74,19 +74,47 @@ fn multiply_ticket_fields_like(
     tickets: &[Ticket],
     my_ticket: &Ticket,
     like: &str,
-) -> u32 {
-    let mut fields_ticket_val_i = vec![vec![]; fields.len()];
-    for ticket in tickets.iter() {
-        for (ti, v) in ticket.iter().enumerate() {
-            for (fi, f) in fields.iter().enumerate() {
-                if (f.0 >= *v && *v <= f.1) || (f.2 <= *v && *v <= f.3) {
-                    fields_ticket_val_i[fi].push(ti);
+) -> usize {
+    let mut fields_map = vec![vec![]; fields.len()];
+    for (f, field) in fields.iter().enumerate() {
+        for i in 0..fields.len() {
+            let mut valid = true;
+            for ticket in tickets.iter() {
+                let value = ticket[i];
+                if !((field.0 <= value && value <= field.1)
+                    || (field.2 <= value && value <= field.3))
+                {
+                    valid = false;
+                    break;
                 }
+            }
+            if valid {
+                fields_map[f].push(i)
             }
         }
     }
-    dbg!(fields_ticket_val_i);
-    0
+
+    let mut field_to_field: Vec<Option<usize>> = vec![None; fields.len()];
+    while fields_map.iter().map(|m| m.len()).sum::<usize>() > 0 {
+        let known = fields_map.iter().position(|m| m.len() == 1).unwrap();
+        let value = *fields_map[known].first().unwrap();
+        field_to_field[known] = Some(value);
+        for map in fields_map.iter_mut() {
+            map.retain(|v| *v != value);
+        }
+    }
+
+    let mut product = 1;
+    for (f, _) in fields
+        .iter()
+        .enumerate()
+        .filter(|(_, f)| f.4.contains(like))
+    {
+        let value = field_to_field[f].unwrap();
+        product *= my_ticket[value];
+    }
+
+    product
 }
 
 pub fn run() {
