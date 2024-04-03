@@ -33,11 +33,9 @@ fn parse_input(input: &str) -> (Vec<Field>, Ticket, Vec<Ticket>) {
 
     let _ = lines.next(); // empty line
     let _ = lines.next(); // nearby tickets:
-    let mut tickets = vec![];
-    for line in lines {
-        let ticket = line.split(',').map(|c| c.parse().unwrap()).collect();
-        tickets.push(ticket);
-    }
+    let tickets = lines
+        .map(|line| line.split(',').map(|c| c.parse().unwrap()).collect())
+        .collect();
 
     (fields, my_ticket, tickets)
 }
