@@ -40,21 +40,22 @@ fn parse_input(input: &str) -> (Vec<Field>, Ticket, Vec<Ticket>) {
     (fields, my_ticket, tickets)
 }
 
+fn valid_value(fields: &[Field], value: usize) -> bool {
+    for field in fields {
+        if (field.0 <= value && value <= field.1) || (field.2 <= value && value <= field.3) {
+            return true;
+        }
+    }
+    false
+}
+
 fn validate_tickets(fields: &[Field], tickets: &[Ticket]) -> (Vec<Ticket>, usize) {
     let mut invalid_values = vec![];
     let mut valid_tickets = vec![];
     for ticket in tickets {
         let mut valid_ticket = true;
         for &value in ticket {
-            let mut value_valid = false;
-            for field in fields {
-                if (field.0 <= value && value <= field.1) || (field.2 <= value && value <= field.3)
-                {
-                    value_valid = true;
-                    break;
-                }
-            }
-            if !value_valid {
+            if !valid_value(fields, value) {
                 invalid_values.push(value);
                 valid_ticket = false;
             }
@@ -67,13 +68,8 @@ fn validate_tickets(fields: &[Field], tickets: &[Ticket]) -> (Vec<Ticket>, usize
     (valid_tickets, invalid_values.iter().sum())
 }
 
-fn multiply_ticket_fields_like(
-    fields: &[Field],
-    tickets: &[Ticket],
-    my_ticket: &Ticket,
-    like: &str,
-) -> usize {
-    let mut fields_map = vec![vec![]; fields.len()];
+fn map_field_to_ticket_col(fields: &[Field], tickets: &[Ticket]) -> Vec<Option<usize>> {
+    let mut field_map = vec![vec![]; fields.len()];
     for (f, field) in fields.iter().enumerate() {
         for i in 0..fields.len() {
             let mut valid = true;
@@ -87,29 +83,40 @@ fn multiply_ticket_fields_like(
                 }
             }
             if valid {
-                fields_map[f].push(i)
+                field_map[f].push(i)
             }
         }
     }
 
-    let mut field_to_field: Vec<Option<usize>> = vec![None; fields.len()];
-    while fields_map.iter().map(|m| m.len()).sum::<usize>() > 0 {
-        let known = fields_map.iter().position(|m| m.len() == 1).unwrap();
-        let value = *fields_map[known].first().unwrap();
-        field_to_field[known] = Some(value);
-        for map in fields_map.iter_mut() {
+    let mut field_to_col: Vec<Option<usize>> = vec![None; fields.len()];
+    while field_map.iter().map(|m| m.len()).sum::<usize>() > 0 {
+        let known = field_map.iter().position(|m| m.len() == 1).unwrap();
+        let value = *field_map[known].first().unwrap();
+        field_to_col[known] = Some(value);
+        for map in field_map.iter_mut() {
             map.retain(|v| *v != value);
         }
     }
 
+    field_to_col
+}
+
+fn multiply_ticket_fields_like(
+    fields: &[Field],
+    tickets: &[Ticket],
+    my_ticket: &Ticket,
+    like: &str,
+) -> usize {
+    let field_to_col = map_field_to_ticket_col(fields, tickets);
+
     let mut product = 1;
-    for (f, _) in fields
+    for (i, _) in fields
         .iter()
         .enumerate()
         .filter(|(_, f)| f.4.contains(like))
     {
-        let value = field_to_field[f].unwrap();
-        product *= my_ticket[value];
+        let col = field_to_col[i].unwrap();
+        product *= my_ticket[col];
     }
 
     product
