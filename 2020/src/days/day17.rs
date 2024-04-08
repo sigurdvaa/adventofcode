@@ -1,3 +1,5 @@
+use std::collections::{HashMap, HashSet};
+
 fn parse_cubes(input: &str) -> Vec<Vec<bool>> {
     input
         .lines()
@@ -269,35 +271,8 @@ fn simulate_cycle_4d(state: &mut Vec<Vec<Vec<Vec<bool>>>>) {
 fn active_cubes_after_cycle_3d(initial_cubes: &[Vec<bool>], cycles: usize) -> usize {
     let mut state: Vec<Vec<Vec<bool>>> = vec![initial_cubes.to_vec()];
 
-    for i in 0..cycles {
-        // println!("\ncycle: {i}");
-        // println!("Before: ");
-        // for layer in &state {
-        //     println!();
-        //     for row in layer {
-        //         println!(
-        //             "{}",
-        //             row.iter()
-        //                 .map(|c| if *c { '#' } else { '.' })
-        //                 .collect::<String>()
-        //         );
-        //     }
-        // }
-
+    for _ in 0..cycles {
         simulate_cycle_3d(&mut state);
-
-        // println!("After: ");
-        // for layer in &state {
-        //     println!();
-        //     for row in layer {
-        //         println!(
-        //             "{}",
-        //             row.iter()
-        //                 .map(|c| if *c { '#' } else { '.' })
-        //                 .collect::<String>()
-        //         );
-        //     }
-        // }
     }
 
     state
@@ -313,35 +288,8 @@ fn active_cubes_after_cycle_3d(initial_cubes: &[Vec<bool>], cycles: usize) -> us
 fn active_cubes_after_cycle_4d(initial_cubes: &[Vec<bool>], cycles: usize) -> usize {
     let mut state: Vec<Vec<Vec<Vec<bool>>>> = vec![vec![initial_cubes.to_vec()]];
 
-    for i in 0..cycles {
-        // println!("\ncycle: {i}");
-        // println!("Before: ");
-        // for layer in &state {
-        //     println!();
-        //     for row in layer {
-        //         println!(
-        //             "{}",
-        //             row.iter()
-        //                 .map(|c| if *c { '#' } else { '.' })
-        //                 .collect::<String>()
-        //         );
-        //     }
-        // }
-
+    for _ in 0..cycles {
         simulate_cycle_4d(&mut state);
-
-        // println!("After: ");
-        // for layer in &state {
-        //     println!();
-        //     for row in layer {
-        //         println!(
-        //             "{}",
-        //             row.iter()
-        //                 .map(|c| if *c { '#' } else { '.' })
-        //                 .collect::<String>()
-        //         );
-        //     }
-        // }
     }
 
     state
@@ -356,6 +304,54 @@ fn active_cubes_after_cycle_4d(initial_cubes: &[Vec<bool>], cycles: usize) -> us
                 .sum::<usize>()
         })
         .sum()
+}
+
+fn get_coord_neighbors(coors: &[u32]) -> Vec<Vec<u32>> {
+    let neighbors = vec![];
+    neighbors
+}
+
+fn simulate_conway_cubes(
+    state: &mut HashSet<Vec<u32>>,
+    neighbor_buf: &mut HashMap<Vec<u32>, Vec<Vec<u32>>>,
+) {
+    let mut next_state: HashSet<Vec<u32>> = HashSet::new();
+    for active_cube in state.iter() {
+        let neighbors = neighbor_buf
+            .entry(active_cube.clone())
+            .or_insert(get_coord_neighbors(active_cube));
+        // get neighbor coords
+        // get neighbors
+        // add to next state if match rule
+
+        // for each neighbor
+        // // get neighbor coords
+        // // get neighbors
+        // // add to next state if match rule
+    }
+    std::mem::swap(state, &mut next_state);
+}
+
+fn active_cubes_after_cycles(init_cubes: &[Vec<bool>], cycles: u32, dim: u32) -> usize {
+    let mut neighbor_buf: HashMap<Vec<u32>, Vec<Vec<u32>>> = HashMap::new();
+    let mut state: HashSet<Vec<u32>> =
+        HashSet::from_iter(init_cubes.iter().enumerate().flat_map(|(y, row)| {
+            row.iter()
+                .enumerate()
+                .filter(|(_, cube)| **cube)
+                .map(move |(x, _)| {
+                    let mut coords = vec![0; dim as usize];
+                    coords[(dim - 1) as usize] = x as u32;
+                    coords[(dim - 2) as usize] = y as u32;
+                    coords
+                })
+        }));
+
+    for _ in 0..cycles {
+        simulate_conway_cubes(&mut state, &mut neighbor_buf);
+    }
+
+    state.len()
 }
 
 pub fn run() {
