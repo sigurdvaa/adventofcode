@@ -306,16 +306,27 @@ fn active_cubes_after_cycle_4d(initial_cubes: &[Vec<bool>], cycles: usize) -> us
         .sum()
 }
 
-fn get_coord_neighbors(coors: &[u32]) -> Vec<Vec<u32>> {
-    let neighbors = vec![];
+fn get_coord_neighbors(coord: &[i32]) -> Vec<Vec<i32>> {
+    let mut neighbors = vec![vec![]];
+    for d in coord.iter() {
+        for n in -1i32..2 {
+            let nd = d + n;
+            let mut next_neighbors = vec![];
+            for mut neighbor in neighbors {
+                neighbor.push(nd);
+                next_neighbors.push(neighbor);
+            }
+            neighbors = next_neighbors;
+        }
+    }
     neighbors
 }
 
 fn simulate_conway_cubes(
-    state: &mut HashSet<Vec<u32>>,
-    neighbor_buf: &mut HashMap<Vec<u32>, Vec<Vec<u32>>>,
+    state: &mut HashSet<Vec<i32>>,
+    neighbor_buf: &mut HashMap<Vec<i32>, Vec<Vec<i32>>>,
 ) {
-    let mut next_state: HashSet<Vec<u32>> = HashSet::new();
+    let mut next_state: HashSet<Vec<i32>> = HashSet::new();
     for active_cube in state.iter() {
         let neighbors = neighbor_buf
             .entry(active_cube.clone())
@@ -333,16 +344,16 @@ fn simulate_conway_cubes(
 }
 
 fn active_cubes_after_cycles(init_cubes: &[Vec<bool>], cycles: u32, dim: u32) -> usize {
-    let mut neighbor_buf: HashMap<Vec<u32>, Vec<Vec<u32>>> = HashMap::new();
-    let mut state: HashSet<Vec<u32>> =
+    let mut neighbor_buf: HashMap<Vec<i32>, Vec<Vec<i32>>> = HashMap::new();
+    let mut state: HashSet<Vec<i32>> =
         HashSet::from_iter(init_cubes.iter().enumerate().flat_map(|(y, row)| {
             row.iter()
                 .enumerate()
                 .filter(|(_, cube)| **cube)
                 .map(move |(x, _)| {
                     let mut coords = vec![0; dim as usize];
-                    coords[(dim - 1) as usize] = x as u32;
-                    coords[(dim - 2) as usize] = y as u32;
+                    coords[(dim - 1) as usize] = x as i32;
+                    coords[(dim - 2) as usize] = y as i32;
                     coords
                 })
         }));
