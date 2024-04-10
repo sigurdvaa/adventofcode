@@ -309,15 +309,18 @@ fn active_cubes_after_cycle_4d(initial_cubes: &[Vec<bool>], cycles: usize) -> us
 fn get_coord_neighbors(coord: &[i32]) -> Vec<Vec<i32>> {
     let mut neighbors = vec![vec![]];
     for d in coord.iter() {
-        for n in -1i32..2 {
-            let nd = d + n;
-            let mut next_neighbors = vec![];
-            for mut neighbor in neighbors {
-                neighbor.push(nd);
-                next_neighbors.push(neighbor);
+        let mut next_neighbors = vec![];
+        for curr_neighbor in neighbors {
+            for n in -1i32..2 {
+                let nd = d + n;
+                let mut next_neighbor = curr_neighbor.clone();
+                next_neighbor.push(nd);
+                if next_neighbor != coord {
+                    next_neighbors.push(next_neighbor);
+                }
             }
-            neighbors = next_neighbors;
         }
+        neighbors = next_neighbors;
     }
     neighbors
 }
@@ -327,23 +330,29 @@ fn simulate_conway_cubes(
     neighbor_buf: &mut HashMap<Vec<i32>, Vec<Vec<i32>>>,
 ) {
     let mut next_state: HashSet<Vec<i32>> = HashSet::new();
+    let mut check_cubes = state.clone();
     for active_cube in state.iter() {
         let neighbors = neighbor_buf
             .entry(active_cube.clone())
-            .or_insert(get_coord_neighbors(active_cube));
-        // get neighbor coords
-        // get neighbors
-        // add to next state if match rule
+            .or_insert_with(|| get_coord_neighbors(active_cube));
+        check_cubes.extend(neighbors.clone());
+    }
 
-        // for each neighbor
-        // // get neighbor coords
-        // // get neighbors
-        // // add to next state if match rule
+    for cube in check_cubes.iter() {
+        let active = state.contains(cube);
+        let neighbors = neighbor_buf
+            .entry(cube.clone())
+            .or_insert_with(|| get_coord_neighbors(cube));
+        let count = neighbors.iter().filter(|n| state.contains(*n)).count();
+
+        if (active && (count == 2 || count == 3)) || (!active && count == 3) {
+            next_state.insert(cube.clone());
+        }
     }
     std::mem::swap(state, &mut next_state);
 }
 
-fn active_cubes_after_cycles(init_cubes: &[Vec<bool>], cycles: u32, dim: u32) -> usize {
+fn active_cubes_after_cycles(init_cubes: &[Vec<bool>], dim: u32, cycles: u32) -> usize {
     let mut neighbor_buf: HashMap<Vec<i32>, Vec<Vec<i32>>> = HashMap::new();
     let mut state: HashSet<Vec<i32>> =
         HashSet::from_iter(init_cubes.iter().enumerate().flat_map(|(y, row)| {
@@ -373,10 +382,25 @@ pub fn run() {
         "Part One: {}",
         active_cubes_after_cycle_3d(&initial_cubes, 6)
     );
+
+    println!(
+        "Part One: {}",
+        active_cubes_after_cycles(&initial_cubes, 3, 6)
+    );
+
+    let now = std::time::Instant::now();
     println!(
         "Part Two: {}",
         active_cubes_after_cycle_4d(&initial_cubes, 6)
     );
+    println!("Elapsed: {:?}", now.elapsed());
+
+    let now = std::time::Instant::now();
+    println!(
+        "Part Two: {}",
+        active_cubes_after_cycles(&initial_cubes, 4, 6)
+    );
+    println!("Elapsed: {:?}", now.elapsed());
 }
 
 #[cfg(test)]
@@ -388,11 +412,13 @@ mod tests {
     fn test_part_one() {
         let initial_cubes = parse_cubes(INPUT_TEST);
         assert_eq!(active_cubes_after_cycle_3d(&initial_cubes, 6), 112);
+        assert_eq!(active_cubes_after_cycles(&initial_cubes, 3, 6), 112);
     }
 
     #[test]
     fn test_part_two() {
         let initial_cubes = parse_cubes(INPUT_TEST);
         assert_eq!(active_cubes_after_cycle_4d(&initial_cubes, 6), 848);
+        assert_eq!(active_cubes_after_cycles(&initial_cubes, 4, 6), 848);
     }
 }
