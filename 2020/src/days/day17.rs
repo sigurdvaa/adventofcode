@@ -374,6 +374,60 @@ fn active_cubes_after_cycles(init_cubes: &[Vec<bool>], dim: u32, cycles: u32) ->
     state.len()
 }
 
+fn simulate_conway_cubes2(
+    state: &mut HashMap<Vec<i32>, (bool, u16)>,
+    neighbor_buf: &mut HashMap<Vec<i32>, Vec<Vec<i32>>>,
+) {
+    let mut next_state: HashMap<Vec<i32>, (bool, u16)> = HashMap::new();
+
+    for (coord, (active, _count)) in state.iter() {
+        if *active {
+            let curr = next_state.entry(coord.clone()).or_insert((true, 0));
+            *curr = (true, curr.1);
+
+            let neighbors = neighbor_buf
+                .entry(coord.clone())
+                .or_insert_with(|| get_coord_neighbors(coord));
+            for neighbor in neighbors {
+                let cube = next_state.entry(neighbor.clone()).or_insert((false, 0));
+                *cube = (cube.0, cube.1 + 1);
+            }
+        }
+    }
+
+    for cube in next_state.values_mut() {
+        if cube.0 && !(cube.1 == 2 || cube.1 == 3) {
+            *cube = (false, cube.1);
+        } else if !cube.0 && cube.1 == 3 {
+            *cube = (true, cube.1);
+        }
+    }
+
+    std::mem::swap(state, &mut next_state);
+}
+
+fn active_cubes_after_cycles2(init_cubes: &[Vec<bool>], dim: u32, cycles: u32) -> usize {
+    let mut neighbor_buf: HashMap<Vec<i32>, Vec<Vec<i32>>> = HashMap::new();
+    let mut state: HashMap<Vec<i32>, (bool, u16)> =
+        HashMap::from_iter(init_cubes.iter().enumerate().flat_map(|(y, row)| {
+            row.iter()
+                .enumerate()
+                .filter(|(_, cube)| **cube)
+                .map(move |(x, _)| {
+                    let mut coords = vec![0; dim as usize];
+                    coords[(dim - 1) as usize] = x as i32;
+                    coords[(dim - 2) as usize] = y as i32;
+                    (coords, (true, 0))
+                })
+        }));
+
+    for _ in 0..cycles {
+        simulate_conway_cubes2(&mut state, &mut neighbor_buf);
+    }
+
+    state.values().filter(|(active, _)| *active).count()
+}
+
 pub fn run() {
     let input_raw = crate::load_input(module_path!());
     let initial_cubes = parse_cubes(&input_raw);
@@ -401,6 +455,13 @@ pub fn run() {
         active_cubes_after_cycles(&initial_cubes, 4, 6)
     );
     println!("Elapsed: {:?}", now.elapsed());
+
+    let now = std::time::Instant::now();
+    println!(
+        "Part Two: {}",
+        active_cubes_after_cycles2(&initial_cubes, 4, 6)
+    );
+    println!("Elapsed: {:?}", now.elapsed());
 }
 
 #[cfg(test)]
@@ -413,6 +474,7 @@ mod tests {
         let initial_cubes = parse_cubes(INPUT_TEST);
         assert_eq!(active_cubes_after_cycle_3d(&initial_cubes, 6), 112);
         assert_eq!(active_cubes_after_cycles(&initial_cubes, 3, 6), 112);
+        assert_eq!(active_cubes_after_cycles2(&initial_cubes, 3, 6), 112);
     }
 
     #[test]
@@ -420,5 +482,6 @@ mod tests {
         let initial_cubes = parse_cubes(INPUT_TEST);
         assert_eq!(active_cubes_after_cycle_4d(&initial_cubes, 6), 848);
         assert_eq!(active_cubes_after_cycles(&initial_cubes, 4, 6), 848);
+        assert_eq!(active_cubes_after_cycles2(&initial_cubes, 4, 6), 848);
     }
 }
