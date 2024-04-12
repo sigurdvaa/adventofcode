@@ -43,29 +43,27 @@ fn active_cubes_after_cycles(init_cubes: &[Vec<bool>], dim: u32, cycles: u32) ->
 
     for _ in 0..cycles {
         let mut next_state = state.clone();
-        for (coord, (_, _count)) in state.iter() {
-            let neighbors = get_coord_neighbors(coord);
-            for neighbor in neighbors {
-                let cube = next_state.entry(neighbor.clone()).or_insert((false, 0));
-                *cube = (cube.0, cube.1 + 1);
+
+        for coord in state.keys() {
+            for neighbor in get_coord_neighbors(coord) {
+                let cube = next_state.entry(neighbor).or_insert((false, 0));
+                cube.1 += 1;
             }
         }
 
-        for cube in next_state.values_mut() {
+        next_state.retain(|_, cube| {
             if cube.0 && !(cube.1 == 2 || cube.1 == 3) {
-                *cube = (false, 0);
+                cube.0 = false
             } else if !cube.0 && cube.1 == 3 {
-                *cube = (true, 0);
-            } else {
-                *cube = (cube.0, 0);
-            }
-        }
+                cube.0 = true
+            };
+            cube.1 = 0;
+            cube.0
+        });
 
-        next_state.retain(|_, cube| cube.0);
         std::mem::swap(&mut state, &mut next_state);
     }
 
-    // state.values().filter(|(active, _)| *active).count()
     state.len()
 }
 
@@ -77,12 +75,10 @@ pub fn run() {
         "Part One: {}",
         active_cubes_after_cycles(&initial_cubes, 3, 6)
     );
-    let now = std::time::Instant::now();
     println!(
         "Part Two: {}",
         active_cubes_after_cycles(&initial_cubes, 4, 6)
     );
-    println!("Elapsed: {:?}", now.elapsed());
 }
 
 #[cfg(test)]
