@@ -15,6 +15,7 @@ mod day14;
 mod day15;
 mod day16;
 mod day17;
+mod day18;
 
 pub const DAYS: &[fn()] = &[
     day01::run,
@@ -34,4 +35,5 @@ pub const DAYS: &[fn()] = &[
     day15::run,
     day16::run,
     day17::run,
+    day18::run,
 ];
