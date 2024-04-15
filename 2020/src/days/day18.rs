@@ -5,67 +5,76 @@ enum Op {
 }
 
 impl Op {
-    fn pri(&self) -> u32 {
+    fn order(&self) -> u32 {
         match self {
-            Self::Add(_) => 10,
-            Self::Mul(_) => 0,
+            Self::Add => 0,
+            Self::Mul => 1,
+            _ => unreachable!(),
+        }
+    }
+
+    fn value(&self) -> usize {
+        match self {
+            Self::Int(value) => *value,
+            _ => unreachable!(),
         }
     }
 }
 
 fn evaluate_expression(exp: &mut std::str::Chars, advanced: bool) -> usize {
     let mut stack = vec![];
-    let mut op = Op::Add as fn(usize) -> Op;
     let mut int_literal = String::new();
 
     while let Some(c) = exp.next() {
         match c {
             ')' => break,
-            '(' => stack.push(op(evaluate_expression(exp, advanced))),
-            '+' => op = Op::Add as fn(usize) -> Op,
-            '*' => op = Op::Mul as fn(usize) -> Op,
+            '(' => stack.push(Op::Int(evaluate_expression(exp, advanced))),
+            '+' => stack.push(Op::Add),
+            '*' => stack.push(Op::Mul),
             ' ' => {
                 if let Ok(value) = int_literal.parse::<usize>() {
-                    stack.push(op(value));
+                    stack.push(Op::Int(value));
                     int_literal.clear();
                 }
             }
             _ => int_literal.push(c),
         }
     }
-
     if let Ok(value) = int_literal.parse::<usize>() {
-        stack.push(op(value));
+        stack.push(Op::Int(value));
     }
 
-    let mut sum = 0;
-    if advanced {
-        let mut prev = stack.first().unwrap();
-        for op in stack.iter().skip(1) {
-            let pri = if op.pri() > prev.pri() {
-                dbg!(op);
-                op
+    let mut order = 0;
+    while stack.len() > 1 {
+        let mut i = 0;
+        while i + 2 < stack.len() {
+            let lhs = &stack[i];
+            let op = &stack[i + 1];
+            let rhs = &stack[i + 2];
+
+            if advanced {
+                if op.order() == order {
+                    stack[i] = match op {
+                        Op::Add => Op::Int(lhs.value() + rhs.value()),
+                        Op::Mul => Op::Int(lhs.value() * rhs.value()),
+                        _ => unreachable!(),
+                    };
+                    stack.drain(i + 1..i + 3);
+                } else {
+                    i += 2;
+                }
             } else {
-                dbg!(prev);
-                let temp = prev;
-                prev = &op;
-                temp
-            };
-            match pri {
-                Op::Add(value) => sum += value,
-                Op::Mul(value) => sum *= value,
+                stack[i] = match op {
+                    Op::Add => Op::Int(lhs.value() + rhs.value()),
+                    Op::Mul => Op::Int(lhs.value() * rhs.value()),
+                    _ => unreachable!(),
+                };
+                stack.drain(i + 1..i + 3);
             }
         }
-    } else {
-        for op in stack {
-            match op {
-                Op::Add(value) => sum += value,
-                Op::Mul(value) => sum *= value,
-            }
-        }
+        order += 1;
     }
-    dbg!(sum);
-    sum
+    stack.first().unwrap().value()
 }
 
 fn sum_expressions(input: &str, advanced: bool) -> usize {
