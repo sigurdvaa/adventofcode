@@ -1,56 +1,65 @@
-// enum Rule {
-//     Unresolved(String),
-//     Resolved(String),
-//     Parsed(Vec<Vec<usize>>),
-// }
-//
-// impl Rule {
-//     fn value(&self) -> String {
-//         match self {
-//             Self::Unresolved(value) => value.into(),
-//             Self::Resolved(value) => value.into(),
-//             Self(value) => value.into(),
-//         }
-//     }
-// }
-//
-fn parse_rules_and_messages(input: &str) -> (Vec<Vec<String>>, Vec<&str>) {
+fn resolve_rule(rules: &[&str], cache: &mut [Option<Vec<String>>], idx: usize) -> Vec<String> {
+    if let Some(rule) = &cache[idx] {
+        return rule.clone();
+    }
+
+    if rules[idx].contains('"') {
+        return vec![rules[idx][1..rules[idx].len() - 1].to_string()];
+    }
+
+    // parse rule
+    let mut rule = vec![];
+    for alt in rules[idx][4..].split('|') {
+        // build string
+        let mut alt_rule = vec![String::new()];
+        for alt_idx in alt.split_whitespace().map(|p| p.parse().unwrap()) {
+            //   for number, resolve_rule
+            let mut next_alt_rule = vec![];
+            for alt_value in alt_rule {
+                for res_value in resolve_rule(rules, cache, alt_idx) {
+                    next_alt_rule.push(format!("{alt_value}{res_value}"));
+                }
+            }
+            alt_rule = next_alt_rule;
+        }
+        rule.extend(alt_rule);
+    }
+    cache[idx] = Some(rule.clone());
+    dbg!(cache);
+    // insert to cache
+
+    rule
+}
+
+fn messages_match_rule(rules: &[&str], messages: &[&str], rule: usize) -> usize {
+    let mut cache = vec![None; rules.len()];
+    let rule = resolve_rule(rules, &mut cache, rule);
+
+    let mut count = 0;
+    for msg in messages {
+        for alt in rule.iter() {
+            if !msg.contains(alt) {
+                break;
+            }
+            count += 1;
+        }
+    }
+    count
+}
+
+fn parse_rules_and_messages(input: &str) -> (Vec<&str>, Vec<&str>) {
     let mut lines = input.lines();
     let mut rules = vec![];
-    let mut unresolved = vec![];
 
     for line in lines.by_ref() {
         if line.is_empty() {
             break;
         }
-        if line.contains('"') {
-            rules.push(Some(line.to_string()));
-            unresolved.push(vec![]);
-        } else {
-            rules.push(None);
-            let pointers = line
-                .split('|')
-                .map(|or| {
-                    or.split_whitespace()
-                        .map(|point| point.trim().parse().unwrap())
-                        .collect()
-                })
-                .collect::<Vec<Vec<usize>>>();
-            unresolved.push(pointers);
-        }
-    }
-
-    let mut resolved = false;
-    while !resolved {
-        resolved = true;
+        rules.push(line);
     }
 
     let messages = lines.collect();
     (rules, messages)
-}
-
-fn messages_match_rule(rules: &[String], messages: &[String], rule: usize) -> usize {
-    0
 }
 
 pub fn run() {
