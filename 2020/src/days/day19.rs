@@ -4,12 +4,12 @@ fn resolve_rule(rules: &[&str], cache: &mut [Option<Vec<String>>], idx: usize) -
     }
 
     if rules[idx].contains('"') {
-        return vec![rules[idx][1..rules[idx].len() - 1].to_string()];
+        return vec![rules[idx][3..rules[idx].len() - 1].to_string()];
     }
 
     // parse rule
-    let mut rule = vec![];
-    for alt in rules[idx][4..].split('|') {
+    let mut resolved = vec![];
+    for alt in rules[idx][3..].split('|') {
         // build string
         let mut alt_rule = vec![String::new()];
         for alt_idx in alt.split_whitespace().map(|p| p.parse().unwrap()) {
