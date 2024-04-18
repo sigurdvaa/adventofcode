@@ -1,10 +1,10 @@
-enum Op {
+enum Token {
     Add,
     Mul,
     Int(usize),
 }
 
-impl Op {
+impl Token {
     fn order(&self) -> u32 {
         match self {
             Self::Add => 0,
@@ -28,12 +28,12 @@ fn evaluate_expression(exp: &mut std::str::Chars, advanced: bool) -> usize {
     while let Some(c) = exp.next() {
         match c {
             ')' => break,
-            '(' => stack.push(Op::Int(evaluate_expression(exp, advanced))),
-            '+' => stack.push(Op::Add),
-            '*' => stack.push(Op::Mul),
+            '(' => stack.push(Token::Int(evaluate_expression(exp, advanced))),
+            '+' => stack.push(Token::Add),
+            '*' => stack.push(Token::Mul),
             ' ' => {
                 if let Ok(value) = int_literal.parse::<usize>() {
-                    stack.push(Op::Int(value));
+                    stack.push(Token::Int(value));
                     int_literal.clear();
                 }
             }
@@ -41,7 +41,7 @@ fn evaluate_expression(exp: &mut std::str::Chars, advanced: bool) -> usize {
         }
     }
     if let Ok(value) = int_literal.parse::<usize>() {
-        stack.push(Op::Int(value));
+        stack.push(Token::Int(value));
     }
 
     let mut order = 0;
@@ -55,8 +55,8 @@ fn evaluate_expression(exp: &mut std::str::Chars, advanced: bool) -> usize {
             if advanced {
                 if op.order() == order {
                     stack[i] = match op {
-                        Op::Add => Op::Int(lhs.value() + rhs.value()),
-                        Op::Mul => Op::Int(lhs.value() * rhs.value()),
+                        Token::Add => Token::Int(lhs.value() + rhs.value()),
+                        Token::Mul => Token::Int(lhs.value() * rhs.value()),
                         _ => unreachable!(),
                     };
                     stack.drain(i + 1..i + 3);
@@ -65,8 +65,8 @@ fn evaluate_expression(exp: &mut std::str::Chars, advanced: bool) -> usize {
                 }
             } else {
                 stack[i] = match op {
-                    Op::Add => Op::Int(lhs.value() + rhs.value()),
-                    Op::Mul => Op::Int(lhs.value() * rhs.value()),
+                    Token::Add => Token::Int(lhs.value() + rhs.value()),
+                    Token::Mul => Token::Int(lhs.value() * rhs.value()),
                     _ => unreachable!(),
                 };
                 stack.drain(i + 1..i + 3);
