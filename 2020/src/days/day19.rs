@@ -1,71 +1,113 @@
-fn resolve_rule(rules: &[&str], cache: &mut [Option<Vec<String>>], idx: usize) -> Vec<String> {
-    if let Some(rule) = &cache[idx] {
-        return rule.clone();
-    }
+fn messages_match_rule(
+    resolved: &mut [Vec<String>],
+    rules: &[Vec<Vec<usize>>],
+    messages: &[&str],
+    rule_idx: usize,
+) -> usize {
+    let mut unresolved = true;
+    while unresolved {
+        unresolved = false;
+        for i in 0..resolved.len() {
+            if !resolved[i].is_empty() {
+                continue;
+            }
 
-    if rules[idx].contains('"') {
-        return vec![rules[idx][3..rules[idx].len() - 1].to_string()];
-    }
-
-    // parse rule
-    let mut resolved = vec![];
-    for alt in rules[idx][3..].split('|') {
-        // build string
-        let mut alt_rule = vec![String::new()];
-        for alt_idx in alt.split_whitespace().map(|p| p.parse().unwrap()) {
-            //   for number, resolve_rule
-            let mut next_alt_rule = vec![];
-            for alt_value in alt_rule {
-                for res_value in resolve_rule(rules, cache, alt_idx) {
-                    next_alt_rule.push(format!("{alt_value}{res_value}"));
+            // check for missing resolved
+            let mut missing = false;
+            for sub_rule in rules[i].iter() {
+                for sub_idx in sub_rule {
+                    if resolved[*sub_idx].is_empty() {
+                        missing = true;
+                        break;
+                    }
+                }
+                if missing {
+                    break;
                 }
             }
-            alt_rule = next_alt_rule;
+            if missing {
+                continue;
+            }
+
+            // build strings from subrules
+            let mut rule = vec![];
+            for sub_rule in rules[i].iter() {
+                let mut sub_res = vec![String::new()];
+                for sub_idx in sub_rule {
+                    let mut next_sub_res = vec![];
+                    for sub_value in sub_res {
+                        for res_value in resolved[*sub_idx] {
+                            next_sub_res.push(format!("{sub_value}{res_value}"));
+                        }
+                    }
+                    sub_res = next_sub_res;
+                }
+                rule.push(sub_rule);
+            }
+
+            // add to resolved
+            resolved[i] = rule;
         }
-        rule.extend(alt_rule);
     }
-    cache[idx] = Some(rule.clone());
-    dbg!(cache);
-    // insert to cache
-
-    rule
-}
-
-fn messages_match_rule(rules: &[&str], messages: &[&str], rule: usize) -> usize {
-    let mut cache = vec![None; rules.len()];
-    let rule = resolve_rule(rules, &mut cache, rule);
 
     let mut count = 0;
-    for msg in messages {
-        for alt in rule.iter() {
-            if !msg.contains(alt) {
-                break;
-            }
-            count += 1;
-        }
-    }
     count
 }
 
-fn parse_rules_and_messages(input: &str) -> (Vec<&str>, Vec<&str>) {
+fn parse_rules_and_messages(input: &str) -> (Vec<Vec<String>>, Vec<Vec<Vec<usize>>>, Vec<&str>) {
     let mut lines = input.lines();
-    let mut rules = vec![];
+    let mut raw_rules = vec![];
 
     for line in lines.by_ref() {
         if line.is_empty() {
             break;
         }
-        rules.push(line);
+        raw_rules.push(line);
     }
 
+    let mut rules = vec![];
+    let mut resolved = vec![];
+    for raw in raw_rules {
+        let mut split = raw.split(": ");
+        let idx = split.next().unwrap().parse::<usize>().unwrap();
+        let value = split.next().unwrap();
+
+        if value.contains('"') {
+            resolved.push((idx, vec![value[1..value.len() - 1].to_string()]));
+            rules.push((idx, vec![]));
+            continue;
+        }
+
+        let subrules = value
+            .split(" | ")
+            .map(|s| {
+                s.split_whitespace()
+                    .map(|i| i.parse::<usize>().unwrap())
+                    .collect()
+            })
+            .collect::<Vec<_>>();
+        resolved.push((idx, vec![]));
+        rules.push((idx, subrules));
+    }
+
+    resolved.sort_by(|a, b| a.0.cmp(&b.0));
+    rules.sort_by(|a, b| a.0.cmp(&b.0));
+
+    let resolved = resolved.into_iter().map(|(_, r)| r).collect();
+    let rules = rules.into_iter().map(|(_, r)| r).collect();
+
     let messages = lines.collect();
-    (rules, messages)
+    (resolved, rules, messages)
 }
 
 pub fn run() {
     let input_raw = crate::load_input(module_path!());
+    let (mut resolved, rules, messages) = parse_rules_and_messages(&input_raw);
     println!("Day 19: Monster Messages");
-    println!("Part One: {}", "TODO");
+    println!(
+        "Part One: {}",
+        messages_match_rule(&mut resolved, &rules, &messages, 0)
+    );
     println!("Part Two: {}", "TODO");
 }
 
@@ -90,8 +132,8 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let (rules, messages) = parse_rules_and_messages(INPUT_TEST);
-        assert_eq!(messages_match_rule(&rules, &messages, 0), 2);
+        let (mut resolved, rules, messages) = parse_rules_and_messages(INPUT_TEST);
+        assert_eq!(messages_match_rule(&mut resolved, &rules, &messages, 0), 2);
     }
 
     #[test]
