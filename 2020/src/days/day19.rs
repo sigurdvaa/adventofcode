@@ -1,56 +1,79 @@
+fn resolve_rule(resolved: &mut [Vec<String>], rules: &[Vec<Vec<usize>>], rule_idx: usize) {
+    let mut stack = vec![rule_idx];
+    while let Some(idx) = stack.last().cloned() {
+        if !resolved[idx].is_empty() {
+            stack.pop();
+            continue;
+        }
+
+        // check for missing resolved
+        let mut missing = false;
+        for sub_rule in rules[idx].iter() {
+            for sub_idx in sub_rule {
+                if resolved[*sub_idx].is_empty() {
+                    stack.push(*sub_idx);
+                    missing = true;
+                }
+            }
+        }
+        if missing {
+            continue;
+        }
+
+        // build strings from subrules
+        let mut resolved_rule = vec![];
+        for sub_rule in rules[idx].iter() {
+            let mut resolved_sub = vec![String::new()];
+            for sub_idx in sub_rule {
+                let mut next_resolved_sub = vec![];
+                for sub_value in resolved_sub.iter() {
+                    for res_value in resolved[*sub_idx].iter() {
+                        next_resolved_sub.push(format!("{sub_value}{res_value}"));
+                    }
+                }
+                resolved_sub = next_resolved_sub;
+            }
+            resolved_rule.extend(resolved_sub);
+        }
+
+        // add to resolved
+        resolved[idx] = resolved_rule;
+        stack.pop();
+    }
+}
+
 fn messages_match_rule(
     resolved: &mut [Vec<String>],
     rules: &[Vec<Vec<usize>>],
     messages: &[&str],
     rule_idx: usize,
 ) -> usize {
-    let mut unresolved = true;
-    while unresolved {
-        unresolved = false;
-        for i in 0..resolved.len() {
-            if !resolved[i].is_empty() {
+    let start = std::time::Instant::now();
+    resolve_rule(resolved, rules, rule_idx);
+    println!("Elapsed time: {:?}", start.elapsed());
+
+    let mut rule = resolved[rule_idx].clone();
+    rule.sort_by_key(|a| a.len());
+
+    let start = std::time::Instant::now();
+    let mut count = 0;
+    for msg in messages {
+        for sub_rule in rule.iter() {
+            if sub_rule.len() < msg.len() {
                 continue;
             }
 
-            // check for missing resolved
-            let mut missing = false;
-            for sub_rule in rules[i].iter() {
-                for sub_idx in sub_rule {
-                    if resolved[*sub_idx].is_empty() {
-                        missing = true;
-                        break;
-                    }
-                }
-                if missing {
-                    break;
-                }
-            }
-            if missing {
-                continue;
+            if sub_rule.len() > msg.len() {
+                break;
             }
 
-            // build strings from subrules
-            let mut rule = vec![];
-            for sub_rule in rules[i].iter() {
-                let mut sub_res = vec![String::new()];
-                for sub_idx in sub_rule {
-                    let mut next_sub_res = vec![];
-                    for sub_value in sub_res {
-                        for res_value in resolved[*sub_idx] {
-                            next_sub_res.push(format!("{sub_value}{res_value}"));
-                        }
-                    }
-                    sub_res = next_sub_res;
-                }
-                rule.push(sub_rule);
+            if *msg == sub_rule {
+                count += 1;
+                break;
             }
-
-            // add to resolved
-            resolved[i] = rule;
         }
     }
-
-    let mut count = 0;
+    println!("Elapsed time: {:?}", start.elapsed());
     count
 }
 
