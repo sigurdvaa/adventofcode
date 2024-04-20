@@ -1,17 +1,54 @@
-fn resolve_rule(resolved: &mut [Vec<String>], rules: &[Vec<Vec<usize>>], rule_idx: usize) {
-    let mut stack = vec![rule_idx];
-    while let Some(idx) = stack.last().cloned() {
-        if !resolved[idx].is_empty() {
+use std::collections::HashMap;
+
+fn messages_match_rule(
+    rules: &HashMap<&str, Vec<String>>,
+    messages: &[&str],
+    rule_idx: &str,
+) -> usize {
+    let mut count = 0;
+    for msg in messages {
+        for sub_rule in rules[rule_idx].iter() {
+            if sub_rule.len() == msg.len() && sub_rule == *msg {
+                count += 1;
+                break;
+            }
+        }
+    }
+    count
+}
+
+fn resolve_rules<'a>(rules: &'a [&str], start: &'a str) -> HashMap<&'a str, Vec<String>> {
+    let mut resolved = HashMap::new();
+    let mut parsed = HashMap::new();
+
+    for rule in rules {
+        let mut split = rule.split(": ");
+        let nr = split.next().unwrap();
+        let value = split.next().unwrap();
+
+        if value.contains('"') {
+            resolved.insert(nr, vec![value[1..value.len() - 1].to_string()]);
+        } else {
+            let subrules = value
+                .split(" | ")
+                .map(|s| s.split_whitespace().collect())
+                .collect::<Vec<Vec<&str>>>();
+            parsed.insert(nr, subrules);
+        }
+    }
+
+    let mut stack = vec![start];
+    while let Some(rule_nr) = stack.last().cloned() {
+        if resolved.contains_key(rule_nr) {
             stack.pop();
             continue;
         }
 
-        // check for missing resolved
         let mut missing = false;
-        for sub_rule in rules[idx].iter() {
-            for sub_idx in sub_rule {
-                if resolved[*sub_idx].is_empty() {
-                    stack.push(*sub_idx);
+        for subrule in parsed.get(rule_nr).unwrap() {
+            for sub_nr in subrule {
+                if !resolved.contains_key(sub_nr) {
+                    stack.push(sub_nr);
                     missing = true;
                 }
             }
@@ -22,7 +59,7 @@ fn resolve_rule(resolved: &mut [Vec<String>], rules: &[Vec<Vec<usize>>], rule_id
 
         // build strings from subrules
         let mut resolved_rule = vec![];
-        for sub_rule in rules[idx].iter() {
+        for sub_rule in parsed[rule_nr].iter() {
             let mut resolved_sub = vec![String::new()];
             for sub_idx in sub_rule {
                 let mut next_resolved_sub = vec![];
@@ -37,100 +74,46 @@ fn resolve_rule(resolved: &mut [Vec<String>], rules: &[Vec<Vec<usize>>], rule_id
         }
 
         // add to resolved
-        resolved[idx] = resolved_rule;
+        resolved.insert(rule_nr, resolved_rule);
         stack.pop();
     }
+
+    resolved
 }
 
-fn messages_match_rule(
-    resolved: &mut [Vec<String>],
-    rules: &[Vec<Vec<usize>>],
-    messages: &[&str],
-    rule_idx: usize,
-) -> usize {
-    let start = std::time::Instant::now();
-    resolve_rule(resolved, rules, rule_idx);
-    println!("Elapsed time: {:?}", start.elapsed());
-
-    let mut rule = resolved[rule_idx].clone();
-    rule.sort_by_key(|a| a.len());
-
-    let start = std::time::Instant::now();
-    let mut count = 0;
-    for msg in messages {
-        for sub_rule in rule.iter() {
-            if sub_rule.len() < msg.len() {
-                continue;
-            }
-
-            if sub_rule.len() > msg.len() {
-                break;
-            }
-
-            if *msg == sub_rule {
-                count += 1;
-                break;
-            }
-        }
-    }
-    println!("Elapsed time: {:?}", start.elapsed());
-    count
-}
-
-fn parse_rules_and_messages(input: &str) -> (Vec<Vec<String>>, Vec<Vec<Vec<usize>>>, Vec<&str>) {
+fn parse_rules_and_messages(input: &str) -> (Vec<&str>, Vec<&str>) {
+    let mut rules = vec![];
     let mut lines = input.lines();
-    let mut raw_rules = vec![];
 
     for line in lines.by_ref() {
         if line.is_empty() {
             break;
         }
-        raw_rules.push(line);
+        rules.push(line);
     }
-
-    let mut rules = vec![];
-    let mut resolved = vec![];
-    for raw in raw_rules {
-        let mut split = raw.split(": ");
-        let idx = split.next().unwrap().parse::<usize>().unwrap();
-        let value = split.next().unwrap();
-
-        if value.contains('"') {
-            resolved.push((idx, vec![value[1..value.len() - 1].to_string()]));
-            rules.push((idx, vec![]));
-            continue;
-        }
-
-        let subrules = value
-            .split(" | ")
-            .map(|s| {
-                s.split_whitespace()
-                    .map(|i| i.parse::<usize>().unwrap())
-                    .collect()
-            })
-            .collect::<Vec<_>>();
-        resolved.push((idx, vec![]));
-        rules.push((idx, subrules));
-    }
-
-    resolved.sort_by(|a, b| a.0.cmp(&b.0));
-    rules.sort_by(|a, b| a.0.cmp(&b.0));
-
-    let resolved = resolved.into_iter().map(|(_, r)| r).collect();
-    let rules = rules.into_iter().map(|(_, r)| r).collect();
 
     let messages = lines.collect();
-    (resolved, rules, messages)
+    (rules, messages)
 }
 
 pub fn run() {
     let input_raw = crate::load_input(module_path!());
-    let (mut resolved, rules, messages) = parse_rules_and_messages(&input_raw);
+
+    let (rules, messages) = parse_rules_and_messages(&input_raw);
+
+    let start = std::time::Instant::now();
+    let resolved = resolve_rules(&rules, "0");
+    println!("Elapsed: {:?}", start.elapsed());
+
     println!("Day 19: Monster Messages");
+
+    let start = std::time::Instant::now();
     println!(
         "Part One: {}",
-        messages_match_rule(&mut resolved, &rules, &messages, 0)
+        messages_match_rule(&resolved, &messages, "0")
     );
+    println!("Elapsed: {:?}", start.elapsed());
+
     println!("Part Two: {}", "TODO");
 }
 
@@ -138,27 +121,80 @@ pub fn run() {
 mod tests {
     use super::*;
 
-    const INPUT_TEST: &str = concat!(
-        "0: 4 1 5\n",
-        "1: 2 3 | 3 2\n",
-        "2: 4 4 | 5 5\n",
-        "3: 4 5 | 5 4\n",
-        "4: \"a\"\n",
-        "5: \"b\"\n",
-        "\n",
-        "ababbb\n",
-        "bababa\n",
-        "abbbab\n",
-        "aaabbb\n",
-        "aaaabbb",
-    );
-
     #[test]
     fn test_part_one() {
-        let (mut resolved, rules, messages) = parse_rules_and_messages(INPUT_TEST);
-        assert_eq!(messages_match_rule(&mut resolved, &rules, &messages, 0), 2);
+        const INPUT_TEST: &str = concat!(
+            "0: 4 1 5\n",
+            "1: 2 3 | 3 2\n",
+            "2: 4 4 | 5 5\n",
+            "3: 4 5 | 5 4\n",
+            "4: \"a\"\n",
+            "5: \"b\"\n",
+            "\n",
+            "ababbb\n",
+            "bababa\n",
+            "abbbab\n",
+            "aaabbb\n",
+            "aaaabbb",
+        );
+        let (rules, messages) = parse_rules_and_messages(INPUT_TEST);
+        let resolved = resolve_rules(&rules, "0");
+        assert_eq!(messages_match_rule(&resolved, &messages, "0"), 2);
     }
 
     #[test]
-    fn test_part_two() {}
+    fn test_part_two() {
+        const INPUT_TEST: &str = concat!(
+            "42: 9 14 | 10 1\n",
+            "9: 14 27 | 1 26\n",
+            "10: 23 14 | 28 1\n",
+            "1: \"a\"\n",
+            "11: 42 31\n",
+            "5: 1 14 | 15 1\n",
+            "19: 14 1 | 14 14\n",
+            "12: 24 14 | 19 1\n",
+            "16: 15 1 | 14 14\n",
+            "31: 14 17 | 1 13\n",
+            "6: 14 14 | 1 14\n",
+            "2: 1 24 | 14 4\n",
+            "0: 8 11\n",
+            "13: 14 3 | 1 12\n",
+            "15: 1 | 14\n",
+            "17: 14 2 | 1 7\n",
+            "23: 25 1 | 22 14\n",
+            "28: 16 1\n",
+            "4: 1 1\n",
+            "20: 14 14 | 1 15\n",
+            "3: 5 14 | 16 1\n",
+            "27: 1 6 | 14 18\n",
+            "14: \"b\"\n",
+            "21: 14 1 | 1 14\n",
+            "25: 1 1 | 1 14\n",
+            "22: 14 14\n",
+            "8: 42\n",
+            "26: 14 22 | 1 20\n",
+            "18: 15 15\n",
+            "7: 14 5 | 1 21\n",
+            "24: 14 1\n",
+            "\n",
+            "abbbbbabbbaaaababbaabbbbabababbbabbbbbbabaaaa\n",
+            "bbabbbbaabaabba\n",
+            "babbbbaabbbbbabbbbbbaabaaabaaa\n",
+            "aaabbbbbbaaaabaababaabababbabaaabbababababaaa\n",
+            "bbbbbbbaaaabbbbaaabbabaaa\n",
+            "bbbababbbbaaaaaaaabbababaaababaabab\n",
+            "ababaaaaaabaaab\n",
+            "ababaaaaabbbaba\n",
+            "baabbaaaabbaaaababbaababb\n",
+            "abbbbabbbbaaaababbbbbbaaaababb\n",
+            "aaaaabbaabaaaaababaa\n",
+            "aaaabbaaaabbaaa\n",
+            "aaaabbaabbaaaaaaabbbabbbaaabbaabaaa\n",
+            "babaaabbbaaabaababbaabababaaab\n",
+            "aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba",
+        );
+        let (rules, messages) = parse_rules_and_messages(INPUT_TEST);
+        let resolved = resolve_rules(&rules, "0");
+        assert_eq!(messages_match_rule(&resolved, &messages, "0"), 3);
+    }
 }
