@@ -31,7 +31,7 @@ fn resolve_rules<'a>(rules: &'a [&str], start: &'a str) -> HashMap<&'a str, Stri
         let mut missing = false;
         for subrule in parsed.get(rule_nr).unwrap() {
             for sub_nr in subrule {
-                if !resolved.contains_key(sub_nr) {
+                if !resolved.contains_key(sub_nr) && rule_nr != *sub_nr {
                     stack.push(sub_nr);
                     missing = true;
                 }
@@ -45,8 +45,19 @@ fn resolve_rules<'a>(rules: &'a [&str], start: &'a str) -> HashMap<&'a str, Stri
         let mut resolved_rule = vec![];
         for sub_rule in parsed[rule_nr].iter() {
             let mut resolved_sub = String::new();
-            for sub_idx in sub_rule {
-                resolved_sub.push_str(&resolved[sub_idx]);
+            for sub_nr in sub_rule {
+                if rule_nr == "8" && rule_nr == *sub_nr {
+                    let prefix = resolved_rule.last().unwrap();
+                    resolved_sub = format!("{prefix}+");
+                } else if rule_nr == "11" && rule_nr == *sub_nr {
+                    let rule42 = &resolved["42"];
+                    let rule31 = &resolved["31"];
+                    let previous = resolved_rule.last().unwrap();
+                    resolved_sub = format!("{rule42}{previous}+{rule31}");
+                    dbg!(&resolved_sub);
+                } else {
+                    resolved_sub.push_str(&resolved[sub_nr]);
+                }
             }
             resolved_rule.push(resolved_sub);
         }
@@ -88,12 +99,31 @@ fn parse_rules_and_messages(input: &str) -> (Vec<&str>, Vec<&str>) {
     (rules, messages)
 }
 
+fn update_rules<'a>(rules: &'a [&str]) -> Vec<&'a str> {
+    rules
+        .iter()
+        .map(|r| {
+            if r.starts_with("8:") {
+                "8: 42 | 42 8"
+            } else if r.starts_with("11:") {
+                "11: 42 31 | 42 11 31"
+            } else {
+                r
+            }
+        })
+        .collect::<Vec<&str>>()
+}
+
 pub fn run() {
     let input_raw = crate::load_input(module_path!());
     let (rules, messages) = parse_rules_and_messages(&input_raw);
     println!("Day 19: Monster Messages");
     println!("Part One: {}", messages_match_rule(&rules, &messages, "0"));
-    println!("Part Two: {}", "TODO");
+    let rules = update_rules(&rules);
+    println!("Part Two: {}", messages_match_rule(&rules, &messages, "0"));
+
+    // 298 high
+    // 273 low
 }
 
 #[cfg(test)]
@@ -174,6 +204,7 @@ mod tests {
         );
         let (rules, messages) = parse_rules_and_messages(INPUT_TEST);
         assert_eq!(messages_match_rule(&rules, &messages, "0"), 3);
-        assert_eq!(messages_match_rule(&rules, &messages, "0"), 3);
+        let rules = update_rules(&rules);
+        assert_eq!(messages_match_rule(&rules, &messages, "0"), 12);
     }
 }
