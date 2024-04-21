@@ -1,23 +1,7 @@
+use regex::Regex;
 use std::collections::HashMap;
 
-fn messages_match_rule(
-    rules: &HashMap<&str, Vec<String>>,
-    messages: &[&str],
-    rule_idx: &str,
-) -> usize {
-    let mut count = 0;
-    for msg in messages {
-        for sub_rule in rules[rule_idx].iter() {
-            if sub_rule.len() == msg.len() && sub_rule == *msg {
-                count += 1;
-                break;
-            }
-        }
-    }
-    count
-}
-
-fn resolve_rules<'a>(rules: &'a [&str], start: &'a str) -> HashMap<&'a str, Vec<String>> {
+fn resolve_rules<'a>(rules: &'a [&str], start: &'a str) -> HashMap<&'a str, String> {
     let mut resolved = HashMap::new();
     let mut parsed = HashMap::new();
 
@@ -27,7 +11,7 @@ fn resolve_rules<'a>(rules: &'a [&str], start: &'a str) -> HashMap<&'a str, Vec<
         let value = split.next().unwrap();
 
         if value.contains('"') {
-            resolved.insert(nr, vec![value[1..value.len() - 1].to_string()]);
+            resolved.insert(nr, value[1..value.len() - 1].to_string());
         } else {
             let subrules = value
                 .split(" | ")
@@ -60,25 +44,33 @@ fn resolve_rules<'a>(rules: &'a [&str], start: &'a str) -> HashMap<&'a str, Vec<
         // build strings from subrules
         let mut resolved_rule = vec![];
         for sub_rule in parsed[rule_nr].iter() {
-            let mut resolved_sub = vec![String::new()];
+            let mut resolved_sub = String::new();
             for sub_idx in sub_rule {
-                let mut next_resolved_sub = vec![];
-                for sub_value in resolved_sub.iter() {
-                    for res_value in resolved[*sub_idx].iter() {
-                        next_resolved_sub.push(format!("{sub_value}{res_value}"));
-                    }
-                }
-                resolved_sub = next_resolved_sub;
+                resolved_sub.push_str(&resolved[sub_idx]);
             }
-            resolved_rule.extend(resolved_sub);
+            resolved_rule.push(resolved_sub);
         }
 
         // add to resolved
-        resolved.insert(rule_nr, resolved_rule);
+        resolved.insert(rule_nr, format!("({})", resolved_rule.join("|")));
         stack.pop();
     }
 
     resolved
+}
+
+fn messages_match_rule(rules: &[&str], messages: &[&str], rule_idx: &str) -> usize {
+    let resolved = resolve_rules(rules, rule_idx);
+    let start = std::time::Instant::now();
+    let re = Regex::new(&format!("^{}$", &resolved[rule_idx])).unwrap();
+    let mut count = 0;
+    for msg in messages {
+        if re.is_match(msg) {
+            count += 1;
+        }
+    }
+    println!("Regex Match Elapsed: {:?}", start.elapsed());
+    count
 }
 
 fn parse_rules_and_messages(input: &str) -> (Vec<&str>, Vec<&str>) {
@@ -98,22 +90,9 @@ fn parse_rules_and_messages(input: &str) -> (Vec<&str>, Vec<&str>) {
 
 pub fn run() {
     let input_raw = crate::load_input(module_path!());
-
     let (rules, messages) = parse_rules_and_messages(&input_raw);
-
-    let start = std::time::Instant::now();
-    let resolved = resolve_rules(&rules, "0");
-    println!("Elapsed: {:?}", start.elapsed());
-
     println!("Day 19: Monster Messages");
-
-    let start = std::time::Instant::now();
-    println!(
-        "Part One: {}",
-        messages_match_rule(&resolved, &messages, "0")
-    );
-    println!("Elapsed: {:?}", start.elapsed());
-
+    println!("Part One: {}", messages_match_rule(&rules, &messages, "0"));
     println!("Part Two: {}", "TODO");
 }
 
@@ -138,8 +117,8 @@ mod tests {
             "aaaabbb",
         );
         let (rules, messages) = parse_rules_and_messages(INPUT_TEST);
-        let resolved = resolve_rules(&rules, "0");
-        assert_eq!(messages_match_rule(&resolved, &messages, "0"), 2);
+        assert_eq!(messages_match_rule(&rules, &messages, "0"), 2);
+        assert_eq!(messages_match_rule(&rules, &messages, "0"), 2);
     }
 
     #[test]
@@ -194,7 +173,7 @@ mod tests {
             "aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba",
         );
         let (rules, messages) = parse_rules_and_messages(INPUT_TEST);
-        let resolved = resolve_rules(&rules, "0");
-        assert_eq!(messages_match_rule(&resolved, &messages, "0"), 3);
+        assert_eq!(messages_match_rule(&rules, &messages, "0"), 3);
+        assert_eq!(messages_match_rule(&rules, &messages, "0"), 3);
     }
 }
