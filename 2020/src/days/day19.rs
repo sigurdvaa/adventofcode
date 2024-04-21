@@ -1,4 +1,4 @@
-use regex::Regex;
+use fancy_regex::Regex;
 use std::collections::HashMap;
 
 fn resolve_rules<'a>(rules: &'a [&str], start: &'a str) -> HashMap<&'a str, String> {
@@ -55,7 +55,8 @@ fn resolve_rules<'a>(rules: &'a [&str], start: &'a str) -> HashMap<&'a str, Stri
         } else if rule_loop && rule_nr == "11" {
             let rule42 = &resolved["42"];
             let rule31 = &resolved["31"];
-            resolved.insert("11", format!("{rule42}+{rule31}+"));
+            let rule11 = format!("((?={rule42})(?<={rule31}))+");
+            resolved.insert("11", format!("{rule42}{rule11}{rule31}"));
             continue;
         }
 
@@ -70,7 +71,7 @@ fn resolve_rules<'a>(rules: &'a [&str], start: &'a str) -> HashMap<&'a str, Stri
         }
 
         // add to resolved
-        resolved.insert(rule_nr, format!("({})", resolved_rule.join("|")));
+        resolved.insert(rule_nr, format!("(?:{})", resolved_rule.join("|")));
     }
 
     resolved
@@ -82,7 +83,7 @@ fn messages_match_rule(rules: &[&str], messages: &[&str], rule_idx: &str) -> usi
     let re = Regex::new(&format!("^{}$", &resolved[rule_idx])).unwrap();
     let mut count = 0;
     for msg in messages {
-        if re.is_match(msg) {
+        if re.is_match(msg).unwrap() {
             count += 1;
         }
     }
@@ -130,6 +131,7 @@ pub fn run() {
 
     // 298 high
     // 285 high
+    // 279 -
     // 273 low
 }
 
