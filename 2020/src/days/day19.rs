@@ -29,15 +29,34 @@ fn resolve_rules<'a>(rules: &'a [&str], start: &'a str) -> HashMap<&'a str, Stri
         }
 
         let mut missing = false;
+        let mut rule_loop = false;
         for subrule in parsed.get(rule_nr).unwrap() {
             for sub_nr in subrule {
-                if !resolved.contains_key(sub_nr) && rule_nr != *sub_nr {
+                if rule_nr != *sub_nr && !resolved.contains_key(sub_nr) {
                     stack.push(sub_nr);
                     missing = true;
+                } else if rule_nr == *sub_nr {
+                    rule_loop = true;
                 }
             }
         }
         if missing {
+            continue;
+        }
+
+        // subrules resolved, ready to resolve
+        stack.pop();
+
+        // looping rules
+        if rule_loop && rule_nr == "8" {
+            let rule42 = &resolved["42"];
+            resolved.insert("8", format!("({rule42}+)"));
+            continue;
+        } else if rule_loop && rule_nr == "11" {
+            let rule42 = &resolved["42"];
+            let rule31 = &resolved["31"];
+            resolved.insert("11", format!("({rule42}+{rule31}+)"));
+            // resolved.insert("11", format!(""));
             continue;
         }
 
@@ -46,25 +65,13 @@ fn resolve_rules<'a>(rules: &'a [&str], start: &'a str) -> HashMap<&'a str, Stri
         for sub_rule in parsed[rule_nr].iter() {
             let mut resolved_sub = String::new();
             for sub_nr in sub_rule {
-                if rule_nr == "8" && rule_nr == *sub_nr {
-                    let prefix = resolved_rule.last().unwrap();
-                    resolved_sub = format!("{prefix}+");
-                } else if rule_nr == "11" && rule_nr == *sub_nr {
-                    let rule42 = &resolved["42"];
-                    let rule31 = &resolved["31"];
-                    let previous = resolved_rule.last().unwrap();
-                    resolved_sub = format!("{rule42}{previous}+{rule31}");
-                    dbg!(&resolved_sub);
-                } else {
-                    resolved_sub.push_str(&resolved[sub_nr]);
-                }
+                resolved_sub.push_str(&resolved[sub_nr]);
             }
             resolved_rule.push(resolved_sub);
         }
 
         // add to resolved
         resolved.insert(rule_nr, format!("({})", resolved_rule.join("|")));
-        stack.pop();
     }
 
     resolved
@@ -123,6 +130,7 @@ pub fn run() {
     println!("Part Two: {}", messages_match_rule(&rules, &messages, "0"));
 
     // 298 high
+    // 285 high
     // 273 low
 }
 
