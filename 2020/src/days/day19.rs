@@ -50,13 +50,12 @@ fn resolve_rules<'a>(rules: &'a [&str], start: &'a str) -> HashMap<&'a str, Stri
         // looping rules
         if rule_loop && rule_nr == "8" {
             let rule42 = &resolved["42"];
-            resolved.insert("8", format!("({rule42}+)"));
+            resolved.insert("8", format!("{rule42}+"));
             continue;
         } else if rule_loop && rule_nr == "11" {
             let rule42 = &resolved["42"];
             let rule31 = &resolved["31"];
-            resolved.insert("11", format!("({rule42}+{rule31}+)"));
-            // resolved.insert("11", format!(""));
+            resolved.insert("11", format!("{rule42}+{rule31}+"));
             continue;
         }
 
