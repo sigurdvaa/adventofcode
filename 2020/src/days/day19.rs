@@ -105,7 +105,7 @@ fn parse_rules_and_messages(input: &str) -> (Vec<&str>, Vec<&str>) {
     (rules, messages)
 }
 
-fn update_rules<'a>(rules: &'a [&str]) -> Vec<&'a str> {
+fn updated_rules<'a>(rules: &'a [&str]) -> Vec<&'a str> {
     rules
         .iter()
         .map(|r| {
@@ -120,12 +120,95 @@ fn update_rules<'a>(rules: &'a [&str]) -> Vec<&'a str> {
         .collect::<Vec<&str>>()
 }
 
+#[derive(Clone)]
+enum Token<'a> {
+    Ref(&'a str),
+    Val(&'a str),
+}
+
+impl Token<'_> {
+    fn value(&self) -> &str {
+        match self {
+            Self::Ref(value) => value,
+            Self::Val(value) => value,
+        }
+    }
+}
+
+struct Fsm<'a> {
+    stack: Vec<Vec<Vec<Token<'a>>>>,
+    machine: HashMap<&'a str, Vec<Vec<Token<'a>>>>,
+}
+
+impl<'a> Fsm<'a> {
+    fn new(rules: &'a [&'a str], start: &'a str) -> Self {
+        let mut machine = HashMap::new();
+        for rule in rules {
+            let mut split = rule.split(": ");
+            let nr = split.next().unwrap();
+            let value = split.next().unwrap();
+            if value.contains('"') {
+                machine.insert(nr, vec![vec![Token::Val(&value[1..value.len() - 1])]]);
+            } else {
+                let subrules = value
+                    .split(" | ")
+                    .map(|s| s.split_whitespace().map(Token::Ref).collect())
+                    .collect::<Vec<Vec<Token>>>();
+                machine.insert(nr, subrules);
+            }
+        }
+        Self {
+            stack: vec![machine[start].clone()],
+            machine,
+        }
+    }
+
+    fn next_val(&mut self) -> Option<&str> {
+        while let Some(options) = self.stack.last_mut() {
+            while option
+            for option in options {
+                for token in option
+                match option {
+                    Token::Ref(rule) => {
+                        self.stack.push(self.machine[rule].clone());
+                        break;
+                    }
+                    Token::Val(value) => return Some(value),
+                }
+            }
+        }
+        None
+    }
+
+    fn is_match(&mut self, value: &str) -> bool {
+        for c in value.chars() {
+            if let Some(val) = self.next_val() {
+                if val != c.to_string() {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+}
+
+fn messages_match_rule_fsm(rules: &[&str], messages: &[&str], rule: &str) -> usize {
+    let mut fsm = Fsm::new(rules, rule);
+    let mut count = 0;
+    for msg in messages {
+        if fsm.is_match(msg) {
+            count += 1;
+        }
+    }
+    count
+}
+
 pub fn run() {
     let input_raw = crate::load_input(module_path!());
     let (rules, messages) = parse_rules_and_messages(&input_raw);
     println!("Day 19: Monster Messages");
     println!("Part One: {}", messages_match_rule(&rules, &messages, "0"));
-    let rules = update_rules(&rules);
+    let rules = updated_rules(&rules);
     println!("Part Two: {}", messages_match_rule(&rules, &messages, "0"));
 }
 
@@ -151,7 +234,7 @@ mod tests {
         );
         let (rules, messages) = parse_rules_and_messages(INPUT_TEST);
         assert_eq!(messages_match_rule(&rules, &messages, "0"), 2);
-        assert_eq!(messages_match_rule(&rules, &messages, "0"), 2);
+        assert_eq!(messages_match_rule_fsm(&rules, &messages, "0"), 2);
     }
 
     #[test]
@@ -207,7 +290,7 @@ mod tests {
         );
         let (rules, messages) = parse_rules_and_messages(INPUT_TEST);
         assert_eq!(messages_match_rule(&rules, &messages, "0"), 3);
-        let rules = update_rules(&rules);
+        let rules = updated_rules(&rules);
         assert_eq!(messages_match_rule(&rules, &messages, "0"), 12);
     }
 }
