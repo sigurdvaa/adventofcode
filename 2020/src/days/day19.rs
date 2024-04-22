@@ -1,4 +1,4 @@
-use fancy_regex::Regex;
+use pcre2::bytes::Regex;
 use std::collections::HashMap;
 
 fn resolve_rules<'a>(rules: &'a [&str], start: &'a str) -> HashMap<&'a str, String> {
@@ -55,8 +55,7 @@ fn resolve_rules<'a>(rules: &'a [&str], start: &'a str) -> HashMap<&'a str, Stri
         } else if rule_loop && rule_nr == "11" {
             let rule42 = &resolved["42"];
             let rule31 = &resolved["31"];
-            let rule11 = format!("((?={rule42})(?<={rule31}))+");
-            resolved.insert("11", format!("{rule42}{rule11}{rule31}"));
+            resolved.insert("11", format!("({rule42}(?1)?{rule31})"));
             continue;
         }
 
@@ -83,7 +82,7 @@ fn messages_match_rule(rules: &[&str], messages: &[&str], rule_idx: &str) -> usi
     let re = Regex::new(&format!("^{}$", &resolved[rule_idx])).unwrap();
     let mut count = 0;
     for msg in messages {
-        if re.is_match(msg).unwrap() {
+        if re.is_match(msg.as_bytes()).unwrap() {
             count += 1;
         }
     }
@@ -128,11 +127,6 @@ pub fn run() {
     println!("Part One: {}", messages_match_rule(&rules, &messages, "0"));
     let rules = update_rules(&rules);
     println!("Part Two: {}", messages_match_rule(&rules, &messages, "0"));
-
-    // 298 high
-    // 285 high
-    // 279 -
-    // 273 low
 }
 
 #[cfg(test)]
