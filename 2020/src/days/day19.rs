@@ -120,7 +120,7 @@ fn updated_rules<'a>(rules: &'a [&str]) -> Vec<&'a str> {
         .collect::<Vec<&str>>()
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum Token<'a> {
     Ref(&'a str),
     Val(&'a str),
@@ -136,7 +136,8 @@ impl Token<'_> {
 }
 
 struct Fsm<'a> {
-    stack: Vec<Vec<Vec<Token<'a>>>>,
+    len: usize,
+    stack: Vec<(usize, Vec<Vec<Token<'a>>>)>,
     machine: HashMap<&'a str, Vec<Vec<Token<'a>>>>,
 }
 
@@ -157,38 +158,53 @@ impl<'a> Fsm<'a> {
                 machine.insert(nr, subrules);
             }
         }
+        let mut stack = machine[start].clone();
+        stack.reverse();
         Self {
-            stack: vec![machine[start].clone()],
+            len: 0,
+            stack: vec![(0, stack)],
             machine,
         }
     }
 
-    fn next_val(&mut self) -> Option<&str> {
-        while let Some(options) = self.stack.last_mut() {
-            while option
-            for option in options {
-                for token in option
-                match option {
-                    Token::Ref(rule) => {
-                        self.stack.push(self.machine[rule].clone());
-                        break;
+    fn recursive_match(&self, value: &[char], len: usize, rule: &[Vec<Token>]) -> usize {
+        if len >= value.len() {
+            return 0;
+        }
+
+        for subrule in rule {
+            let mut m = 0;
+            let mut valid = true;
+            for token in subrule {
+                match token {
+                    Token::Ref(ruleref) => {
+                        let matched = self.recursive_match(value, len + m, &self.machine[ruleref]);
+                        if matched == 0 {
+                            valid = false;
+                            break;
+                        }
+                        m += matched;
                     }
-                    Token::Val(value) => return Some(value),
+                    Token::Val(val) => {
+                        if *val != value[len + m].to_string() {
+                            valid = false;
+                            break;
+                        }
+                        m += 1;
+                    }
                 }
             }
+            if valid {
+                return m;
+            }
         }
-        None
+
+        0
     }
 
     fn is_match(&mut self, value: &str) -> bool {
-        for c in value.chars() {
-            if let Some(val) = self.next_val() {
-                if val != c.to_string() {
-                    return false;
-                }
-            }
-        }
-        true
+        let value = value.chars().collect::<Vec<_>>();
+        value.len() == self.recursive_match(&value, 0, &self.machine["0"])
     }
 }
 
@@ -208,8 +224,23 @@ pub fn run() {
     let (rules, messages) = parse_rules_and_messages(&input_raw);
     println!("Day 19: Monster Messages");
     println!("Part One: {}", messages_match_rule(&rules, &messages, "0"));
+
+    let start = std::time::Instant::now();
+    println!(
+        "Part One: {}",
+        messages_match_rule_fsm(&rules, &messages, "0")
+    );
+    println!("Elapsed {:?}", start.elapsed());
+
     let rules = updated_rules(&rules);
     println!("Part Two: {}", messages_match_rule(&rules, &messages, "0"));
+
+    let start = std::time::Instant::now();
+    println!(
+        "Part Two: {}",
+        messages_match_rule_fsm(&rules, &messages, "0")
+    );
+    println!("Elapsed {:?}", start.elapsed());
 }
 
 #[cfg(test)]
@@ -290,7 +321,9 @@ mod tests {
         );
         let (rules, messages) = parse_rules_and_messages(INPUT_TEST);
         assert_eq!(messages_match_rule(&rules, &messages, "0"), 3);
+        assert_eq!(messages_match_rule_fsm(&rules, &messages, "0"), 3);
         let rules = updated_rules(&rules);
         assert_eq!(messages_match_rule(&rules, &messages, "0"), 12);
+        assert_eq!(messages_match_rule_fsm(&rules, &messages, "0"), 12);
     }
 }
