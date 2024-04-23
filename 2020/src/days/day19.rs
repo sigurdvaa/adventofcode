@@ -78,7 +78,6 @@ fn resolve_rules<'a>(rules: &'a [&str], start: &'a str) -> HashMap<&'a str, Stri
 
 fn messages_match_rule(rules: &[&str], messages: &[&str], rule_idx: &str) -> usize {
     let resolved = resolve_rules(rules, rule_idx);
-    let start = std::time::Instant::now();
     let re = Regex::new(&format!("^{}$", &resolved[rule_idx])).unwrap();
     let mut count = 0;
     for msg in messages {
@@ -86,7 +85,6 @@ fn messages_match_rule(rules: &[&str], messages: &[&str], rule_idx: &str) -> usi
             count += 1;
         }
     }
-    println!("Regex Match Elapsed: {:?}", start.elapsed());
     count
 }
 
@@ -123,16 +121,7 @@ fn updated_rules<'a>(rules: &'a [&str]) -> Vec<&'a str> {
 #[derive(Clone, Debug)]
 enum Token<'a> {
     Ref(&'a str),
-    Val(&'a str),
-}
-
-impl Token<'_> {
-    fn value(&self) -> &str {
-        match self {
-            Self::Ref(value) => value,
-            Self::Val(value) => value,
-        }
-    }
+    Val(char),
 }
 
 struct Fsm<'a> {
@@ -149,7 +138,8 @@ impl<'a> Fsm<'a> {
             let nr = split.next().unwrap();
             let value = split.next().unwrap();
             if value.contains('"') {
-                machine.insert(nr, vec![vec![Token::Val(&value[1..value.len() - 1])]]);
+                let c = value.chars().nth(1).unwrap();
+                machine.insert(nr, vec![vec![Token::Val(c)]]);
             } else {
                 let subrules = value
                     .split(" | ")
@@ -167,44 +157,53 @@ impl<'a> Fsm<'a> {
         }
     }
 
-    fn recursive_match(&self, value: &[char], len: usize, rule: &[Vec<Token>]) -> usize {
-        if len >= value.len() {
-            return 0;
+    fn is_match(&self, value: &[char]) -> bool {
+        let mut queue = vec![];
+        for subrule in self.machine["0"].iter() {
+            queue.push((0, vec![(0, subrule)]));
         }
 
-        for subrule in rule {
-            let mut m = 0;
-            let mut valid = true;
-            for token in subrule {
-                match token {
-                    Token::Ref(ruleref) => {
-                        let matched = self.recursive_match(value, len + m, &self.machine[ruleref]);
-                        if matched == 0 {
-                            valid = false;
-                            break;
+        while let Some((len, mut stack)) = queue.pop() {
+            if stack.is_empty() {
+                if len == value.len() {
+                    return true;
+                }
+                continue;
+            }
+
+            if len >= value.len() {
+                continue;
+            }
+
+            let (i, rule) = stack.pop().unwrap();
+            if i >= rule.len() {
+                queue.push((len, stack));
+                continue;
+            }
+
+            match rule[i] {
+                Token::Ref(ruleref) => {
+                    for subrule in self.machine[ruleref].iter() {
+                        let mut next_stack = stack.clone();
+                        if i + 1 < rule.len() {
+                            next_stack.push((i + 1, rule));
                         }
-                        m += matched;
+                        next_stack.push((0, subrule));
+                        queue.push((len, next_stack));
                     }
-                    Token::Val(val) => {
-                        if *val != value[len + m].to_string() {
-                            valid = false;
-                            break;
+                }
+                Token::Val(c) => {
+                    if c == value[len] {
+                        if i + 1 < rule.len() {
+                            stack.push((i + 1, rule));
                         }
-                        m += 1;
+                        queue.push((len + 1, stack));
                     }
                 }
             }
-            if valid {
-                return m;
-            }
         }
 
-        0
-    }
-
-    fn is_match(&mut self, value: &str) -> bool {
-        let value = value.chars().collect::<Vec<_>>();
-        value.len() == self.recursive_match(&value, 0, &self.machine["0"])
+        false
     }
 }
 
@@ -212,7 +211,7 @@ fn messages_match_rule_fsm(rules: &[&str], messages: &[&str], rule: &str) -> usi
     let mut fsm = Fsm::new(rules, rule);
     let mut count = 0;
     for msg in messages {
-        if fsm.is_match(msg) {
+        if fsm.is_match(&msg.chars().collect::<Vec<_>>()) {
             count += 1;
         }
     }
@@ -223,7 +222,10 @@ pub fn run() {
     let input_raw = crate::load_input(module_path!());
     let (rules, messages) = parse_rules_and_messages(&input_raw);
     println!("Day 19: Monster Messages");
+
+    let start = std::time::Instant::now();
     println!("Part One: {}", messages_match_rule(&rules, &messages, "0"));
+    println!("Elapsed {:?}", start.elapsed());
 
     let start = std::time::Instant::now();
     println!(
@@ -233,7 +235,9 @@ pub fn run() {
     println!("Elapsed {:?}", start.elapsed());
 
     let rules = updated_rules(&rules);
+    let start = std::time::Instant::now();
     println!("Part Two: {}", messages_match_rule(&rules, &messages, "0"));
+    println!("Elapsed {:?}", start.elapsed());
 
     let start = std::time::Instant::now();
     println!(
@@ -246,6 +250,24 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_part_zero() {
+        const INPUT_TEST: &str = concat!(
+            "0: 1 2 1 \n",
+            "1: \"a\"\n",
+            "2: 1 1 | 1 2 1\n",
+            "\n",
+            "aaaa\n",
+            "aaaaa\n",
+            "aaaaaa\n",
+            "aaaaaaa\n",
+            "aaaaaaaa\n",
+        );
+        let (rules, messages) = parse_rules_and_messages(INPUT_TEST);
+        // assert_eq!(messages_match_rule(&rules, &messages, "0"), 1);
+        assert_eq!(messages_match_rule_fsm(&rules, &messages, "0"), 3);
+    }
 
     #[test]
     fn test_part_one() {
