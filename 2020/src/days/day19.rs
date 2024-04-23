@@ -1,11 +1,10 @@
-use std::collections::HashMap;
-
-enum RuleToken<'a> {
-    Ref(&'a str),
+#[derive(Clone)]
+enum RuleToken {
+    Ref(usize),
     Val(char),
 }
 
-fn value_matches_rule(rules: &HashMap<&str, Vec<Vec<RuleToken>>>, rule: &str, value: &str) -> bool {
+fn value_matches_rule(rules: &[Vec<Vec<RuleToken>>], rule: usize, value: &str) -> bool {
     let value = value.chars().collect::<Vec<_>>();
     let mut queue = vec![];
     for subrule in rules[rule].iter().rev() {
@@ -43,22 +42,30 @@ fn value_matches_rule(rules: &HashMap<&str, Vec<Vec<RuleToken>>>, rule: &str, va
     false
 }
 
-fn parse_rule_tokens<'a>(rules: &[&'a str]) -> HashMap<&'a str, Vec<Vec<RuleToken<'a>>>> {
-    let mut tokens = HashMap::new();
+fn parse_rule_tokens(rules: &[&str]) -> Vec<Vec<Vec<RuleToken>>> {
+    let mut tokens = vec![];
     for rule in rules {
         let mut split = rule.split(": ");
-        let nr = split.next().unwrap();
+        let nr = split.next().unwrap().parse::<usize>().unwrap();
         let value = split.next().unwrap();
-        if value.contains('"') {
+        let value = if value.contains('"') {
             let c = value.chars().nth(1).unwrap();
-            tokens.insert(nr, vec![vec![RuleToken::Val(c)]]);
+            vec![vec![RuleToken::Val(c)]]
         } else {
-            let subrules = value
+            value
                 .split(" | ")
-                .map(|s| s.split_whitespace().map(RuleToken::Ref).collect())
-                .collect::<Vec<Vec<RuleToken>>>();
-            tokens.insert(nr, subrules);
+                .map(|s| {
+                    s.split_whitespace()
+                        .map(|s| s.parse().unwrap())
+                        .map(RuleToken::Ref)
+                        .collect()
+                })
+                .collect::<Vec<Vec<RuleToken>>>()
+        };
+        if nr >= tokens.len() {
+            tokens.resize(nr + 1, vec![]);
         }
+        tokens[nr] = value;
     }
     tokens
 }
@@ -93,7 +100,7 @@ fn updated_rules<'a>(rules: &[&'a str]) -> Vec<&'a str> {
         .collect::<Vec<&str>>()
 }
 
-fn messages_match_rule(rules: &[&str], messages: &[&str], rule: &str) -> usize {
+fn messages_match_rule(rules: &[&str], messages: &[&str], rule: usize) -> usize {
     let parsed_rules = parse_rule_tokens(rules);
     let mut count = 0;
     for msg in messages {
@@ -108,9 +115,9 @@ pub fn run() {
     let input_raw = crate::load_input(module_path!());
     let (rules, messages) = parse_rules_and_messages(&input_raw);
     println!("Day 19: Monster Messages");
-    println!("Part One: {}", messages_match_rule(&rules, &messages, "0"));
+    println!("Part One: {}", messages_match_rule(&rules, &messages, 0));
     let rules = updated_rules(&rules);
-    println!("Part Two: {}", messages_match_rule(&rules, &messages, "0"));
+    println!("Part Two: {}", messages_match_rule(&rules, &messages, 0));
 }
 
 #[cfg(test)]
@@ -134,7 +141,7 @@ mod tests {
             "aaaabbb",
         );
         let (rules, messages) = parse_rules_and_messages(INPUT_TEST);
-        assert_eq!(messages_match_rule(&rules, &messages, "0"), 2);
+        assert_eq!(messages_match_rule(&rules, &messages, 0), 2);
     }
 
     #[test]
@@ -189,8 +196,8 @@ mod tests {
             "aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba",
         );
         let (rules, messages) = parse_rules_and_messages(INPUT_TEST);
-        assert_eq!(messages_match_rule(&rules, &messages, "0"), 3);
+        assert_eq!(messages_match_rule(&rules, &messages, 0), 3);
         let rules = updated_rules(&rules);
-        assert_eq!(messages_match_rule(&rules, &messages, "0"), 12);
+        assert_eq!(messages_match_rule(&rules, &messages, 0), 12);
     }
 }
