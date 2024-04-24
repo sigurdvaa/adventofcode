@@ -46,7 +46,7 @@ fn parse_rule_tokens(rules: &[&str]) -> Vec<Vec<Vec<RuleToken>>> {
     let mut tokens = vec![];
     for rule in rules {
         let mut split = rule.split(": ");
-        let nr = split.next().unwrap().parse::<usize>().unwrap();
+        let idx = split.next().unwrap().parse::<usize>().unwrap();
         let value = split.next().unwrap();
         let value = if value.contains('"') {
             let c = value.chars().nth(1).unwrap();
@@ -62,10 +62,10 @@ fn parse_rule_tokens(rules: &[&str]) -> Vec<Vec<Vec<RuleToken>>> {
                 })
                 .collect::<Vec<Vec<RuleToken>>>()
         };
-        if nr >= tokens.len() {
-            tokens.resize(nr + 1, vec![]);
+        if idx >= tokens.len() {
+            tokens.resize(idx + 1, vec![]);
         }
-        tokens[nr] = value;
+        tokens[idx] = value;
     }
     tokens
 }
@@ -73,19 +73,17 @@ fn parse_rule_tokens(rules: &[&str]) -> Vec<Vec<Vec<RuleToken>>> {
 fn parse_rules_and_messages(input: &str) -> (Vec<&str>, Vec<&str>) {
     let mut rules = vec![];
     let mut lines = input.lines();
-
     for line in lines.by_ref() {
         if line.is_empty() {
             break;
         }
         rules.push(line);
     }
-
     let messages = lines.collect();
     (rules, messages)
 }
 
-fn updated_rules<'a>(rules: &[&'a str]) -> Vec<&'a str> {
+fn get_updated_rules<'a>(rules: &[&'a str]) -> Vec<&'a str> {
     rules
         .iter()
         .map(|r| {
@@ -114,10 +112,10 @@ fn messages_match_rule(rules: &[&str], messages: &[&str], rule: usize) -> usize 
 pub fn run() {
     let input_raw = crate::load_input(module_path!());
     let (rules, messages) = parse_rules_and_messages(&input_raw);
+    let rules2 = get_updated_rules(&rules);
     println!("Day 19: Monster Messages");
     println!("Part One: {}", messages_match_rule(&rules, &messages, 0));
-    let rules = updated_rules(&rules);
-    println!("Part Two: {}", messages_match_rule(&rules, &messages, 0));
+    println!("Part Two: {}", messages_match_rule(&rules2, &messages, 0));
 }
 
 #[cfg(test)]
@@ -196,8 +194,8 @@ mod tests {
             "aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba",
         );
         let (rules, messages) = parse_rules_and_messages(INPUT_TEST);
+        let rules2 = get_updated_rules(&rules);
         assert_eq!(messages_match_rule(&rules, &messages, 0), 3);
-        let rules = updated_rules(&rules);
-        assert_eq!(messages_match_rule(&rules, &messages, 0), 12);
+        assert_eq!(messages_match_rule(&rules2, &messages, 0), 12);
     }
 }
