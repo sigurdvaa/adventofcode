@@ -1,8 +1,8 @@
 #[derive(Debug, Clone)]
 struct Tile {
     id: u32,
-    image: Vec<String>,
-    edges: Vec<String>,
+    image: Vec<Vec<char>>,
+    edges: Vec<Vec<char>>,
 }
 
 fn parse_tiles(input: &str) -> Vec<Tile> {
@@ -12,33 +12,33 @@ fn parse_tiles(input: &str) -> Vec<Tile> {
     while let Some(line) = lines.next() {
         let id = line.split("Tile ").nth(1).unwrap();
         let id = id[..id.len() - 1].parse().unwrap();
-        let mut image = vec![];
+        let mut image: Vec<Vec<char>> = vec![];
         for row in lines.by_ref() {
             if row.is_empty() {
                 break;
             }
-            image.push(row.to_string());
+            image.push(row.chars().collect());
         }
 
         let top = image.first().unwrap().clone();
         let bot = image.last().unwrap().clone();
         let left = image
             .iter()
-            .map(|row| row.chars().next().unwrap())
-            .collect::<String>();
+            .map(|row| row.iter().next().cloned().unwrap())
+            .collect::<Vec<_>>();
         let right = image
             .iter()
-            .map(|row| row.chars().last().unwrap())
-            .collect::<String>();
+            .map(|row| row.iter().last().cloned().unwrap())
+            .collect::<Vec<_>>();
 
         let edges = vec![
-            top.chars().rev().collect::<String>(),
+            top.iter().cloned().rev().collect(),
             top,
-            bot.chars().rev().collect::<String>(),
+            bot.iter().cloned().rev().collect(),
             bot,
-            left.chars().rev().collect::<String>(),
+            left.iter().cloned().rev().collect(),
             left,
-            right.chars().rev().collect::<String>(),
+            right.iter().cloned().rev().collect(),
             right,
         ];
 
@@ -144,37 +144,100 @@ fn build_image(tiles: &[Tile], graph: &[Vec<usize>]) -> Vec<Vec<Tile>> {
 }
 
 fn rotate_tile(tile: &mut Tile) {
+    // TODO: make this in-place
     let mut rotated_right = vec![];
     for i in (0..tile.image[0].len()).rev() {
         rotated_right.push(
             tile.image
                 .iter()
-                .map(|row| row.chars().nth(i).unwrap())
-                .collect::<String>(),
+                .map(|row| row.get(i).cloned().unwrap())
+                .collect(),
         );
     }
     tile.image = rotated_right;
 }
 
-fn align_tile_right(row: &mut [Tile], lhs: usize, rhs: usize) {
-    let lhs_side = &row[lhs].edges[7];
-    let rhs_edge_match = row[rhs].edges.iter().position(|e| *e == *lhs_side).unwrap();
-    rotate_tile(&mut row[rhs]);
+fn tiles_aligned_row(lhs: &Tile, rhs: &Tile) -> bool {
+    for i in 0..lhs.image.len() {
+        if lhs.image[i].last().unwrap() != rhs.image[i].first().unwrap() {
+            return false;
+        }
+    }
+    true
+}
+
+fn tiles_aligned_col(top: &Tile, bot: &Tile) -> bool {
+    top.image.last().unwrap() == bot.image.first().unwrap()
+}
+
+fn flip_tile_row(tile: &mut Tile) {
+    tile.image.reverse();
+}
+
+fn flip_tile_col(tile: &mut Tile) {
+    for row in tile.image.iter_mut() {
+        row.reverse();
+    }
+}
+
+fn align_tile_row(row: &mut [Tile], lhs: usize, rhs: usize) {
+    for _ in 0..4 {
+        if tiles_aligned_row(&row[lhs], &row[rhs]) {
+            return;
+        }
+        flip_tile_row(&mut row[rhs]);
+        println!("flipped");
+
+        if tiles_aligned_row(&row[lhs], &row[rhs]) {
+            return;
+        }
+        rotate_tile(&mut row[rhs]);
+        println!("rotated");
+    }
+}
+
+fn align_tile_col(image: &mut [Vec<Tile>], row: usize, col: usize) {
+    for _ in 0..20 {
+        if tiles_aligned_col(&image[row - 1][col], &image[row][col]) {
+            return;
+        }
+        flip_tile_col(&mut image[row][col]);
+
+        if tiles_aligned_col(&image[row - 1][col], &image[row][col]) {
+            return;
+        }
+        rotate_tile(&mut image[row][col]);
+    }
+    // unreachable!("align tile col failed");
+}
+
+fn align_tile_corner(corner: &mut Tile, row: &mut Tile, col: &mut Tile) {
+    while !tiles_aligned_col(corner, col) || !tiles_aligned_row(corner, row) {
+        flip_tile_row(corner);
+        // rot/flip row, check
+        // rot/flip col, check
+
+        rotate_tile(corner);
+        // rot/flip row, check
+        // rot/flip col, check
+    }
 }
 
 fn align_tiles_in_image(image: &mut [Vec<Tile>]) {
+    // align first corner
+    todo!();
+
     // align first row
     for i in 1..image[0].len() {
-        println!("##############");
-        dbg!(&image[0][i - 1].image);
-        println!("pre");
-        dbg!(&image[0][i].image);
-        align_tile_right(&mut image[0], i - 1, i);
-        println!("post");
-        dbg!(&image[0][i].image);
+        align_tile_row(&mut image[0], i - 1, i);
     }
 
-    // align rest of the rows
+    // align the rest by col
+    for r in 1..image.len() {
+        for i in 0..image[r].len() {
+            align_tile_col(image, r, i);
+        }
+    }
 }
 
 pub fn run() {
@@ -315,15 +378,32 @@ mod tests {
         let graph = find_matching_tiles(&tiles);
         let mut image = build_image(&tiles, &graph);
         align_tiles_in_image(&mut image);
+
+        assert_eq!(
+            image
+                .iter()
+                .map(|row| row.iter().map(|tile| tile.id).collect::<Vec<_>>())
+                .collect::<Vec<_>>(),
+            [[1951, 2311, 3079], [2729, 1427, 2473], [2971, 1489, 1171]]
+        );
+
         for row in image {
             println!(
                 "{}",
                 row.iter()
-                    .map(|t| t.id.to_string())
+                    .map(|t| t.image.first().unwrap().iter().collect::<String>())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            );
+            println!(
+                "{}",
+                row.iter()
+                    .map(|t| t.image.last().unwrap().iter().collect::<String>())
                     .collect::<Vec<_>>()
                     .join(", ")
             );
         }
+
         assert_eq!(false, true);
     }
 }
