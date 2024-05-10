@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Tile {
     id: u32,
     image: Vec<String>,
@@ -83,38 +83,38 @@ fn corners_product(tiles: &[Tile], graph: &[Vec<usize>]) -> usize {
     prod
 }
 
-fn build_image<'a>(tiles: &'a [Tile], graph: &[Vec<usize>]) -> Vec<Vec<&'a Tile>> {
+fn build_image(tiles: &[Tile], graph: &[Vec<usize>]) -> Vec<Vec<Tile>> {
     let mut used = vec![false; tiles.len()];
     let mut image = vec![];
 
-    // first row
+    // first row, first corner
     let first = graph.iter().position(|edges| edges.len() == 2).unwrap();
     used[first] = true;
     let mut row = vec![first];
+    let mut prev = &tiles[first];
     loop {
-        let tile = &tiles[*row.last().unwrap()];
-
+        // follow the edge
         let mut found_edge = false;
         for (i, edges) in graph.iter().enumerate() {
-            if !used[i] && edges.len() == 3 && tiles_match(tile, &tiles[i]) {
+            if !used[i] && edges.len() == 3 && tiles_match(prev, &tiles[i]) {
                 used[i] = true;
                 row.push(i);
                 found_edge = true;
+                prev = &tiles[i];
                 break;
             }
         }
-        if found_edge {
-            continue;
+        if !found_edge {
+            break;
         }
-
-        for (i, edges) in graph.iter().enumerate() {
-            if !used[i] && edges.len() == 2 && tiles_match(tile, &tiles[i]) {
-                used[i] = true;
-                row.push(i);
-                break;
-            }
+    }
+    // find last corner in row
+    for (i, edges) in graph.iter().enumerate() {
+        if !used[i] && edges.len() == 2 && tiles_match(prev, &tiles[i]) {
+            used[i] = true;
+            row.push(i);
+            break;
         }
-        break;
     }
     image.push(row);
 
@@ -139,15 +139,50 @@ fn build_image<'a>(tiles: &'a [Tile], graph: &[Vec<usize>]) -> Vec<Vec<&'a Tile>
 
     image
         .iter()
-        .map(|row| row.iter().map(|i| &tiles[*i]).collect())
+        .map(|row| row.iter().map(|i| tiles[*i].clone()).collect())
         .collect()
+}
+
+fn rotate_tile(tile: &mut Tile) {
+    let mut rotated_right = vec![];
+    for i in (0..tile.image[0].len()).rev() {
+        rotated_right.push(
+            tile.image
+                .iter()
+                .map(|row| row.chars().nth(i).unwrap())
+                .collect::<String>(),
+        );
+    }
+    tile.image = rotated_right;
+}
+
+fn align_tile_right(row: &mut [Tile], lhs: usize, rhs: usize) {
+    let lhs_side = &row[lhs].edges[7];
+    let rhs_edge_match = row[rhs].edges.iter().position(|e| *e == *lhs_side).unwrap();
+    rotate_tile(&mut row[rhs]);
+}
+
+fn align_tiles_in_image(image: &mut [Vec<Tile>]) {
+    // align first row
+    for i in 1..image[0].len() {
+        println!("##############");
+        dbg!(&image[0][i - 1].image);
+        println!("pre");
+        dbg!(&image[0][i].image);
+        align_tile_right(&mut image[0], i - 1, i);
+        println!("post");
+        dbg!(&image[0][i].image);
+    }
+
+    // align rest of the rows
 }
 
 pub fn run() {
     let input_raw = crate::load_input(module_path!());
     let tiles = parse_tiles(&input_raw);
     let graph = find_matching_tiles(&tiles);
-    let image = build_image(&tiles, &graph);
+    let mut image = build_image(&tiles, &graph);
+    align_tiles_in_image(&mut image);
     println!("Day 20: Jurassic Jigsaw");
     println!("Part One: {}", corners_product(&tiles, &graph));
     println!("Part Two: {}", "TODO");
@@ -278,7 +313,8 @@ mod tests {
     fn test_part_two() {
         let tiles = parse_tiles(INPUT_TEST);
         let graph = find_matching_tiles(&tiles);
-        let image = build_image(&tiles, &graph);
+        let mut image = build_image(&tiles, &graph);
+        align_tiles_in_image(&mut image);
         for row in image {
             println!(
                 "{}",
