@@ -166,18 +166,18 @@ fn tiles_aligned_row(lhs: &Tile, rhs: &Tile) -> bool {
     true
 }
 
-fn tiles_aligned_col(top: &Tile, bot: &Tile) -> bool {
-    top.image.last().unwrap() == bot.image.first().unwrap()
-}
-
-fn flip_tile_row(tile: &mut Tile) {
+fn flip_tile_col(tile: &mut Tile) {
     tile.image.reverse();
 }
 
-fn flip_tile_col(tile: &mut Tile) {
+fn flip_tile_row(tile: &mut Tile) {
     for row in tile.image.iter_mut() {
         row.reverse();
     }
+}
+
+fn tiles_aligned_col(top: &Tile, bot: &Tile) -> bool {
+    top.image.last().unwrap() == bot.image.first().unwrap()
 }
 
 fn align_tile_row(row: &mut [Tile], lhs: usize, rhs: usize) {
@@ -185,19 +185,19 @@ fn align_tile_row(row: &mut [Tile], lhs: usize, rhs: usize) {
         if tiles_aligned_row(&row[lhs], &row[rhs]) {
             return;
         }
-        flip_tile_row(&mut row[rhs]);
-        println!("flipped");
+        flip_tile_col(&mut row[rhs]);
 
         if tiles_aligned_row(&row[lhs], &row[rhs]) {
             return;
         }
+        flip_tile_col(&mut row[rhs]);
         rotate_tile(&mut row[rhs]);
-        println!("rotated");
     }
+    unreachable!("align tile row failed");
 }
 
 fn align_tile_col(image: &mut [Vec<Tile>], row: usize, col: usize) {
-    for _ in 0..20 {
+    for _ in 0..4 {
         if tiles_aligned_col(&image[row - 1][col], &image[row][col]) {
             return;
         }
@@ -206,26 +206,41 @@ fn align_tile_col(image: &mut [Vec<Tile>], row: usize, col: usize) {
         if tiles_aligned_col(&image[row - 1][col], &image[row][col]) {
             return;
         }
+        flip_tile_col(&mut image[row][col]);
         rotate_tile(&mut image[row][col]);
     }
-    // unreachable!("align tile col failed");
+    unreachable!("align tile col failed");
 }
 
-fn align_tile_corner(corner: &mut Tile, row: &mut Tile, col: &mut Tile) {
-    while !tiles_aligned_col(corner, col) || !tiles_aligned_row(corner, row) {
-        flip_tile_row(corner);
-        // rot/flip row, check
-        // rot/flip col, check
-
-        rotate_tile(corner);
-        // rot/flip row, check
-        // rot/flip col, check
+fn align_tile_corner(image: &mut [Vec<Tile>]) {
+    // align towards row
+    let right = image[0][0]
+        .image
+        .iter()
+        .map(|row| row.iter().last().cloned().unwrap())
+        .collect::<Vec<_>>();
+    if !image[0][1].edges.contains(&right) {
+        flip_tile_row(&mut image[0][0]);
     }
+
+    // align towards col
+    let bot = image[0][0].image.last().cloned().unwrap();
+    if !image[1][0].edges.contains(&bot) {
+        flip_tile_col(&mut image[0][0]);
+    }
+}
+
+fn print_tile(tile: &Tile) {
+    println!("\nTile: {}", tile.id);
+    for row in tile.image.iter() {
+        println!("{}", row.iter().collect::<String>());
+    }
+    println!();
 }
 
 fn align_tiles_in_image(image: &mut [Vec<Tile>]) {
-    // align first corner
-    todo!();
+    // align first corner with next in row
+    align_tile_corner(image);
 
     // align first row
     for i in 1..image[0].len() {
@@ -240,12 +255,33 @@ fn align_tiles_in_image(image: &mut [Vec<Tile>]) {
     }
 }
 
+fn print_image(image: &[Vec<Tile>]) {
+    println!("PRINT IMAGE");
+    let mut buf = vec![];
+    for row in image {
+        for i in 0..row[0].image.len() {
+            let mut line = String::new();
+            for tile in row {
+                tile.image[i].iter().for_each(|c| line.push(*c));
+                line.push(' ');
+            }
+            line.push('\n');
+            buf.push(line);
+        }
+        buf.push("\n".into());
+    }
+    println!("{}", buf.join(""));
+}
+
 pub fn run() {
     let input_raw = crate::load_input(module_path!());
     let tiles = parse_tiles(&input_raw);
     let graph = find_matching_tiles(&tiles);
     let mut image = build_image(&tiles, &graph);
     align_tiles_in_image(&mut image);
+
+    print_image(&image);
+
     println!("Day 20: Jurassic Jigsaw");
     println!("Part One: {}", corners_product(&tiles, &graph));
     println!("Part Two: {}", "TODO");
@@ -387,7 +423,7 @@ mod tests {
             [[1951, 2311, 3079], [2729, 1427, 2473], [2971, 1489, 1171]]
         );
 
-        for row in image {
+        for row in image.iter() {
             println!(
                 "{}",
                 row.iter()
@@ -403,6 +439,8 @@ mod tests {
                     .join(", ")
             );
         }
+
+        print_image(&image);
 
         assert_eq!(false, true);
     }
