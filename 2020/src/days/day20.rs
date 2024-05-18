@@ -164,52 +164,19 @@ fn build_image(tiles: &[Tile], graph: &[Vec<usize>]) -> Vec<Vec<Tile>> {
 }
 
 fn rotate_tile(tile: &mut Tile) {
-    // TODO: make this in-place
-    // let mut rotated_right = vec![];
-    // for i in (0..tile.image[0].len()).rev() {
-    //     rotated_right.push(
-    //         tile.image
-    //             .iter()
-    //             .map(|row| row.get(i).cloned().unwrap())
-    //             .collect(),
-    //     );
-    // }
-    // tile.image = rotated_right;
-
-    // /* rotate in-place
-    let m = &mut tile.image;
-    for i in 0..(m.len() / 2) {
-        // top (rev)
-        for x in (i..m[i].len() - i).rev() {
-            let swap_x = m[i].len() - 1 - i;
-            let swap_y = x;
-
-            let tmp = m[i][x];
-            m[i][x] = m[swap_y][swap_x];
-            m[swap_y][swap_x] = tmp;
-        }
-
-        // left (skip first)
-        for y in (i + 1)..m.len() - i {
-            let swap_x = m[i].len() - 1 - y;
-            let swap_y = i;
-
-            let tmp = m[y][i];
-            m[y][i] = m[swap_y][swap_x];
-            m[swap_y][swap_x] = tmp;
-        }
-
-        // bot (skip first and last)
-        for x in (i + 1)..m[i].len() - i - 1 {
-            let swap_x = i;
-            let swap_y = x;
-
-            let m_len = m.len();
-            let tmp = m[m_len - 1 - i][x];
-            m[m_len - 1 - i][x] = m[swap_y][swap_x];
-            m[swap_y][swap_x] = tmp;
+    // transpose
+    for y in 0..tile.image.len() - 1 {
+        for x in 0..tile.image.len() - y - 1 {
+            let swap_y = tile.image.len() - 1 - x;
+            let swap_x = tile.image.len() - 1 - y;
+            let tmp = tile.image[y][x];
+            tile.image[y][x] = tile.image[swap_y][swap_x];
+            tile.image[swap_y][swap_x] = tmp;
         }
     }
+
+    // reverse
+    tile.image.reverse();
 }
 
 fn tiles_aligned_row(lhs: &Tile, rhs: &Tile) -> bool {
@@ -331,7 +298,7 @@ pub fn run() {
     let graph = find_matching_tiles(&tiles);
     let mut image = build_image(&tiles, &graph);
 
-    print_image(&image);
+    // print_image(&image);
     println!("Day 20: Jurassic Jigsaw");
     println!("Part One: {}", corners_product(&tiles, &graph));
     println!("Part Two: {}", "TODO");
