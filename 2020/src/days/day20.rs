@@ -5,6 +5,85 @@ struct Tile {
     edges: Vec<Vec<char>>,
 }
 
+fn mark_sea_monster(image: &mut [Vec<char>]) {
+    // const SEA_MONSTER: [[char; 20]; 3] = [
+    //     [
+    //         ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+    //         ' ', '#', ' ',
+    //     ],
+    //     [
+    //         '#', ' ', ' ', ' ', ' ', '#', '#', ' ', ' ', ' ', ' ', '#', '#', ' ', ' ', ' ', ' ',
+    //         '#', '#', '#',
+    //     ],
+    //     [
+    //         ' ', '#', ' ', ' ', '#', ' ', ' ', '#', ' ', ' ', '#', ' ', ' ', '#', ' ', ' ', '#',
+    //         ' ', ' ', ' ',
+    //     ],
+    // ];
+    const SEA_MONSTER: [(usize, usize); 15] = [
+        (18, 0),
+        (0, 1),
+        (5, 1),
+        (6, 1),
+        (11, 1),
+        (12, 1),
+        (17, 1),
+        (18, 1),
+        (19, 1),
+        (1, 2),
+        (4, 2),
+        (7, 2),
+        (10, 2),
+        (13, 2),
+        (16, 2),
+    ];
+
+    for _ in 0..4 {
+        let mut monsters_found = false;
+        for y in 0..image.len() - 2 {
+            for x in 0..image[y].len() - 19 {
+                let mut found = true;
+                for (sx, sy) in SEA_MONSTER {
+                    if image[y + sy][x + sx] != '#' {
+                        found = false;
+                    }
+                }
+                if found {
+                    monsters_found = true;
+                    for (sx, sy) in SEA_MONSTER {
+                        image[y + sy][x + sx] = 'O';
+                    }
+                }
+            }
+        }
+        if monsters_found {
+            break;
+        }
+        flip_image_col(image);
+        for y in 0..image.len() - 2 {
+            for x in 0..image[y].len() - 19 {
+                let mut found = true;
+                for (sx, sy) in SEA_MONSTER {
+                    if image[y + sy][x + sx] != '#' {
+                        found = false;
+                    }
+                }
+                if found {
+                    monsters_found = true;
+                    for (sx, sy) in SEA_MONSTER {
+                        image[y + sy][x + sx] = 'O';
+                    }
+                }
+            }
+        }
+        if monsters_found {
+            break;
+        }
+        flip_image_col(image);
+        rotate_image(image);
+    }
+}
+
 fn parse_tiles(input: &str) -> Vec<Tile> {
     let mut tiles = vec![];
     let mut lines = input.lines();
@@ -83,7 +162,23 @@ fn corners_product(tiles: &[Tile], graph: &[Vec<usize>]) -> usize {
     prod
 }
 
-fn build_image(tiles: &[Tile], graph: &[Vec<usize>]) -> Vec<Vec<Tile>> {
+fn tiles_to_image(image: &[Vec<Tile>]) -> Vec<Vec<char>> {
+    let mut new_image = vec![];
+
+    for row in image {
+        let mut rows: Vec<Vec<char>> = vec![vec![]; row[0].image.len() - 2];
+        for tile in row {
+            for (i, v) in tile.image.iter().skip(1).take(rows.len()).enumerate() {
+                rows[i].extend(v.iter().skip(1).take(v.len() - 2));
+            }
+        }
+        new_image.extend(rows);
+    }
+
+    new_image
+}
+
+fn build_image(tiles: &[Tile], graph: &[Vec<usize>]) -> Vec<Vec<char>> {
     let mut used = vec![false; tiles.len()];
     let mut image = vec![];
 
@@ -92,8 +187,9 @@ fn build_image(tiles: &[Tile], graph: &[Vec<usize>]) -> Vec<Vec<Tile>> {
     used[first] = true;
     let mut row = vec![first];
     let mut prev = &tiles[first];
+
+    // follow the first row
     loop {
-        // follow the edge
         let mut found_edge = false;
         for (i, edges) in graph.iter().enumerate() {
             if !used[i] && edges.len() == 3 && tiles_match(prev, &tiles[i]) {
@@ -108,7 +204,8 @@ fn build_image(tiles: &[Tile], graph: &[Vec<usize>]) -> Vec<Vec<Tile>> {
             break;
         }
     }
-    // find last corner in row
+
+    // find last corner in first row
     for (i, edges) in graph.iter().enumerate() {
         if !used[i] && edges.len() == 2 && tiles_match(prev, &tiles[i]) {
             used[i] = true;
@@ -143,40 +240,23 @@ fn build_image(tiles: &[Tile], graph: &[Vec<usize>]) -> Vec<Vec<Tile>> {
         .collect::<Vec<_>>();
 
     align_tiles_in_image(&mut image);
-    // fn print_image(image: &[Vec<Tile>]) {
-    //     println!("PRINT IMAGE");
-    //     let mut buf = vec![];
-    //     for row in image {
-    //         for i in 0..row[0].image.len() {
-    //             let mut line = String::new();
-    //             for tile in row {
-    //                 tile.image[i].iter().for_each(|c| line.push(*c));
-    //                 line.push(' ');
-    //             }
-    //             line.push('\n');
-    //             buf.push(line);
-    //         }
-    //         buf.push("\n".into());
-    //     }
-    //     println!("{}", buf.join(""));
-    // }
-    image
+    tiles_to_image(&image)
 }
 
-fn rotate_tile(tile: &mut Tile) {
+fn rotate_image(image: &mut [Vec<char>]) {
     // transpose
-    for y in 0..tile.image.len() - 1 {
-        for x in 0..tile.image.len() - y - 1 {
-            let swap_y = tile.image.len() - 1 - x;
-            let swap_x = tile.image.len() - 1 - y;
-            let tmp = tile.image[y][x];
-            tile.image[y][x] = tile.image[swap_y][swap_x];
-            tile.image[swap_y][swap_x] = tmp;
+    for y in 0..image.len() - 1 {
+        for x in 0..image[y].len() - y - 1 {
+            let swap_y = image.len() - 1 - x;
+            let swap_x = image.len() - 1 - y;
+            let tmp = image[y][x];
+            image[y][x] = image[swap_y][swap_x];
+            image[swap_y][swap_x] = tmp;
         }
     }
 
     // reverse
-    tile.image.reverse();
+    image.reverse();
 }
 
 fn tiles_aligned_row(lhs: &Tile, rhs: &Tile) -> bool {
@@ -188,8 +268,8 @@ fn tiles_aligned_row(lhs: &Tile, rhs: &Tile) -> bool {
     true
 }
 
-fn flip_tile_col(tile: &mut Tile) {
-    tile.image.reverse();
+fn flip_image_col(image: &mut [Vec<char>]) {
+    image.reverse();
 }
 
 fn tiles_aligned_col(top: &Tile, bot: &Tile) -> bool {
@@ -201,13 +281,13 @@ fn align_tile_row(row: &mut [Tile], lhs: usize, rhs: usize) {
         if tiles_aligned_row(&row[lhs], &row[rhs]) {
             return;
         }
-        flip_tile_col(&mut row[rhs]);
+        flip_image_col(&mut row[rhs].image);
 
         if tiles_aligned_row(&row[lhs], &row[rhs]) {
             return;
         }
-        flip_tile_col(&mut row[rhs]);
-        rotate_tile(&mut row[rhs]);
+        flip_image_col(&mut row[rhs].image);
+        rotate_image(&mut row[rhs].image);
     }
     unreachable!("align tile row failed");
 }
@@ -217,13 +297,13 @@ fn align_tile_col(image: &mut [Vec<Tile>], row: usize, col: usize) {
         if tiles_aligned_col(&image[row - 1][col], &image[row][col]) {
             return;
         }
-        flip_tile_col(&mut image[row][col]);
+        flip_image_col(&mut image[row][col].image);
 
         if tiles_aligned_col(&image[row - 1][col], &image[row][col]) {
             return;
         }
-        flip_tile_col(&mut image[row][col]);
-        rotate_tile(&mut image[row][col]);
+        flip_image_col(&mut image[row][col].image);
+        rotate_image(&mut image[row][col].image);
     }
     unreachable!("align tile col failed");
 }
@@ -239,13 +319,13 @@ fn align_tile_corner(image: &mut [Vec<Tile>]) {
         if image[0][1].edges.contains(&right) {
             break;
         }
-        rotate_tile(&mut image[0][0]);
+        rotate_image(&mut image[0][0].image);
     }
 
     // align towards col
     let bot = image[0][0].image.last().cloned().unwrap();
     if !image[1][0].edges.contains(&bot) {
-        flip_tile_col(&mut image[0][0]);
+        flip_image_col(&mut image[0][0].image);
     }
 }
 
@@ -266,42 +346,21 @@ fn align_tiles_in_image(image: &mut [Vec<Tile>]) {
     }
 }
 
-fn print_tile(tile: &Tile) {
-    println!("\nTile: {}", tile.id);
-    for row in tile.image.iter() {
-        println!("{}", row.iter().collect::<String>());
-    }
-    println!();
-}
-
-fn print_image(image: &[Vec<Tile>]) {
-    println!("PRINT IMAGE");
-    let mut buf = vec![];
-    for row in image {
-        for i in 0..row[0].image.len() {
-            let mut line = String::new();
-            for tile in row {
-                tile.image[i].iter().for_each(|c| line.push(*c));
-                line.push(' ');
-            }
-            line.push('\n');
-            buf.push(line);
-        }
-        buf.push("\n".into());
-    }
-    println!("{}", buf.join(""));
-}
-
 pub fn run() {
     let input_raw = crate::load_input(module_path!());
     let tiles = parse_tiles(&input_raw);
     let graph = find_matching_tiles(&tiles);
     let mut image = build_image(&tiles, &graph);
-
-    // print_image(&image);
+    mark_sea_monster(&mut image);
     println!("Day 20: Jurassic Jigsaw");
     println!("Part One: {}", corners_product(&tiles, &graph));
-    println!("Part Two: {}", "TODO");
+    println!(
+        "Part Two: {}",
+        image
+            .iter()
+            .map(|row| row.iter().filter(|&c| *c == '#').count())
+            .sum::<usize>()
+    );
 }
 
 #[cfg(test)]
@@ -430,14 +489,13 @@ mod tests {
         let tiles = parse_tiles(INPUT_TEST);
         let graph = find_matching_tiles(&tiles);
         let mut image = build_image(&tiles, &graph);
-        align_tiles_in_image(&mut image);
-
+        mark_sea_monster(&mut image);
         assert_eq!(
             image
                 .iter()
-                .map(|row| row.iter().map(|tile| tile.id).collect::<Vec<_>>())
-                .collect::<Vec<_>>(),
-            [[1951, 2311, 3079], [2729, 1427, 2473], [2971, 1489, 1171]]
+                .map(|row| row.iter().filter(|&c| *c == '#').count())
+                .sum::<usize>(),
+            273
         );
     }
 }
