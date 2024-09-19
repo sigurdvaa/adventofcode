@@ -1,3 +1,4 @@
+#[derive(Debug, Clone)]
 struct Food<'a> {
     ingredients: Vec<&'a str>,
     allergens: Vec<&'a str>,
@@ -22,6 +23,10 @@ fn parse_food(list: &str) -> Vec<Food> {
     food
 }
 
+fn ingredients_without_allergens(food: &[Food]) -> usize {
+    0
+}
+
 pub fn run() {
     let input_raw = crate::load_input(module_path!());
     let food = parse_food(&input_raw);
@@ -34,8 +39,18 @@ pub fn run() {
 mod tests {
     use super::*;
 
+    const TEST_INPUT: &str = concat!(
+        "mxmxvkd kfcds sqjhc nhms (contains dairy, fish)\n",
+        "trh fvjkl sbzzf mxmxvkd (contains dairy)\n",
+        "sqjhc fvjkl (contains soy)\n",
+        "sqjhc mxmxvkd sbzzf (contains fish)\n",
+    );
+
     #[test]
-    fn test_part_one() {}
+    fn test_part_one() {
+        let food = parse_food(TEST_INPUT);
+        assert_eq!(ingredients_without_allergens(&food), 5);
+    }
 
     #[test]
     fn test_part_two() {}
