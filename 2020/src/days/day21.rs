@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 #[derive(Debug, Clone)]
 struct Food<'a> {
     ingredients: Vec<&'a str>,
@@ -23,13 +25,34 @@ fn parse_food(list: &str) -> Vec<Food> {
     food
 }
 
-fn ingredients_without_allergens(food: &[Food]) -> usize {
+fn ingredients_without_allergens<'a>(food: &'a [Food]) -> usize {
+    let mut allergens_map: HashMap<&str, Vec<&'a str>> = HashMap::new();
+    for f in food.iter() {
+        for allergene in &f.allergens {
+            let map = allergens_map
+                .entry(allergene)
+                .or_insert(f.ingredients.clone());
+            if !map.is_empty() {
+                let mut new_map = vec![];
+                for ingredient in map.iter() {
+                    if f.ingredients.contains(ingredient) {
+                        new_map.push(*ingredient);
+                    }
+                }
+                *map = new_map;
+            }
+        }
+    }
+
+    dbg!(allergens_map);
+
     0
 }
 
 pub fn run() {
     let input_raw = crate::load_input(module_path!());
     let food = parse_food(&input_raw);
+    let _ = ingredients_without_allergens(&food);
     println!("Day 21: Allergen Assessment");
     println!("Part One: {}", "TODO");
     println!("Part Two: {}", "TODO");
