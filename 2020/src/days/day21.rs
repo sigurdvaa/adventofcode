@@ -44,17 +44,32 @@ fn ingredients_without_allergens<'a>(food: &'a [Food]) -> usize {
         }
     }
 
-    dbg!(allergens_map);
+    let mut unique = vec![];
+    for (_, map) in allergens_map.iter() {
+        for a in map.iter() {
+            if !unique.contains(a) {
+                unique.push(*a);
+            }
+        }
+    }
 
-    0
+    let mut count = 0;
+    for f in food.iter() {
+        for i in &f.ingredients {
+            if !unique.contains(i) {
+                count += 1;
+            }
+        }
+    }
+
+    count
 }
 
 pub fn run() {
     let input_raw = crate::load_input(module_path!());
     let food = parse_food(&input_raw);
-    let _ = ingredients_without_allergens(&food);
     println!("Day 21: Allergen Assessment");
-    println!("Part One: {}", "TODO");
+    println!("Part One: {}", ingredients_without_allergens(&food));
     println!("Part Two: {}", "TODO");
 }
 
