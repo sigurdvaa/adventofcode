@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::collections::VecDeque;
 
 fn parse_decks(input: &str) -> (VecDeque<usize>, VecDeque<usize>) {
@@ -43,10 +44,36 @@ fn combat(mut p1: VecDeque<usize>, mut p2: VecDeque<usize>) -> usize {
     winner.iter().enumerate().map(|(i, val)| (winner.len() - i) * val).sum()
 }
 
-fn recursive_combat(mut p1: VecDeque<usize>, mut p2: VecDeque<usize>) -> usize {
+fn recursive_combat_subgame(mut p1: VecDeque<usize>, mut p2: VecDeque<usize>) -> (VecDeque<usize>, VecDeque<usize>) {
+    let mut seen = HashSet::new();
+
     while !p1.is_empty() && !p2.is_empty() {
+        // if state seen before, the subgame is over
+        if !seen.insert((p1.clone(), p2.clone())) {
+            return (p1, VecDeque::new());
+        }
+
+        // draw cards
         let v1 = p1.pop_front().expect("deck can't be empty while playing");
         let v2 = p2.pop_front().expect("deck can't be empty while playing");
+
+        // recurse if cards left in deck >= value of drawn card, and end round
+        if v1 <= p1.len() && v2 <= p2.len() {
+            let (n1, _n2) = recursive_combat_subgame(
+                p1.iter().take(v1).copied().collect(),
+                p2.iter().take(v2).copied().collect(),
+            );
+            if !n1.is_empty() {
+                p1.push_back(v1);
+                p1.push_back(v2);
+            } else {
+                p2.push_back(v2);
+                p2.push_back(v1);
+            }
+            continue;
+        }
+
+        // regular round
         if v1 > v2 {
             p1.push_back(v1);
             p1.push_back(v2);
@@ -56,6 +83,11 @@ fn recursive_combat(mut p1: VecDeque<usize>, mut p2: VecDeque<usize>) -> usize {
         }
     }
 
+    (p1, p2)
+}
+
+fn recursive_combat(p1: VecDeque<usize>, p2: VecDeque<usize>) -> usize {
+    let (p1, p2) = recursive_combat_subgame(p1, p2);
     let winner = if p1.is_empty() { p2 } else { p1 };
     winner.iter().enumerate().map(|(i, val)| (winner.len() - i) * val).sum()
 }
