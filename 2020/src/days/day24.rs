@@ -46,9 +46,8 @@ fn parse_paths(input: &str) -> Vec<Vec<Dir>> {
     paths
 }
 
-fn black_tiles_after_flip(paths: &[Vec<Dir>]) -> usize {
+fn flip_tiles(paths: &[Vec<Dir>]) -> HashMap<(i32, i32), bool> {
     let mut map: HashMap<(i32, i32), bool> = HashMap::new();
-
     for path in paths {
         let mut x = 0;
         let mut y = 0;
@@ -71,16 +70,21 @@ fn black_tiles_after_flip(paths: &[Vec<Dir>]) -> usize {
         }
         map.entry((x, y)).and_modify(|state| *state = !*state).or_insert(false);
     }
+    map
+}
 
-    map.values().filter(|state| !**state).count()
+fn living_art(tiles: &HashMap<(i32, i32), bool>, days: u32) -> HashMap<(i32, i32), bool> {
+    tiles.clone()
 }
 
 pub fn run() {
     let input_raw = crate::load_input(module_path!());
     let paths = parse_paths(&input_raw);
+    let init_tiles = flip_tiles(&paths);
+    let art_tiles = living_art(&init_tiles, 100);
     println!("Day 24: Lobby Layout");
-    println!("Part One: {}", black_tiles_after_flip(&paths));
-    println!("Part Two: {}", "TODO");
+    println!("Part One: {}", init_tiles.values().filter(|state| !**state).count());
+    println!("Part Two: {}", art_tiles.values().filter(|state| !**state).count());
 }
 
 #[cfg(test)]
@@ -113,9 +117,15 @@ mod tests {
     #[test]
     fn test_part_one() {
         let paths = parse_paths(INPUT_TEST);
-        assert_eq!(black_tiles_after_flip(&paths), 10);
+        let tiles = flip_tiles(&paths);
+        assert_eq!(tiles.values().filter(|state| !**state).count(), 10);
     }
 
     #[test]
-    fn test_part_two() {}
+    fn test_part_two() {
+        let paths = parse_paths(INPUT_TEST);
+        let tiles = flip_tiles(&paths);
+        let tiles = living_art(&tiles, 100);
+        assert_eq!(tiles.values().filter(|state| !**state).count(), 2208);
+    }
 }
