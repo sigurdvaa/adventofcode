@@ -73,8 +73,55 @@ fn flip_tiles(paths: &[Vec<Dir>]) -> HashMap<(i32, i32), bool> {
     map
 }
 
+fn tile_neighbors(tile: (i32, i32), tiles: &HashMap<(i32, i32), bool>) -> (Vec<(i32, i32)>, Vec<(i32, i32)>) {
+    let mut white = vec![];
+    let mut black = vec![];
+    let offset = tile.1 % 2;
+    let dirs = [
+        (1, 0),
+        if offset == 0 { (0, 1) } else { (1, 1) },
+        if offset == 0 { (-1, 1) } else { (0, 1) },
+        (-1, 0),
+        if offset == 0 { (-1, -1) } else { (0, -1) },
+        if offset == 0 { (0, -1) } else { (1, -1) },
+    ];
+    for dir in dirs {
+        let neighbor = (tile.0 + dir.0, tile.1 + dir.1);
+        match tiles.get(&neighbor) {
+            Some(false) => black.push(neighbor),
+            Some(true) => white.push(neighbor),
+            None => white.push(neighbor),
+        }
+    }
+    (white, black)
+}
+
 fn living_art(tiles: &HashMap<(i32, i32), bool>, days: u32) -> HashMap<(i32, i32), bool> {
-    tiles.clone()
+    let mut curr = tiles.clone();
+    for _ in 0..days {
+        let mut next = HashMap::new();
+        for (tile, state) in curr.iter() {
+            if *state {
+                continue;
+            }
+            let (white, black) = tile_neighbors(*tile, &curr);
+            if black.len() == 1 || black.len() == 2 {
+                next.insert(*tile, false);
+            }
+
+            for white_tile in white {
+                if next.contains_key(&white_tile) {
+                    continue;
+                }
+                let (_white, black) = tile_neighbors(white_tile, &curr);
+                if black.len() == 2 {
+                    next.insert(white_tile, false);
+                }
+            }
+        }
+        curr = next;
+    }
+    curr
 }
 
 pub fn run() {
