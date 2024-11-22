@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-#[derive(Debug)]
 enum Dir {
     E,
     SE,
