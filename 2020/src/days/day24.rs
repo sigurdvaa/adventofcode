@@ -116,6 +116,8 @@ fn living_art(tiles: &HashMap<(i32, i32), bool>, days: u32) -> HashMap<(i32, i32
                 let (_white, black) = tile_neighbors(white_tile, &curr);
                 if black.len() == 2 {
                     next.insert(white_tile, false);
+                } else {
+                    next.insert(white_tile, true);
                 }
             }
         }
