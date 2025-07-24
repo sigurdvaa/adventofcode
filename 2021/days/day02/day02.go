@@ -52,6 +52,18 @@ func positionProduct(ins []pos) int {
 	return x * y
 }
 
+func positionAimProduct(ins []pos) int {
+	x, y, aim := 0, 0, 0
+	for _, pos := range ins {
+		if pos.x != 0 {
+			x += pos.x
+			y += pos.x * aim
+		}
+		aim += pos.y
+	}
+	return x * y
+}
+
 func Run() {
 	fmt.Println("Day 2: Dive!")
 
@@ -59,5 +71,5 @@ func Run() {
 	ins := parseInput(inputString)
 
 	fmt.Printf("Part One: %d\n", positionProduct(ins))
-	fmt.Printf("Part Two: TODO\n")
+	fmt.Printf("Part Two: %d\n", positionAimProduct(ins))
 }

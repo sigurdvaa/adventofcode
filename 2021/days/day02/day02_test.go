@@ -24,7 +24,7 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
-	got := 1
+	got := positionAimProduct(ins)
 	want := 900
 
 	if got != want {
