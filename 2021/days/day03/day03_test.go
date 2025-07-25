@@ -19,8 +19,11 @@ var inputString string = `00100
 `
 
 func TestPartOne(t *testing.T) {
-	got := 1
-	want := 2
+
+	size, report := parseInput(inputString)
+
+	got := power_consumption(size, report)
+	want := 198
 
 	if got != want {
 		t.Errorf("got %d, wanted %d", got, want)
