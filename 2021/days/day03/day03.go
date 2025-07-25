@@ -1,7 +1,4 @@
-//go:build exclude
-
-// remove above comment and change "dayXX"
-package dayXX
+package day03
 
 import (
 	// "aoc_2021/input"
@@ -9,7 +6,7 @@ import (
 )
 
 func Run() {
-	fmt.Println("Day XX: Example")
+	fmt.Println("Day 3: Binary Diagnostic")
 
 	// inputString := input.ReadDay(1)
 
