@@ -1,0 +1,15 @@
+package day14
+
+import (
+	//"aoc_2021/input"
+	"fmt"
+)
+
+func Run() {
+	fmt.Println("Day XX: Example")
+
+	//inputString := input.ReadDay("day14")
+
+	fmt.Printf("Part One: TODO\n")
+	fmt.Printf("Part Two: TODO\n")
+}

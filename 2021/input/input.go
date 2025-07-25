@@ -6,8 +6,8 @@ import (
 	"os"
 )
 
-func ReadDay(day int) string {
-	content, err := os.ReadFile(fmt.Sprintf("input/day%02d.txt", day))
+func ReadDay(day string) string {
+	content, err := os.ReadFile(fmt.Sprintf("input/%s.txt", day))
 	if err != nil {
 		log.Fatal(err)
 	}

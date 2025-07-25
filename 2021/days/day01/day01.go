@@ -52,7 +52,7 @@ func sum(arr []int) int {
 func Run() {
 	fmt.Println("Day 1: Sonar Sweep")
 
-	inputString := input.ReadDay(1)
+	inputString := input.ReadDay("day01")
 	depths := parseInput(inputString)
 
 	fmt.Printf("Part One: %d\n", depthMeasurementIncreases(depths, 1))

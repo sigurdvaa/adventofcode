@@ -67,7 +67,7 @@ func positionAimProduct(ins []pos) int {
 func Run() {
 	fmt.Println("Day 2: Dive!")
 
-	inputString := input.ReadDay(2)
+	inputString := input.ReadDay("day02")
 	ins := parseInput(inputString)
 
 	fmt.Printf("Part One: %d\n", positionProduct(ins))
