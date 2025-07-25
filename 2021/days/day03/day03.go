@@ -36,38 +36,102 @@ func parseInput(inputString string) (int, []int) {
 	return size + 1, report
 }
 
-func power_consumption(size int, report []int) int {
-	common_bits := make([]int, size)
-	gamma_rate := 0
-	epsilon_rate := 0
+func powerConsumption(size int, report []int) int {
+	commonBits := make([]int, size)
+	gammaRate := 0
+	epsilonRate := 0
 
 	b := 1
 	for i := 0; i < size; i++ {
 		for _, num := range report {
 			if num&b > 0 {
-				common_bits[i] += 1
+				commonBits[i] += 1
 			} else {
-				common_bits[i] -= 1
+				commonBits[i] -= 1
 			}
 		}
 		b = b << 1
 	}
 
-	for i := len(common_bits) - 1; i >= 0; i-- {
-		b := common_bits[i]
-		gamma_rate = gamma_rate << 1
-		epsilon_rate = epsilon_rate << 1
+	for i := len(commonBits) - 1; i >= 0; i-- {
+		b := commonBits[i]
+		gammaRate = gammaRate << 1
+		epsilonRate = epsilonRate << 1
 		if b == 0 {
 			log.Fatalln("even bit found")
 		}
 		if b > 0 {
-			gamma_rate += 1
+			gammaRate += 1
 		} else {
-			epsilon_rate += 1
+			epsilonRate += 1
 		}
 	}
 
-	return gamma_rate * epsilon_rate
+	return gammaRate * epsilonRate
+}
+
+func oxygenGeneratorRating(size int, report []int) int {
+	b := 1 << (size - 1)
+	for len(report) > 1 {
+		curr := 0
+		for _, num := range report {
+			if b&num > 0 {
+				curr += 1
+			} else {
+				curr -= 1
+			}
+		}
+
+		var temp []int
+		keep := b
+		if curr < 0 {
+			keep = 0
+		}
+		for _, num := range report {
+			if b&num == keep {
+				temp = append(temp, num)
+			}
+		}
+
+		report = temp
+		b = b >> 1
+	}
+	return report[0]
+}
+
+func co2ScrubberRating(size int, report []int) int {
+	b := 1 << (size - 1)
+	for len(report) > 1 {
+		curr := 0
+		for _, num := range report {
+			if b&num > 0 {
+				curr += 1
+			} else {
+				curr -= 1
+			}
+		}
+
+		var temp []int
+		keep := 0
+		if curr < 0 {
+			keep = b
+		}
+		for _, num := range report {
+			if b&num == keep {
+				temp = append(temp, num)
+			}
+		}
+
+		report = temp
+		b = b >> 1
+	}
+	return report[0]
+}
+
+func lifeSupportRating(size int, report []int) int {
+	oxygen := oxygenGeneratorRating(size, report)
+	co2 := co2ScrubberRating(size, report)
+	return oxygen * co2
 }
 
 func Run() {
@@ -76,6 +140,6 @@ func Run() {
 	inputString := input.ReadDay("day03")
 	size, report := parseInput(inputString)
 
-	fmt.Printf("Part One: %d\n", power_consumption(size, report))
-	fmt.Printf("Part Two: TODO\n")
+	fmt.Printf("Part One: %d\n", powerConsumption(size, report))
+	fmt.Printf("Part Two: %d\n", lifeSupportRating(size, report))
 }
