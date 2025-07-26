@@ -70,7 +70,7 @@ func powerConsumption(size int, report []int) int {
 	return gammaRate * epsilonRate
 }
 
-func oxygenGeneratorRating(size int, report []int) int {
+func bitCriteriaRatings(size int, report []int, mostCommon bool) int {
 	b := 1 << (size - 1)
 	for len(report) > 1 {
 		curr := 0
@@ -82,40 +82,18 @@ func oxygenGeneratorRating(size int, report []int) int {
 			}
 		}
 
-		var temp []int
 		keep := b
-		if curr < 0 {
-			keep = 0
-		}
-		for _, num := range report {
-			if b&num == keep {
-				temp = append(temp, num)
+		if mostCommon {
+			if curr < 0 {
+				keep = 0
 			}
-		}
-
-		report = temp
-		b = b >> 1
-	}
-	return report[0]
-}
-
-func co2ScrubberRating(size int, report []int) int {
-	b := 1 << (size - 1)
-	for len(report) > 1 {
-		curr := 0
-		for _, num := range report {
-			if b&num > 0 {
-				curr += 1
-			} else {
-				curr -= 1
+		} else {
+			if curr >= 0 {
+				keep = 0
 			}
 		}
 
 		var temp []int
-		keep := 0
-		if curr < 0 {
-			keep = b
-		}
 		for _, num := range report {
 			if b&num == keep {
 				temp = append(temp, num)
@@ -129,8 +107,8 @@ func co2ScrubberRating(size int, report []int) int {
 }
 
 func lifeSupportRating(size int, report []int) int {
-	oxygen := oxygenGeneratorRating(size, report)
-	co2 := co2ScrubberRating(size, report)
+	oxygen := bitCriteriaRatings(size, report, true)
+	co2 := bitCriteriaRatings(size, report, false)
 	return oxygen * co2
 }
 
