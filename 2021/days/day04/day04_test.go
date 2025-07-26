@@ -36,4 +36,11 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
+	numbers, boards := parseInput(inputString)
+	got := lastBingoScore(numbers, boards)
+	want := 1924
+
+	if got != want {
+		t.Errorf("got %d, wanted %d", got, want)
+	}
 }

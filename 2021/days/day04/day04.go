@@ -4,6 +4,7 @@ import (
 	"aoc_2021/input"
 	"fmt"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -110,6 +111,30 @@ func bingoScore(numbers []int, boards []Board) int {
 	panic("no solution")
 }
 
+func lastBingoScore(numbers []int, boards []Board) int {
+	status := make([]Status, len(boards))
+	var done []int
+	lastScore := 0
+	for _, draw := range numbers {
+		for b, board := range boards {
+			if slices.Contains(done, b) {
+				continue
+			}
+			for n, num := range board {
+				if num == draw {
+					status[b][n] = true
+					if checkBingo(status[b], n) {
+						lastScore = num * sumUnmarked(board, status[b])
+						done = append(done, b)
+					}
+					continue
+				}
+			}
+		}
+	}
+	return lastScore
+}
+
 func Run() {
 	fmt.Println("Day 4: Giant Squid")
 
@@ -117,5 +142,5 @@ func Run() {
 	numbers, boards := parseInput(inputString)
 
 	fmt.Printf("Part One: %d\n", bingoScore(numbers, boards))
-	fmt.Printf("Part Two: TODO\n")
+	fmt.Printf("Part Two: %d\n", lastBingoScore(numbers, boards))
 }
