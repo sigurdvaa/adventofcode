@@ -48,6 +48,32 @@ func parseInput(stringInput string) []Vent {
 	return vents
 }
 
+func dangerousStraightVentsScore(vents []Vent) int {
+	var lines map[Pos]int
+
+	for _, vent := range vents {
+		if vent.start.x == vent.end.x {
+			y1 := vent.start.y
+			y2 := vent.end.y
+			if y1 > y2 {
+				y1, y2 = y2, y1
+			}
+			// add to map
+		} else if vent.start.y == vent.end.y {
+			x1 := vent.start.x
+			x2 := vent.end.x
+			if x1 > x2 {
+				x1, x2 = x2, x1
+			}
+			// add to map
+		}
+	}
+
+	// count map
+
+	return 0
+}
+
 func Run() {
 	fmt.Println("Day 5: Hydrothermal Venture")
 
