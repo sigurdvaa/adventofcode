@@ -28,4 +28,11 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
+	vents := parseInput(inputString)
+	got := dangerousVentsScore(vents)
+	want := 12
+
+	if got != want {
+		t.Errorf("got %d, wanted %d", got, want)
+	}
 }
