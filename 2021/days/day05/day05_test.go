@@ -1,7 +1,6 @@
 package day05
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -20,8 +19,8 @@ var inputString string = `
 
 func TestPartOne(t *testing.T) {
 	vents := parseInput(inputString)
-	got := 1
-	want := 2
+	got := dangerousStraightVentsScore(vents)
+	want := 5
 
 	if got != want {
 		t.Errorf("got %d, wanted %d", got, want)

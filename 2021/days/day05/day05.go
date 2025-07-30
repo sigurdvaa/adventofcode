@@ -36,7 +36,7 @@ func parsePos(str string) Pos {
 
 func parseInput(stringInput string) []Vent {
 	var vents []Vent
-	for _, line := range strings.Split(stringInput, "\n") {
+	for line := range strings.SplitSeq(stringInput, "\n") {
 		if line == "" {
 			continue
 		}
@@ -49,7 +49,7 @@ func parseInput(stringInput string) []Vent {
 }
 
 func dangerousStraightVentsScore(vents []Vent) int {
-	var lines map[Pos]int
+	lines := make(map[Pos]int)
 
 	for _, vent := range vents {
 		if vent.start.x == vent.end.x {
@@ -58,20 +58,31 @@ func dangerousStraightVentsScore(vents []Vent) int {
 			if y1 > y2 {
 				y1, y2 = y2, y1
 			}
-			// add to map
+
+			for y := y1; y <= y2; y++ {
+				lines[Pos{vent.start.x, y}] += 1
+			}
+
 		} else if vent.start.y == vent.end.y {
 			x1 := vent.start.x
 			x2 := vent.end.x
 			if x1 > x2 {
 				x1, x2 = x2, x1
 			}
-			// add to map
+			for x := x1; x <= x2; x++ {
+				lines[Pos{x, vent.start.y}] += 1
+			}
 		}
 	}
 
-	// count map
+	score := 0
+	for _, v := range lines {
+		if v >= 2 {
+			score += 1
+		}
+	}
 
-	return 0
+	return score
 }
 
 func Run() {
@@ -79,8 +90,7 @@ func Run() {
 
 	inputString := input.ReadDay("day05")
 	vents := parseInput(inputString)
-	_ = vents
 
-	fmt.Printf("Part One: TODO\n")
+	fmt.Printf("Part One: %d\n", dangerousStraightVentsScore(vents))
 	fmt.Printf("Part Two: TODO\n")
 }
