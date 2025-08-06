@@ -89,56 +89,28 @@ func dangerousVentsScore(vents []Vent) int {
 	lines := make(map[Pos]int)
 
 	for _, vent := range vents {
-		if vent.start.x == vent.end.x {
-			y1 := vent.start.y
-			y2 := vent.end.y
-			if y1 > y2 {
-				y1, y2 = y2, y1
-			}
+		x := vent.start.x
+		y := vent.start.y
+		vx := 1
+		vy := 1
 
-			for y := y1; y <= y2; y++ {
-				lines[Pos{vent.start.x, y}] += 1
-			}
+		if x == vent.end.x {
+			vx = 0
+		} else if x > vent.end.x {
+			vx = -1
+		}
 
-		} else if vent.start.y == vent.end.y {
-			x1 := vent.start.x
-			x2 := vent.end.x
-			if x1 > x2 {
-				x1, x2 = x2, x1
-			}
-			for x := x1; x <= x2; x++ {
-				lines[Pos{x, vent.start.y}] += 1
-			}
-		} else {
-			x := vent.start.x
-			y := vent.start.y
-			if vent.start.x < vent.end.x && vent.start.y < vent.end.y {
-				for x <= vent.end.x && y <= vent.end.y {
-					lines[Pos{x, y}] += 1
-					x += 1
-					y += 1
-				}
-			} else if vent.start.x > vent.end.x && vent.start.y > vent.end.y {
-				for x >= vent.end.x && y >= vent.end.y {
-					lines[Pos{x, y}] += 1
-					x -= 1
-					y -= 1
-				}
-			} else if vent.start.x < vent.end.x && vent.start.y > vent.end.y {
-				for x <= vent.end.x && y >= vent.end.y {
-					lines[Pos{x, y}] += 1
-					x += 1
-					y -= 1
-				}
-			} else if vent.start.x > vent.end.x && vent.start.y < vent.end.y {
-				for x >= vent.end.x && y <= vent.end.y {
-					lines[Pos{x, y}] += 1
-					x -= 1
-					y += 1
-				}
-			} else {
-				panic("unreachable")
-			}
+		if y == vent.end.y {
+			vy = 0
+		} else if y > vent.end.y {
+			vy = -1
+		}
+
+		lines[Pos{x, y}] += 1
+		for x-vent.end.x != 0 || y-vent.end.y != 0 {
+			x += vx
+			y += vy
+			lines[Pos{x, y}] += 1
 		}
 	}
 
