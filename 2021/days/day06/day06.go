@@ -8,6 +8,9 @@ import (
 	"strings"
 )
 
+const FISH_NEW = 8
+const FISH_RESET = 6
+
 func parseInput(input string) []int {
 	nums := []int{}
 	for split := range strings.SplitSeq(input, ",") {
@@ -22,21 +25,29 @@ func parseInput(input string) []int {
 }
 
 func lanternfishGrowth(fish []int, days int) int {
-	init := 8
-	interval := 6
+	school := [FISH_NEW + 1]int{}
+	for _, v := range fish {
+		school[v] += 1
+	}
+
 	for range days {
-		temp := []int{}
-		for i := range fish {
-			if fish[i] == 0 {
-				temp = append(temp, init)
-				fish[i] = interval
+		temp := [FISH_NEW + 1]int{}
+		for i, v := range school {
+			if i == 0 {
+				temp[FISH_NEW] = v
+				temp[FISH_RESET] = v
 			} else {
-				fish[i]--
+				temp[i-1] += v
 			}
 		}
-		fish = append(fish, temp...)
+		school = temp
 	}
-	return len(fish)
+
+	sum := 0
+	for _, c := range school {
+		sum += c
+	}
+	return sum
 }
 
 func Run() {
