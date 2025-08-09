@@ -5,14 +5,12 @@ import (
 )
 
 func TestPartOne(t *testing.T) {
-	/*
-	   got := 1
-	   want := 2
+	got := 1
+	want := 26
 
-	   	if got != want {
-	   		t.Errorf("got %d, wanted %d", got, want)
-	   	}
-	*/
+	if got != want {
+		t.Errorf("got %d, wanted %d", got, want)
+	}
 }
 
 func TestPartTwo(t *testing.T) {
