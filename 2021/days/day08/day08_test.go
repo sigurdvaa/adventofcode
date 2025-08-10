@@ -26,4 +26,11 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
+	displays := parseInput(inputString)
+	got := sumOutput(displays)
+	want := 61229
+
+	if got != want {
+		t.Errorf("got %d, wanted %d", got, want)
+	}
 }
