@@ -8,6 +8,19 @@ import (
 	"strings"
 )
 
+var digits [10]byte = [10]byte{
+	0b01110111,
+	0b00100100,
+	0b01011101,
+	0b01101101,
+	0b00101110,
+	0b01101011,
+	0b01111011,
+	0b00100101,
+	0b01111111,
+	0b01101111,
+}
+
 type display struct {
 	signals []string
 	output  []string
@@ -74,11 +87,14 @@ func identifyUniqueLenSignals(displ display) map[string]int {
 func identifySignals(displ display) map[string]int {
 	signalMap := identifyUniqueLenSignals(displ)
 
+	fmt.Println(digits[1])
+
 	// top segment: 7-1
 	// bot right segment: in 9 out of 10 signals
 	// // only digit 2 is missing bot right segment
 	// top right segment: 1 - bot right segment
 
+	// can fit
 	// 0: 1, 7
 	// 2: -
 	// 3: 1, 7
