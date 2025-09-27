@@ -8,19 +8,6 @@ import (
 	"strings"
 )
 
-var digits [10]byte = [10]byte{
-	0b01110111,
-	0b00100100,
-	0b01011101,
-	0b01101101,
-	0b00101110,
-	0b01101011,
-	0b01111011,
-	0b00100101,
-	0b01111111,
-	0b01101111,
-}
-
 type display struct {
 	signals []string
 	output  []string
@@ -70,37 +57,95 @@ func countEasyDigits(displays []display) int {
 	return count
 }
 
-func identifyUniqueLenSignals(displ display) map[string]int {
-	lenMap := map[int]int{2: 1, 3: 7, 4: 3, 7: 8}
+func identifySignalsByLen(displ display) (map[string]int, []string, []string) {
+	uniqueLenMaps := map[int]int{2: 1, 3: 7, 4: 4, 7: 8}
 	signalMap := map[string]int{}
+	len5 := []string{}
+	len6 := []string{}
 
 	for _, signal := range displ.signals {
-		val, ok := lenMap[len(signal)]
+		sigLen := len(signal)
+		val, ok := uniqueLenMaps[sigLen]
 		if ok {
 			signalMap[signal] = val
+		} else {
+			if sigLen == 6 {
+				len6 = append(len6, signal)
+			} else {
+				len5 = append(len5, signal)
+			}
 		}
 	}
 
-	return signalMap
+	return signalMap, len5, len6
+}
+
+func removeSliceAt(slice []string, i int) []string {
+	slice[i] = slice[len(slice)-1]
+	return slice[:len(slice)-1]
+}
+
+func signalContainsSignal(a string, b string) bool {
+	for _, r := range b {
+		if !strings.ContainsRune(a, r) {
+			return false
+		}
+	}
+	return true
 }
 
 func identifySignals(displ display) map[string]int {
-	signalMap := identifyUniqueLenSignals(displ)
+	signalMap, len5, len6 := identifySignalsByLen(displ)
+	digitMap := map[int]string{}
+	for k, v := range signalMap {
+		digitMap[v] = k
+	}
 
-	fmt.Println(digits[1])
+	// len 6:  0, 6, 9
+	// // known 4-pattern in 9-pattern (remove 9 from 6-list)
+	for i, sig := range len6 {
+		if signalContainsSignal(sig, digitMap[4]) {
+			signalMap[sig] = 9
+			digitMap[9] = sig
+			len6 = removeSliceAt(len6, i)
+		}
+	}
 
-	// top segment: 7-1
-	// bot right segment: in 9 out of 10 signals
-	// // only digit 2 is missing bot right segment
-	// top right segment: 1 - bot right segment
+	// // known 1-pattern in 0-pattern (remove 0 from 6-list)
+	for i, sig := range len6 {
+		if signalContainsSignal(sig, digitMap[1]) {
+			signalMap[sig] = 0
+			digitMap[0] = sig
+			len6 = removeSliceAt(len6, i)
+		}
+	}
 
-	// can fit
-	// 0: 1, 7
-	// 2: -
-	// 3: 1, 7
-	// 5: -
-	// 6: 5
-	// 9: 1, 3, 4, 5, 7
+	// // which leaves 6
+	signalMap[len6[0]] = 6
+	digitMap[6] = len6[0]
+
+	// len 5:  2, 3, 5
+	// // known 1-pattern in 3-pattern (remove 3 from 5-list)
+	for i, sig := range len5 {
+		if signalContainsSignal(sig, digitMap[1]) {
+			signalMap[sig] = 3
+			digitMap[3] = sig
+			len5 = removeSliceAt(len5, i)
+		}
+	}
+
+	// // unkown 5-pattern in known 6-pattern (remove 5 from 5-list)
+	for i, sig := range len5 {
+		if signalContainsSignal(digitMap[6], sig) {
+			signalMap[sig] = 5
+			digitMap[5] = sig
+			len5 = removeSliceAt(len5, i)
+		}
+	}
+
+	// // which leaves 2
+	signalMap[len5[0]] = 2
+	digitMap[2] = len5[0]
 
 	return signalMap
 }
@@ -109,8 +154,12 @@ func sumOutput(displays []display) int {
 	sum := 0
 	for _, displ := range displays {
 		signalMap := identifySignals(displ)
-		fmt.Println(signalMap)
-		sum += 1
+		output := 0
+		for _, sig := range displ.output {
+			output *= 10
+			output += signalMap[sig]
+		}
+		sum += output
 	}
 	return sum
 }
@@ -122,5 +171,5 @@ func Run() {
 	displays := parseInput(inputString)
 
 	fmt.Printf("Part One: %d\n", countEasyDigits(displays))
-	fmt.Printf("Part Two: TODO\n")
+	fmt.Printf("Part Two: %d\n", sumOutput(displays))
 }
