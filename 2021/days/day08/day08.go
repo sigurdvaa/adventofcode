@@ -106,7 +106,6 @@ func identifySignals(displ display) map[string]int {
 	for i, sig := range len6 {
 		if signalContainsSignal(sig, digitMap[4]) {
 			signalMap[sig] = 9
-			digitMap[9] = sig
 			len6 = removeSliceAt(len6, i)
 		}
 	}
@@ -115,7 +114,6 @@ func identifySignals(displ display) map[string]int {
 	for i, sig := range len6 {
 		if signalContainsSignal(sig, digitMap[1]) {
 			signalMap[sig] = 0
-			digitMap[0] = sig
 			len6 = removeSliceAt(len6, i)
 		}
 	}
@@ -129,7 +127,6 @@ func identifySignals(displ display) map[string]int {
 	for i, sig := range len5 {
 		if signalContainsSignal(sig, digitMap[1]) {
 			signalMap[sig] = 3
-			digitMap[3] = sig
 			len5 = removeSliceAt(len5, i)
 		}
 	}
@@ -138,14 +135,12 @@ func identifySignals(displ display) map[string]int {
 	for i, sig := range len5 {
 		if signalContainsSignal(digitMap[6], sig) {
 			signalMap[sig] = 5
-			digitMap[5] = sig
 			len5 = removeSliceAt(len5, i)
 		}
 	}
 
 	// // which leaves 2
 	signalMap[len5[0]] = 2
-	digitMap[2] = len5[0]
 
 	return signalMap
 }
