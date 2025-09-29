@@ -4,6 +4,7 @@ import (
 	"aoc_2021/input"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -63,6 +64,65 @@ func sumRiskLevelLowPoints(heightMap [][]int) int {
 	return sum
 }
 
+type Pos struct {
+	x int
+	y int
+}
+
+func findBasinSize(heightMap [][]int, x int, y int) int {
+	size := 0
+	queue := []Pos{{x, y}}
+	visited := map[Pos]bool{}
+
+	for len(queue) > 0 {
+		pos := queue[0]
+		queue = queue[1:]
+		if visited[pos] {
+			continue
+		}
+		visited[pos] = true
+		size += 1
+
+		if pos.y > 0 && heightMap[pos.y-1][pos.x] < 9 {
+			queue = append(queue, Pos{pos.x, pos.y - 1})
+		}
+
+		if pos.y < len(heightMap)-1 && heightMap[pos.y+1][pos.x] < 9 {
+			queue = append(queue, Pos{pos.x, pos.y + 1})
+		}
+
+		if pos.x > 0 && heightMap[pos.y][pos.x-1] < 9 {
+			queue = append(queue, Pos{pos.x - 1, pos.y})
+		}
+
+		if pos.x < len(heightMap[pos.y])-1 && heightMap[pos.y][pos.x+1] < 9 {
+			queue = append(queue, Pos{pos.x + 1, pos.y})
+		}
+	}
+
+	return size
+}
+
+func productLargestBasins(heightMap [][]int) int {
+	basins := []int{}
+
+	for y := range heightMap {
+		for x := range heightMap[y] {
+			if lowPoint(heightMap, x, y) {
+				size := findBasinSize(heightMap, x, y)
+				basins = append(basins, size)
+			}
+		}
+	}
+
+	sort.Ints(basins)
+	product := 1
+	for _, val := range basins[len(basins)-3:] {
+		product *= val
+	}
+	return product
+}
+
 func Run() {
 	fmt.Println("Day 9: Smoke Basin")
 
@@ -70,5 +130,5 @@ func Run() {
 	heightMap := parseInput(inputString)
 
 	fmt.Printf("Part One: %d\n", sumRiskLevelLowPoints(heightMap))
-	fmt.Printf("Part Two: TODO\n")
+	fmt.Printf("Part Two: %d\n", productLargestBasins(heightMap))
 }

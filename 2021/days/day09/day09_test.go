@@ -1,7 +1,6 @@
 package day09
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -13,7 +12,6 @@ var inputString string = `2199943210
 
 func TestPartOne(t *testing.T) {
 	heightMap := parseInput(inputString)
-	fmt.Println(heightMap)
 
 	got := sumRiskLevelLowPoints(heightMap)
 	want := 15
@@ -24,4 +22,12 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
+	heightMap := parseInput(inputString)
+
+	got := productLargestBasins(heightMap)
+	want := 1134
+
+	if got != want {
+		t.Errorf("got %d, wanted %d", got, want)
+	}
 }
