@@ -61,7 +61,7 @@ func numPaths(caveMap CaveMap) int {
 					continue
 				}
 			}
-			nextPath := append(append([]string{}, curr...), nextCave)
+			nextPath := append(slices.Clone(curr), nextCave)
 			queue = append(queue, nextPath)
 		}
 	}
