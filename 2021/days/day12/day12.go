@@ -3,6 +3,7 @@ package day12
 import (
 	"aoc_2021/input"
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -33,13 +34,46 @@ func parseInput(str string) CaveMap {
 	return caveMap
 }
 
+func numPaths(caveMap CaveMap) int {
+	done := [][]string{}
+	queue := [][]string{{"start"}}
+	visited := map[string]bool{}
+
+	for len(queue) > 0 {
+		curr := queue[0]
+		queue = queue[1:]
+
+		path := strings.Join(curr, "-")
+		if visited[path] {
+			continue
+		}
+		visited[path] = true
+
+		if curr[len(curr)-1] == "end" {
+			done = append(done, curr)
+			continue
+		}
+
+		for _, nextCave := range caveMap[curr[len(curr)-1]] {
+			// if small cave already in path, skip
+			if nextCave[0] > 96 {
+				if slices.Contains(curr, nextCave) {
+					continue
+				}
+			}
+			nextPath := append(append([]string{}, curr...), nextCave)
+			queue = append(queue, nextPath)
+		}
+	}
+	return len(done)
+}
+
 func Run() {
 	fmt.Println("Day 12: Passage Pathing")
 
 	inputString := input.ReadDay("day12")
 	caveMap := parseInput(inputString)
-	_ = caveMap
 
-	fmt.Printf("Part One: TODO\n")
+	fmt.Printf("Part One: %d\n", numPaths(caveMap))
 	fmt.Printf("Part Two: TODO\n")
 }

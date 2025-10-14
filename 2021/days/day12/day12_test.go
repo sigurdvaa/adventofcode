@@ -14,9 +14,8 @@ b-end`
 
 func TestPartOne(t *testing.T) {
 	caveMap := parseInput(inputString)
-	_ = caveMap
-	got := 1
-	want := 2
+	got := numPaths(caveMap)
+	want := 10
 
 	if got != want {
 		t.Errorf("got %d, wanted %d", got, want)
