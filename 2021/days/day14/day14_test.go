@@ -4,16 +4,41 @@ import (
 	"testing"
 )
 
-func TestPartOne(t *testing.T) {
-	/*
-	   got := 1
-	   want := 2
+var inputString string = `NNCB
 
-	   	if got != want {
-	   		t.Errorf("got %d, wanted %d", got, want)
-	   	}
-	*/
+CH -> B
+HH -> N
+CB -> H
+NH -> C
+HB -> C
+HC -> B
+HN -> C
+NN -> C
+BH -> H
+NC -> B
+NB -> B
+BN -> B
+BB -> N
+BC -> B
+CC -> N
+CN -> C`
+
+func TestPartOne(t *testing.T) {
+	template, rules := parseInput(inputString)
+	got := diffCommonElement(template, rules, 10)
+	want := 1588
+
+	if got != want {
+		t.Errorf("got %d, wanted %d", got, want)
+	}
 }
 
 func TestPartTwo(t *testing.T) {
+	template, rules := parseInput(inputString)
+	got := diffCommonElement(template, rules, 40)
+	want := 2188189693529
+
+	if got != want {
+		t.Errorf("got %d, wanted %d", got, want)
+	}
 }
