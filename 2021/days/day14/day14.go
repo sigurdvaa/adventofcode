@@ -72,5 +72,3 @@ func Run() {
 	fmt.Printf("Part One: %d\n", diffMostLeastCommonElements(template, rules, 10))
 	fmt.Printf("Part Two: %d\n", diffMostLeastCommonElements(template, rules, 40))
 }
-
-// 3060164198401 low
