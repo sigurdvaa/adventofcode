@@ -25,7 +25,7 @@ CN -> C`
 
 func TestPartOne(t *testing.T) {
 	template, rules := parseInput(inputString)
-	got := diffCommonElement(template, rules, 10)
+	got := diffMostLeastCommonElements(template, rules, 10)
 	want := 1588
 
 	if got != want {
@@ -35,7 +35,7 @@ func TestPartOne(t *testing.T) {
 
 func TestPartTwo(t *testing.T) {
 	template, rules := parseInput(inputString)
-	got := diffCommonElement(template, rules, 40)
+	got := diffMostLeastCommonElements(template, rules, 40)
 	want := 2188189693529
 
 	if got != want {

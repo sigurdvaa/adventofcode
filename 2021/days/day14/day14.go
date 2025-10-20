@@ -24,31 +24,34 @@ func parseInput(str string) (string, map[string]string) {
 	return template, rules
 }
 
-func diffCommonElement(polymer string, rules map[string]string, steps int) int {
+func diffMostLeastCommonElements(polymer string, rules map[string]string, steps int) int {
+	pairs := map[string]int{}
+	for i := 0; i < len(polymer)-1; i++ {
+		pairs[polymer[i:i+2]] += 1
+	}
 
 	for range steps {
-		nextPolymer := strings.Builder{}
-
-		for i := range len(polymer) - 1 {
-			nextPolymer.WriteString(polymer[i : i+1])
-			val, ok := rules[polymer[i:i+2]]
-			if ok {
-				nextPolymer.WriteString(val)
-			}
+		newPairs := map[string]int{}
+		for pair, count := range pairs {
+			ins := rules[pair]
+			// add double count, but we'll only count first polymer in pairs afterwards
+			newPairs[pair[0:1]+ins] += count
+			newPairs[ins+pair[1:2]] += count
 		}
-		nextPolymer.WriteString(polymer[len(polymer)-1:])
-
-		polymer = nextPolymer.String()
+		pairs = newPairs
 	}
 
-	count := map[rune]int{}
-	for _, char := range polymer {
-		count[char] += 1
+	countMap := map[string]int{}
+	for pair, count := range pairs {
+		// only count first polymer in pair
+		countMap[pair[0:1]] += count
 	}
+	// add one extra to last polymer in chain
+	countMap[polymer[len(polymer)-1:]] += 1
 
 	most := 0
 	least := math.MaxInt
-	for _, val := range count {
+	for _, val := range countMap {
 		if val > most {
 			most = val
 		}
@@ -66,6 +69,8 @@ func Run() {
 	inputString := input.ReadDay("day14")
 	template, rules := parseInput(inputString)
 
-	fmt.Printf("Part One: %d\n", diffCommonElement(template, rules, 10))
-	fmt.Printf("Part Two: %d\n", diffCommonElement(template, rules, 40))
+	fmt.Printf("Part One: %d\n", diffMostLeastCommonElements(template, rules, 10))
+	fmt.Printf("Part Two: %d\n", diffMostLeastCommonElements(template, rules, 40))
 }
+
+// 3060164198401 low
