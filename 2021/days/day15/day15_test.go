@@ -4,15 +4,25 @@ import (
 	"testing"
 )
 
-func TestPartOne(t *testing.T) {
-	/*
-	   got := 1
-	   want := 2
+var inputString string = `1163751742
+1381373672
+2136511328
+3694931569
+7463417111
+1319128137
+1359912421
+3125421639
+1293138521
+2311944581`
 
-	   	if got != want {
-	   		t.Errorf("got %d, wanted %d", got, want)
-	   	}
-	*/
+func TestPartOne(t *testing.T) {
+	risks := parseInput(inputString)
+	got := lowestTotalRisk(risks)
+	want := 40
+
+	if got != want {
+		t.Errorf("got %d, wanted %d", got, want)
+	}
 }
 
 func TestPartTwo(t *testing.T) {
