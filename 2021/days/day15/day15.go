@@ -5,7 +5,6 @@ import (
 	"container/heap"
 	"fmt"
 	"log"
-	"maps"
 	"strconv"
 	"strings"
 )
@@ -32,10 +31,9 @@ func parseInput(str string) [][]int {
 }
 
 type State struct {
-	risk    int
-	x       int
-	y       int
-	visited map[string]struct{}
+	risk int
+	x    int
+	y    int
 }
 
 type MinHeap []State
@@ -55,61 +53,50 @@ func (h *MinHeap) Pop() any {
 }
 
 func lowestTotalRisk(risks [][]int) int {
-	queue := &MinHeap{{risk: 0, x: 0, y: 0, visited: map[string]struct{}{}}}
+	queue := &MinHeap{{risk: 0, x: 0, y: 0}}
+	visited := map[string]struct{}{}
 	heap.Init(queue)
 	for queue.Len() > 0 {
 		state := heap.Pop(queue).(State)
-		_, ok := state.visited[fmt.Sprintf("%d,%d", state.x, state.y)]
+		_, ok := visited[fmt.Sprintf("%d,%d", state.x, state.y)]
 		if ok {
 			continue
 		}
-		state.visited[fmt.Sprintf("%d,%d", state.x, state.y)] = struct{}{}
+		visited[fmt.Sprintf("%d,%d", state.x, state.y)] = struct{}{}
 
 		if state.y == len(risks)-1 && state.x == len(risks[state.y])-1 {
 			return state.risk
 		}
 
 		if state.y > 0 {
-			visited := map[string]struct{}{}
-			maps.Copy(visited, state.visited)
 			heap.Push(queue, State{
-				risk:    state.risk + risks[state.y-1][state.x],
-				x:       state.x,
-				y:       state.y - 1,
-				visited: visited,
+				risk: state.risk + risks[state.y-1][state.x],
+				x:    state.x,
+				y:    state.y - 1,
 			})
 		}
 
 		if state.y < len(risks)-1 {
-			visited := map[string]struct{}{}
-			maps.Copy(visited, state.visited)
 			heap.Push(queue, State{
-				risk:    state.risk + risks[state.y+1][state.x],
-				x:       state.x,
-				y:       state.y + 1,
-				visited: visited,
+				risk: state.risk + risks[state.y+1][state.x],
+				x:    state.x,
+				y:    state.y + 1,
 			})
 		}
 
 		if state.x > 0 {
-			visited := map[string]struct{}{}
-			maps.Copy(visited, state.visited)
 			heap.Push(queue, State{
-				risk:    state.risk + risks[state.y][state.x-1],
-				x:       state.x - 1,
-				y:       state.y,
-				visited: visited,
+				risk: state.risk + risks[state.y][state.x-1],
+				x:    state.x - 1,
+				y:    state.y,
 			})
 		}
 
 		if state.x < len(risks[state.y])-1 {
-			visited := map[string]struct{}{}
-			maps.Copy(visited, state.visited)
 			heap.Push(queue, State{
-				risk:    state.risk + risks[state.y][state.x+1],
-				x:       state.x + 1,
-				y:       state.y,
-				visited: visited,
+				risk: state.risk + risks[state.y][state.x+1],
+				x:    state.x + 1,
+				y:    state.y,
 			})
 		}
 	}
@@ -117,12 +104,33 @@ func lowestTotalRisk(risks [][]int) int {
 	return -1
 }
 
+func enlargeRiskMap(risks [][]int) [][]int {
+	base := len(risks)
+	size := base * 5
+	large := make([][]int, size)
+
+	for y := range size {
+		row := make([]int, size)
+		for x := range size {
+			risk := risks[y%base][x%base] + (y / base) + (x / base)
+			if risk > 9 {
+				risk = (risk % 10) + 1
+			}
+			row[x] = risk
+		}
+		large[y] = row
+	}
+
+	return large
+}
+
 func Run() {
 	fmt.Println("Day 15: Chiton")
 
 	inputString := input.ReadDay("day15")
 	risks := parseInput(inputString)
+	largeRisks := enlargeRiskMap(risks)
 
 	fmt.Printf("Part One: %d\n", lowestTotalRisk(risks))
-	fmt.Printf("Part Two: TODO\n")
+	fmt.Printf("Part Two: %d\n", lowestTotalRisk(largeRisks))
 }

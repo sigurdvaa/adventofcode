@@ -26,4 +26,12 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
+	risks := parseInput(inputString)
+	risks = enlargeRiskMap(risks)
+	got := lowestTotalRisk(risks)
+	want := 315
+
+	if got != want {
+		t.Errorf("got %d, wanted %d", got, want)
+	}
 }
