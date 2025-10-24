@@ -32,35 +32,76 @@ func parseInput(str string) (int, int, int, int) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	y1 = value
+	y2 = value
 
 	value, err = strconv.Atoi(ysplit[1])
 	if err != nil {
 		log.Fatal(err)
 	}
-	y2 = value
+	y1 = value
 
 	return x1, x2, y1, y2
 }
 
-func highestPosition(x1, x2, y1, y2 int) int {
+func launchProbe(x1, x2, xv, y1, y2, yv int) (int, bool) {
+	highestY := 0
+	x := 0
+	y := 0
+	hit := false
 
-	minX := 0
-	maxX := x2 / 2
-	s := 0
-	sum := 0
 	for {
-		s += 1
-		sum += s
-		if sum >= x1 {
+		x += xv
+		y += yv
+
+		if y > highestY {
+			highestY = y
+		}
+
+		if x > x2 || y < y2 {
+			break
+		}
+
+		if x >= x1 && y <= y1 {
+			hit = true
+			break
+		}
+
+		yv -= 1
+		if xv > 0 {
+			xv -= 1
+		}
+	}
+
+	return highestY, hit
+}
+
+func highestPosition(x1, x2, y1, y2 int) (int, int) {
+	highestY := 0
+	hits := 0
+	minY, maxY := y2, -y2
+	minX, maxX := 0, x2
+	xsum := 0
+	for s := range x1 {
+		xsum += s
+		if xsum >= x1 {
 			minX = s
 			break
 		}
 	}
 
-	fmt.Println(x1, x2, minX, maxX)
+	for yv := minY; yv <= maxY; yv++ {
+		for xv := minX; xv <= maxX; xv++ {
+			currHighestY, hit := launchProbe(x1, x2, xv, y1, y2, yv)
+			if hit {
+				hits += 1
+				if currHighestY > highestY {
+					highestY = currHighestY
+				}
+			}
+		}
+	}
 
-	return 0
+	return highestY, hits
 }
 
 func Run() {
@@ -69,6 +110,7 @@ func Run() {
 	inputString := input.ReadDay("day17")
 	x1, x2, y1, y2 := parseInput(inputString)
 
-	fmt.Printf("Part One: %d\n", highestPosition(x1, x2, y1, y2))
-	fmt.Printf("Part Two: TODO\n")
+	highestY, hits := highestPosition(x1, x2, y1, y2)
+	fmt.Printf("Part One: %d\n", highestY)
+	fmt.Printf("Part Two: %d\n", hits)
 }
