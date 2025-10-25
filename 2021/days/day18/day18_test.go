@@ -16,8 +16,9 @@ var inputString string = `[[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]
 [[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]`
 
 func TestPartOne(t *testing.T) {
-	_ = parseInput(inputString)
-	got := 1
+	numbers := parseInput(inputString)
+	number := sumNumbers(numbers)
+	got := number.magnitude()
 	want := 4140
 
 	if got != want {
@@ -26,4 +27,11 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
+	numbers := parseInput(inputString)
+	got := largestMagnitudeTwoNumbers(numbers)
+	want := 3993
+
+	if got != want {
+		t.Errorf("got %d, wanted %d", got, want)
+	}
 }
