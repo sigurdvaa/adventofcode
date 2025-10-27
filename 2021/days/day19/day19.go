@@ -12,7 +12,6 @@ type Coord struct {
 	x int
 	y int
 	z int
-	s int
 }
 
 func parseInput(str string) [][]Coord {
@@ -42,7 +41,7 @@ func parseInput(str string) [][]Coord {
 			if err != nil {
 				log.Panic(err)
 			}
-			scanner = append(scanner, Coord{x, y, z, len(scanners)})
+			scanner = append(scanner, Coord{x, y, z})
 		}
 	}
 
@@ -52,52 +51,31 @@ func parseInput(str string) [][]Coord {
 	return scanners
 }
 
-func abs(n int) int {
-	if n < 0 {
-		return -n
+func pow(x, n int) int {
+	for range n - 1 {
+		x *= x
 	}
-	return n
+	return x
 }
 
 func getDistance(a Coord, b Coord) int {
-	return abs(a.x-b.x) + abs(a.y-b.y) + abs(a.z-b.z)
-	// xdiff := math.Pow(float64(a.x)-float64(b.x), 2)
-	// ydiff := math.Pow(float64(a.y)-float64(b.y), 2)
-	// zdiff := math.Pow(float64(a.z)-float64(b.z), 2)
-	// return math.Sqrt(xdiff + ydiff + zdiff)
+	return pow(a.x-b.x, 2) + pow(a.y-b.y, 2) + pow(a.z-b.z, 2)
 }
 
-func getDistances(scanners [][]Coord) map[int][]Coord {
-	dists := map[int][]Coord{}
-	for _, scanner := range scanners {
+func getDistances(scanners [][]Coord) map[int]map[int][]Coord {
+	dists := map[int]map[int][]Coord{}
+	for s, scanner := range scanners {
 		for o := 0; o < len(scanner)-1; o++ {
 			for i := o + 1; i < len(scanner); i++ {
 				dist := getDistance(scanner[o], scanner[i])
-				dists[dist] = append(dists[dist], scanner[o])
-				dists[dist] = append(dists[dist], scanner[i])
+				if _, ok := dists[dist]; !ok {
+					dists[dist] = map[int][]Coord{}
+				}
+				dists[dist][s] = append(dists[dist][s], scanner[o])
+				dists[dist][s] = append(dists[dist][s], scanner[i])
 			}
 		}
 	}
-
-	same := map[Coord]int{}
-	for _, v := range dists {
-		for _, c := range v {
-			if c.s == 4 || c.s == 1 {
-				same[c] = len(v)
-			}
-		}
-	}
-
-	count := 0
-	for k, v := range same {
-		if v > 2 {
-			fmt.Println(k, v)
-			if k.s == 4 {
-				count += 1
-			}
-		}
-	}
-	fmt.Println(count)
 	return dists
 }
 

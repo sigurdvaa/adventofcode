@@ -146,7 +146,7 @@ func TestPartOne(t *testing.T) {
 	distances := getDistances(scanners)
 	_ = distances
 	got := 1
-	want := 2
+	want := 79
 
 	if got != want {
 		t.Errorf("got %d, wanted %d", got, want)
