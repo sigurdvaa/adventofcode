@@ -79,14 +79,21 @@ func getDistances(scanners [][]Coord) map[int]map[int][]Coord {
 	return dists
 }
 
+func assembleMap(scanners [][]Coord) []Coord {
+	distances := getDistances(scanners)
+	offsets := []Coord{}
+	beacons := []Coord{}
+
+	return beacons
+}
+
 func Run() {
 	fmt.Println("Day 19: Beacon Scanner")
 
 	inputString := input.ReadDay("day19")
 	scanners := parseInput(inputString)
-	distances := getDistances(scanners)
-	_ = distances
+	beacons := assembleMap(scanners)
 
-	fmt.Printf("Part One: TODO\n")
+	fmt.Printf("Part One: %d\n", len(beacons))
 	fmt.Printf("Part Two: TODO\n")
 }
