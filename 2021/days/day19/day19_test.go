@@ -142,7 +142,9 @@ var inputString string = `--- scanner 0 ---
 30,-46,-14`
 
 func TestPartOne(t *testing.T) {
-	_ = parseInput(inputString)
+	scanners := parseInput(inputString)
+	distances := getDistances(scanners)
+	_ = distances
 	got := 1
 	want := 2
 
