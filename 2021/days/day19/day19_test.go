@@ -143,8 +143,8 @@ var inputString string = `--- scanner 0 ---
 
 func TestPartOne(t *testing.T) {
 	scanners := parseInput(inputString)
-	distances := getDistances(scanners)
-	_ = distances
+	beacons := assembleMap(scanners)
+	_ = beacons
 	got := 1
 	want := 79
 

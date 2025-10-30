@@ -4,6 +4,7 @@ import (
 	"aoc_2021/input"
 	"fmt"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -79,10 +80,59 @@ func getDistances(scanners [][]Coord) map[int]map[int][]Coord {
 	return dists
 }
 
+func getOffset(a []Coord, b []Coord) Coord {
+	candidates := []Coord{}
+
+	for _, c1 := range a {
+		for _, c2 := range b {
+			candidates = append(candidates, Coord{
+				x: c1.x - c2.x,
+				y: c1.y - c2.y,
+				z: c1.z - c2.z,
+			})
+		}
+	}
+
+	return Coord{0, 0, 0}
+}
+
 func assembleMap(scanners [][]Coord) []Coord {
+	minEdges := 12 * 11 / 2
 	distances := getDistances(scanners)
-	offsets := []Coord{}
-	beacons := []Coord{}
+	offsets := make([]*Coord, len(scanners))
+	beacons := make([]Coord, len(scanners[0]))
+	copy(beacons, scanners[0])
+	offsets[0] = &Coord{0, 0, 0}
+
+	scannerIdx := slices.Index(offsets, nil)
+	for scannerIdx > -1 {
+		for o, offset := range offsets {
+			if offset == nil {
+				continue
+			}
+
+			// for scanner i where offsets != nil, find overlapping distances
+			overlap := []int{}
+			for dist, scanners := range distances {
+				if _, ok := scanners[scannerIdx]; ok {
+					if _, ok := scanners[o]; ok {
+						overlap = append(overlap, dist)
+					}
+				}
+			}
+			// if over minEdge threshold, find offset and add beacons
+			if len(overlap) >= minEdges {
+				offset := getOffset(distances[overlap[0]][scannerIdx], distances[overlap[0]][o])
+
+				// add all scanner i beacons
+			}
+
+			// TODO REMOVE
+			return beacons
+		}
+
+		scannerIdx = slices.Index(offsets, nil)
+	}
 
 	return beacons
 }
