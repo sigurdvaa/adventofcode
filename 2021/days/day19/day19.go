@@ -80,20 +80,45 @@ func getDistances(scanners [][]Coord) map[int]map[int][]Coord {
 	return dists
 }
 
-func getOffset(a []Coord, b []Coord) Coord {
-	candidates := []Coord{}
-
-	for _, c1 := range a {
-		for _, c2 := range b {
-			candidates = append(candidates, Coord{
-				x: c1.x - c2.x,
-				y: c1.y - c2.y,
-				z: c1.z - c2.z,
-			})
+func getMaxKey(count map[int]int) int {
+	maxCount := 0
+	maxKey := 0
+	for k, v := range count {
+		if v > maxCount {
+			maxCount = v
+			maxKey = k
 		}
 	}
+	return maxKey
+}
 
-	return Coord{0, 0, 0}
+func getOffset(dists map[int]map[int][]Coord, overlap []int, a int, b int, aOffset *Coord) Coord {
+	xCands := map[int]int{}
+	yCands := map[int]int{}
+	zCands := map[int]int{}
+
+	for _, dist := range overlap {
+		for _, c1 := range dists[dist][a] {
+			c1 = Coord{
+				x: c1.x + aOffset.x,
+				y: c1.y + aOffset.y,
+				z: c1.z + aOffset.z,
+			}
+			for _, c2 := range dists[dist][b] {
+				xCands[c1.x-c2.x] += 1
+				xCands[c1.x+c2.x] += 1
+				yCands[c1.y-c2.y] += 1
+				yCands[c1.y+c2.y] += 1
+				zCands[c1.z-c2.z] += 1
+				zCands[c1.z+c2.z] += 1
+			}
+		}
+	}
+	return Coord{
+		x: getMaxKey(xCands),
+		y: getMaxKey(yCands),
+		z: getMaxKey(zCands),
+	}
 }
 
 func assembleMap(scanners [][]Coord) []Coord {
@@ -104,14 +129,25 @@ func assembleMap(scanners [][]Coord) []Coord {
 	copy(beacons, scanners[0])
 	offsets[0] = &Coord{0, 0, 0}
 
-	scannerIdx := slices.Index(offsets, nil)
-	for scannerIdx > -1 {
-		for o, offset := range offsets {
-			if offset == nil {
+	scannerIdx := 0
+	for {
+		scannerIdx += 1
+		if scannerIdx >= len(offsets) {
+			scannerIdx = slices.Index(offsets, nil)
+			if scannerIdx == -1 {
+				fmt.Println(len(beacons))
+				return beacons
+			}
+		} else if offsets[scannerIdx] != nil {
+			continue
+		}
+
+		for o, otherOffset := range offsets {
+			if otherOffset == nil {
 				continue
 			}
 
-			// for scanner i where offsets != nil, find overlapping distances
+			// for scanner where offsets != nil, find overlapping distances
 			overlap := []int{}
 			for dist, scanners := range distances {
 				if _, ok := scanners[scannerIdx]; ok {
@@ -120,21 +156,27 @@ func assembleMap(scanners [][]Coord) []Coord {
 					}
 				}
 			}
+
 			// if over minEdge threshold, find offset and add beacons
 			if len(overlap) >= minEdges {
-				offset := getOffset(distances[overlap[0]][scannerIdx], distances[overlap[0]][o])
-
+				scannerOffset := getOffset(distances, overlap, o, scannerIdx, offsets[o])
+				fmt.Println(scannerIdx, scannerOffset)
+				offsets[scannerIdx] = &scannerOffset
 				// add all scanner i beacons
+				for _, b := range scanners[scannerIdx] {
+					b = Coord{
+						x: b.x + scannerOffset.x,
+						y: b.y + scannerOffset.y,
+						z: b.z + scannerOffset.z,
+					}
+					if !slices.Contains(beacons, b) {
+						beacons = append(beacons, b)
+					}
+				}
+				break
 			}
-
-			// TODO REMOVE
-			return beacons
 		}
-
-		scannerIdx = slices.Index(offsets, nil)
 	}
-
-	return beacons
 }
 
 func Run() {
