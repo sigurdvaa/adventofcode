@@ -15,6 +15,13 @@ type Coord struct {
 	z int
 }
 
+type Offset struct {
+	coord Coord
+	xdir  int
+	ydir  int
+	zdir  int
+}
+
 func parseInput(str string) [][]Coord {
 	var scanner []Coord
 	scanners := [][]Coord{}
@@ -92,42 +99,72 @@ func getMaxKey(count map[int]int) int {
 	return maxKey
 }
 
-func getOffset(dists map[int]map[int][]Coord, overlap []int, a int, b int, aOffset *Coord) Coord {
-	xCands := map[int]int{}
-	yCands := map[int]int{}
-	zCands := map[int]int{}
+func getOffset(dists map[int]map[int][]Coord, overlap []int, a int, b int, aOffset *Offset) Offset {
+	// xCands := map[int]int{}
+	// yCands := map[int]int{}
+	// zCands := map[int]int{}
+	cands := map[Offset]int{}
 
 	for _, dist := range overlap {
 		for _, c1 := range dists[dist][a] {
 			c1 = Coord{
-				x: c1.x + aOffset.x,
-				y: c1.y + aOffset.y,
-				z: c1.z + aOffset.z,
+				x: (c1.x * aOffset.xdir) + aOffset.coord.x,
+				y: (c1.y * aOffset.ydir) + aOffset.coord.y,
+				z: (c1.z * aOffset.zdir) + aOffset.coord.z,
 			}
 			for _, c2 := range dists[dist][b] {
-				xCands[c1.x-c2.x] += 1
-				xCands[c1.x+c2.x] += 1
-				yCands[c1.y-c2.y] += 1
-				yCands[c1.y+c2.y] += 1
-				zCands[c1.z-c2.z] += 1
-				zCands[c1.z+c2.z] += 1
+				cands[Offset{
+					coord: Coord{c1.x - c2.x, c1.y - c2.y, c1.z - c2.z},
+					xdir:  1, ydir: 1, zdir: 1}] += 1
+				cands[Offset{
+					coord: Coord{c1.x + c2.x, c1.y - c2.y, c1.z - c2.z},
+					xdir:  -1, ydir: 1, zdir: 1}] += 1
+				cands[Offset{
+					coord: Coord{c1.x + c2.x, c1.y + c2.y, c1.z - c2.z},
+					xdir:  -1, ydir: -1, zdir: 1}] += 1
+				cands[Offset{
+					coord: Coord{c1.x + c2.x, c1.y + c2.y, c1.z + c2.z},
+					xdir:  -1, ydir: -1, zdir: -1}] += 1
+				cands[Offset{
+					coord: Coord{c1.x - c2.x, c1.y + c2.y, c1.z + c2.z},
+					xdir:  1, ydir: -1, zdir: -1}] += 1
+				cands[Offset{
+					coord: Coord{c1.x - c2.x, c1.y - c2.y, c1.z + c2.z},
+					xdir:  1, ydir: 1, zdir: -1}] += 1
+				cands[Offset{
+					coord: Coord{c1.x + c2.x, c1.y - c2.y, c1.z + c2.z},
+					xdir:  -1, ydir: 1, zdir: -1}] += 1
+				cands[Offset{
+					coord: Coord{c1.x - c2.x, c1.y + c2.y, c1.z - c2.z},
+					xdir:  1, ydir: -1, zdir: 1}] += 1
 			}
 		}
 	}
-	return Coord{
-		x: getMaxKey(xCands),
-		y: getMaxKey(yCands),
-		z: getMaxKey(zCands),
+	maxv := 0
+	var maxo Offset
+	for k, v := range cands {
+		if v > maxv {
+			maxv = v
+			maxo = k
+		}
+		if k.coord.x == 20 {
+			fmt.Println(v, k)
+		}
+		if v >= 12 {
+			return k
+		}
 	}
+	fmt.Println("err", maxv, maxo, a, b)
+	panic("no canidate found")
 }
 
 func assembleMap(scanners [][]Coord) []Coord {
 	minEdges := 12 * 11 / 2
 	distances := getDistances(scanners)
-	offsets := make([]*Coord, len(scanners))
+	offsets := make([]*Offset, len(scanners))
 	beacons := make([]Coord, len(scanners[0]))
 	copy(beacons, scanners[0])
-	offsets[0] = &Coord{0, 0, 0}
+	offsets[0] = &Offset{coord: Coord{0, 0, 0}, xdir: 1, ydir: 1, zdir: 1}
 
 	scannerIdx := 0
 	for {
@@ -165,12 +202,14 @@ func assembleMap(scanners [][]Coord) []Coord {
 				// add all scanner i beacons
 				for _, b := range scanners[scannerIdx] {
 					b = Coord{
-						x: b.x + scannerOffset.x,
-						y: b.y + scannerOffset.y,
-						z: b.z + scannerOffset.z,
+						x: (b.x * scannerOffset.xdir) + scannerOffset.coord.x,
+						y: (b.y * scannerOffset.ydir) + scannerOffset.coord.y,
+						z: (b.z * scannerOffset.zdir) + scannerOffset.coord.z,
 					}
 					if !slices.Contains(beacons, b) {
 						beacons = append(beacons, b)
+					} else {
+						fmt.Println(scannerIdx, "skip")
 					}
 				}
 				break
