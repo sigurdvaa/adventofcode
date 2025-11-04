@@ -144,8 +144,7 @@ var inputString string = `--- scanner 0 ---
 func TestPartOne(t *testing.T) {
 	scanners := parseInput(inputString)
 	beacons := assembleMap(scanners)
-	_ = beacons
-	got := 1
+	got := len(beacons)
 	want := 79
 
 	if got != want {
