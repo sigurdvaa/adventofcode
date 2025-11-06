@@ -100,43 +100,21 @@ func matchFound(cands map[int]int) (int, bool) {
 	return maxK, maxV >= minEdges*2
 }
 
+func rot90(c *Coord, ax [2]int) {
+	c[ax[0]], c[ax[1]] = c[ax[1]], -c[ax[0]]
+}
+
+func allRots(c Coord) [24]Coord
+
 func getRotationAndOffset(overlap [][]Coord) (Coord, Coord) {
-	rot := Coord{}
-	for x := range 3 {
-		for y := range 3 {
-			for z := range 3 {
-				if x == y || y == z || x == z {
-					continue
-				}
-				xCands := map[int]int{}
-				yCands := map[int]int{}
-				zCands := map[int]int{}
-				rot = Coord{x, y, z}
-				for _, o := range overlap {
-					diff1 := o[0][0] + o[1][x]
-					diff2 := o[0][0] - o[1][x]
-					xCands[diff1] += 1
-					xCands[diff2] += 1
+	rots := [24][2]Coord{
+		{{0, 1, 2}, {1, 1, 1}},
 
-					diff1 = o[0][1] + o[1][y]
-					diff2 = o[0][1] - o[1][y]
-					yCands[diff1] += 1
-					yCands[diff2] += 1
-
-					diff1 = o[0][2] + o[1][z]
-					diff2 = o[0][2] - o[1][z]
-					zCands[diff1] += 1
-					zCands[diff2] += 1
-				}
-				xOff, xOk := matchFound(xCands)
-				yOff, yOk := matchFound(yCands)
-				zOff, zOk := matchFound(zCands)
-				if xOk && yOk && zOk {
-					return rot, Coord{xOff, yOff, zOff}
-				}
-			}
-		}
+		{{0, 2, 1}, {1, -1, 1}},
+		{{0, 1, 2}, {1, -1, -1}},
+		{{0, 2, 1}, {1, 1, -1}},
 	}
+
 	panic("unreachable")
 }
 
