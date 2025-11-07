@@ -1,14 +1,19 @@
 package day20
 
 import (
-	//"aoc_2021/input"
+	"aoc_2021/input"
 	"fmt"
 )
 
-func Run() {
-	fmt.Println("Day XX: Example")
+func parseInput(str string) {
+	return
+}
 
-	//inputString := input.ReadDay("day20")
+func Run() {
+	fmt.Println("Day 20: Trench Map")
+
+	inputString := input.ReadDay("day20")
+	parseInput(inputString)
 
 	fmt.Printf("Part One: TODO\n")
 	fmt.Printf("Part Two: TODO\n")
