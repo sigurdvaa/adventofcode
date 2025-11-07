@@ -11,6 +11,8 @@ import (
 
 type Coord [3]int
 
+const MIN_EDGES int = 12 * 11 / 2
+
 func parseInput(str string) [][]Coord {
 	var scanner []Coord
 	scanners := [][]Coord{}
@@ -88,7 +90,6 @@ func getOverlap(aCoords []Coord, bCoords []Coord) [][]Coord {
 }
 
 func matchFound(cands map[int]int) (int, bool) {
-	minEdges := 12 * 11 / 2
 	maxV := 0
 	maxK := 0
 	for k, v := range cands {
@@ -97,57 +98,81 @@ func matchFound(cands map[int]int) (int, bool) {
 			maxK = k
 		}
 	}
-	return maxK, maxV >= minEdges*2
+	return maxK, maxV >= MIN_EDGES
 }
 
 func rot90(c *Coord, ax [2]int) {
 	c[ax[0]], c[ax[1]] = c[ax[1]], -c[ax[0]]
 }
 
-func allRots(c Coord) [24]Coord
-
-func getRotationAndOffset(overlap [][]Coord) (Coord, Coord) {
-	rots := [24][2]Coord{
-		{{0, 1, 2}, {1, 1, 1}},
-
-		{{0, 2, 1}, {1, -1, 1}},
-		{{0, 1, 2}, {1, -1, -1}},
-		{{0, 2, 1}, {1, 1, -1}},
+var (
+	ROLL = [2]int{1, 2}
+	CW   = [2]int{0, 1}
+	CCW  = [2]int{1, 0}
+	ROTS = [24][2]int{
+		ROLL, CW, CW, CW,
+		ROLL, CCW, CCW, CCW,
+		ROLL, CW, CW, CW,
+		ROLL, CCW, CCW, CCW,
+		ROLL, CW, CW, CW,
+		ROLL, CCW, CCW, CCW,
 	}
+)
 
+func getRotationAndOffset(overlap [][]Coord) ([][2]int, Coord) {
+	rots := [][2]int{}
+	for _, rot := range ROTS {
+		rots = append(rots, rot)
+		xCands := map[int]int{}
+		yCands := map[int]int{}
+		zCands := map[int]int{}
+		for o := range overlap {
+			rot90(&overlap[o][1], rot)
+			xdiff := overlap[o][0][0] - overlap[o][1][0]
+			xCands[xdiff] += 1
+			ydiff := overlap[o][0][1] - overlap[o][1][1]
+			yCands[ydiff] += 1
+			zdiff := overlap[o][0][2] - overlap[o][1][2]
+			zCands[zdiff] += 1
+		}
+		if xmatch, xok := matchFound(xCands); xok {
+			if ymatch, yok := matchFound(yCands); yok {
+				if zmatch, zok := matchFound(zCands); zok {
+					return rots, Coord{xmatch, ymatch, zmatch}
+				}
+			}
+		}
+	}
 	panic("unreachable")
 }
 
-func assembleMap(scanners [][]Coord) []Coord {
-	assembled := make([]bool, len(scanners))
-	assembled[0] = true
-	minEdges := 12 * 11 / 2
-	// distances := getDistances(scanners)
-	for slices.Contains(assembled, false) {
+func assembleMap(scanners [][]Coord) ([]Coord, []*Coord) {
+	assembled := make([]*Coord, len(scanners))
+	assembled[0] = &Coord{0, 0, 0}
+	for slices.Contains(assembled, nil) {
 		for curr := range scanners {
-			if assembled[curr] {
+			if assembled[curr] != nil {
 				continue
 			}
 			for other := range scanners {
-				if !assembled[other] {
+				if assembled[other] == nil {
 					continue
 				}
 				overlap := getOverlap(scanners[other], scanners[curr])
-				if len(overlap) >= minEdges*4 {
-					rot, offset := getRotationAndOffset(overlap)
-					fmt.Println(other, curr, rot, offset)
+				if len(overlap) >= MIN_EDGES {
+					rots, offset := getRotationAndOffset(overlap)
 					for c := range scanners[curr] {
+						for _, rot := range rots {
+							rot90(&scanners[curr][c], rot)
+						}
 						coord := scanners[curr][c]
 						scanners[curr][c] = Coord{
-							coord[rot[0]] + offset[0],
-							coord[rot[1]] + offset[1],
-							coord[rot[2]] + offset[2],
-						}
-						if curr == 4 {
-							fmt.Println(scanners[curr][c])
+							coord[0] + offset[0],
+							coord[1] + offset[1],
+							coord[2] + offset[2],
 						}
 					}
-					assembled[curr] = true
+					assembled[curr] = &offset
 					break
 				}
 			}
@@ -162,7 +187,29 @@ func assembleMap(scanners [][]Coord) []Coord {
 			}
 		}
 	}
-	return beacons
+	return beacons, assembled
+}
+
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
+func largestManhattanDist(offsets []*Coord) int {
+	largest := 0
+	for o := range len(offsets) - 1 {
+		for i := o + 1; i < len(offsets); i++ {
+			dist := abs(offsets[o][0]-offsets[i][0]) +
+				abs(offsets[o][1]-offsets[i][1]) +
+				abs(offsets[o][2]-offsets[i][2])
+			if dist > largest {
+				largest = dist
+			}
+		}
+	}
+	return largest
 }
 
 func Run() {
@@ -170,8 +217,8 @@ func Run() {
 
 	inputString := input.ReadDay("day19")
 	scanners := parseInput(inputString)
-	beacons := assembleMap(scanners)
+	beacons, offsets := assembleMap(scanners)
 
 	fmt.Printf("Part One: %d\n", len(beacons))
-	fmt.Printf("Part Two: TODO\n")
+	fmt.Printf("Part Two: %d\n", largestManhattanDist(offsets))
 }

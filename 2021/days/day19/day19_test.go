@@ -143,7 +143,7 @@ var inputString string = `--- scanner 0 ---
 
 func TestPartOne(t *testing.T) {
 	scanners := parseInput(inputString)
-	beacons := assembleMap(scanners)
+	beacons, _ := assembleMap(scanners)
 	got := len(beacons)
 	want := 79
 
@@ -153,4 +153,12 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
+	scanners := parseInput(inputString)
+	_, offsets := assembleMap(scanners)
+	got := largestManhattanDist(offsets)
+	want := 3621
+
+	if got != want {
+		t.Errorf("got %d, wanted %d", got, want)
+	}
 }
