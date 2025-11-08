@@ -44,8 +44,8 @@ func calcPixelValue(img [][]bool, x int, y int) int {
 	val := 0
 	for iy := y - 1; iy < y+2; iy++ {
 		for ix := x - 1; ix < x+2; ix++ {
+			val <<= 1
 			if iy >= 0 && iy < len(img) {
-				val <<= 1
 				if ix >= 0 && ix < len(img[iy]) {
 					if img[iy][ix] {
 						val += 1
@@ -105,8 +105,10 @@ func Run() {
 
 	inputString := input.ReadDay("day20")
 	algo, img := parseInput(inputString)
-	_, _ = algo, img
+	img = enhanceImg(algo, img, 2)
 
-	fmt.Printf("Part One: TODO\n")
+	fmt.Printf("Part One: %d\n", countLitPixels(img))
+	// 5704 high
+	// 5583 high
 	fmt.Printf("Part Two: TODO\n")
 }
