@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+type Img [][]bool
+type Algo [512]bool
+
 func parsePixel(p rune) bool {
 	switch p {
 	case '#':
@@ -13,13 +16,13 @@ func parsePixel(p rune) bool {
 	case '.':
 		return false
 	}
-	panic(fmt.Sprintf("unknown pixel: %c", p))
+	panic(fmt.Sprintf("unknown pixel: '%c'", p))
 }
 
-func parseInput(str string) ([512]bool, [][]bool) {
+func parseInput(str string) (Algo, Img) {
 	algo_parsed := false
-	algo := [512]bool{}
-	img := [][]bool{}
+	algo := Algo{}
+	img := Img{}
 	for line := range strings.SplitSeq(str, "\n") {
 		if line == "" {
 			continue
@@ -40,42 +43,55 @@ func parseInput(str string) ([512]bool, [][]bool) {
 	return algo, img
 }
 
-func calcPixelValue(img [][]bool, x int, y int) int {
+func calcPixelValue(img Img, x int, y int, infVal int) int {
 	val := 0
 	for iy := y - 1; iy < y+2; iy++ {
 		for ix := x - 1; ix < x+2; ix++ {
 			val <<= 1
-			if iy >= 0 && iy < len(img) {
-				if ix >= 0 && ix < len(img[iy]) {
-					if img[iy][ix] {
-						val += 1
-					}
+			if iy >= 0 && iy < len(img) && ix >= 0 && ix < len(img[iy]) {
+				if img[iy][ix] {
+					val += 1
 				}
+			} else {
+				val += infVal
 			}
 		}
 	}
 	return val
 }
 
-func enhanceImg(algo [512]bool, img [][]bool, steps int) [][]bool {
+func enhanceImg(algo Algo, img Img, steps int) Img {
+	infVal := 0
 	const PAD int = 1
-	for range steps {
+	for s := range steps {
 		nextY := len(img) + (PAD * 2)
 		nextX := len(img[0]) + (PAD * 2)
-		next := make([][]bool, nextY)
+		nextImg := make(Img, nextY)
 		for y := range nextY {
-			next[y] = make([]bool, nextX)
+			nextImg[y] = make([]bool, nextX)
 			for x := range nextX {
-				val := calcPixelValue(img, x-PAD, y-PAD)
-				next[y][x] = algo[val]
+				val := calcPixelValue(img, x-PAD, y-PAD, infVal)
+				nextImg[y][x] = algo[val]
 			}
 		}
-		img = next
+		img = nextImg
+
+		if s > 0 {
+			if infVal == 1 && !algo[511] {
+				infVal = 0
+			} else if infVal == 0 && algo[0] {
+				infVal = 1
+			}
+		} else {
+			if algo[0] {
+				infVal = 1
+			}
+		}
 	}
 	return img
 }
 
-func countLitPixels(img [][]bool) int {
+func countLitPixels(img Img) int {
 	count := 0
 	for _, row := range img {
 		for _, p := range row {
@@ -87,28 +103,12 @@ func countLitPixels(img [][]bool) int {
 	return count
 }
 
-func printImg(img [][]bool) {
-	for _, row := range img {
-		for _, p := range row {
-			if p {
-				fmt.Print("#")
-			} else {
-				fmt.Print(".")
-			}
-		}
-		fmt.Println()
-	}
-}
-
 func Run() {
 	fmt.Println("Day 20: Trench Map")
 
 	inputString := input.ReadDay("day20")
 	algo, img := parseInput(inputString)
-	img = enhanceImg(algo, img, 2)
 
-	fmt.Printf("Part One: %d\n", countLitPixels(img))
-	// 5704 high
-	// 5583 high
-	fmt.Printf("Part Two: TODO\n")
+	fmt.Printf("Part One: %d\n", countLitPixels(enhanceImg(algo, img, 2)))
+	fmt.Printf("Part Two: %d\n", countLitPixels(enhanceImg(algo, img, 50)))
 }

@@ -15,7 +15,6 @@ var inputString string = `..#.#..#####.#.#.#.###.##.....###.##.#..###.####..####
 func TestPartOne(t *testing.T) {
 	algo, img := parseInput(inputString)
 	img = enhanceImg(algo, img, 2)
-	printImg(img)
 	got := countLitPixels(img)
 	want := 35
 
@@ -25,4 +24,12 @@ func TestPartOne(t *testing.T) {
 }
 
 func TestPartTwo(t *testing.T) {
+	algo, img := parseInput(inputString)
+	img = enhanceImg(algo, img, 50)
+	got := countLitPixels(img)
+	want := 3351
+
+	if got != want {
+		t.Errorf("got %d, wanted %d", got, want)
+	}
 }
