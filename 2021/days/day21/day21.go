@@ -44,7 +44,7 @@ func (d *Dice) turn() int {
 	return sum
 }
 
-func playDiracDice(p1, p2 int) int {
+func playDeterministicDice(p1, p2 int) int {
 	dice := Dice{}
 	p1score, p2score := 0, 0
 
@@ -69,8 +69,68 @@ func playDiracDice(p1, p2 int) int {
 			break
 		}
 	}
-	fmt.Println(p1, p1score, p2, p2score, dice.total)
 	return min(p1score, p2score) * dice.total
+}
+
+const GAME_LIMIT int = 21
+const POS_LIMIT int = 10
+const PLAYERS int = 2
+
+type Game struct {
+	pos   [PLAYERS]int
+	score [PLAYERS]int
+}
+type Wins [PLAYERS]int
+type Cache map[Game]Wins
+
+func (g *Game) copy() Game {
+	newGame := Game{}
+	for i := range PLAYERS {
+		newGame.pos[i] = g.pos[i]
+		newGame.score[i] = g.score[i]
+	}
+	return newGame
+}
+
+func recursQuantumDice(seen Cache, game Game, player int) Wins {
+	if wins, ok := seen[game]; ok {
+		return wins
+	}
+
+	for i := range PLAYERS {
+		if game.score[i] >= GAME_LIMIT {
+			wins := Wins{}
+			wins[i] = 1
+			seen[game] = wins
+			return wins
+		}
+	}
+
+	wins := Wins{}
+	for x := 1; x < 4; x++ {
+		for y := 1; y < 4; y++ {
+			for z := 1; z < 4; z++ {
+				nextGame := game.copy()
+				nextGame.pos[player] = (nextGame.pos[player] + x + y + z) % POS_LIMIT
+				if nextGame.pos[player] == 0 {
+					nextGame.pos[player] = 10
+				}
+				nextGame.score[player] += nextGame.pos[player]
+				nextWins := recursQuantumDice(seen, nextGame, (player+1)%PLAYERS)
+				wins[0] += nextWins[0]
+				wins[1] += nextWins[1]
+			}
+		}
+	}
+
+	seen[game] = wins
+	return wins
+}
+
+func playQuantumDice(p1, p2 int) int {
+	seen := Cache{}
+	wins := recursQuantumDice(seen, Game{[PLAYERS]int{p1, p2}, [PLAYERS]int{0, 0}}, 0)
+	return max(wins[0], wins[1])
 }
 
 func Run() {
@@ -78,8 +138,7 @@ func Run() {
 
 	inputString := input.ReadDay("day21")
 	p1, p2 := parseInput(inputString)
-	_, _ = p1, p2
 
-	fmt.Printf("Part One: %d\n", playDiracDice(p1, p2))
-	fmt.Printf("Part Two: TODO\n")
+	fmt.Printf("Part One: %d\n", playDeterministicDice(p1, p2))
+	fmt.Printf("Part Two: %d\n", playQuantumDice(p1, p2))
 }
