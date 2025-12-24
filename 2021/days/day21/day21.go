@@ -77,14 +77,17 @@ const POS_LIMIT int = 10
 const PLAYERS int = 2
 
 type Game struct {
-	pos   [PLAYERS]int
-	score [PLAYERS]int
+	pos    [PLAYERS]int
+	score  [PLAYERS]int
+	player int
 }
 type Wins [PLAYERS]int
 type Cache map[Game]Wins
+type Rolls map[int]int
 
 func (g *Game) copy() Game {
 	newGame := Game{}
+	newGame.player = g.player
 	for i := range PLAYERS {
 		newGame.pos[i] = g.pos[i]
 		newGame.score[i] = g.score[i]
@@ -92,7 +95,7 @@ func (g *Game) copy() Game {
 	return newGame
 }
 
-func recursQuantumDice(seen Cache, game Game, player int) Wins {
+func recursQuantumDice(seen Cache, rolls Rolls, game Game) Wins {
 	if wins, ok := seen[game]; ok {
 		return wins
 	}
@@ -107,29 +110,44 @@ func recursQuantumDice(seen Cache, game Game, player int) Wins {
 	}
 
 	wins := Wins{}
-	for x := 1; x < 4; x++ {
-		for y := 1; y < 4; y++ {
-			for z := 1; z < 4; z++ {
-				nextGame := game.copy()
-				nextGame.pos[player] = (nextGame.pos[player] + x + y + z) % POS_LIMIT
-				if nextGame.pos[player] == 0 {
-					nextGame.pos[player] = 10
-				}
-				nextGame.score[player] += nextGame.pos[player]
-				nextWins := recursQuantumDice(seen, nextGame, (player+1)%PLAYERS)
-				wins[0] += nextWins[0]
-				wins[1] += nextWins[1]
-			}
+	for roll, count := range rolls {
+		nextGame := game.copy()
+		nextGame.pos[game.player] = (nextGame.pos[game.player] + roll) % POS_LIMIT
+		if nextGame.pos[game.player] == 0 {
+			nextGame.pos[game.player] = 10
 		}
+		nextGame.score[game.player] += nextGame.pos[game.player]
+		nextGame.player = (game.player + 1) % PLAYERS
+		nextWins := recursQuantumDice(seen, rolls, nextGame)
+		wins[0] += nextWins[0] * count
+		wins[1] += nextWins[1] * count
 	}
 
 	seen[game] = wins
 	return wins
 }
 
+func precalcRolls() map[int]int {
+	rolls := map[int]int{}
+	for x := 1; x < 4; x++ {
+		for y := 1; y < 4; y++ {
+			for z := 1; z < 4; z++ {
+				rolls[x+y+z] += 1
+			}
+		}
+	}
+	return rolls
+}
+
 func playQuantumDice(p1, p2 int) int {
 	seen := Cache{}
-	wins := recursQuantumDice(seen, Game{[PLAYERS]int{p1, p2}, [PLAYERS]int{0, 0}}, 0)
+	rolls := precalcRolls()
+	game := Game{
+		pos:    [PLAYERS]int{p1, p2},
+		score:  [PLAYERS]int{0, 0},
+		player: 0,
+	}
+	wins := recursQuantumDice(seen, rolls, game)
 	return max(wins[0], wins[1])
 }
 
