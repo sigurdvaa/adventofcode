@@ -96,10 +96,6 @@ func (g *Game) copy() Game {
 }
 
 func recursQuantumDice(seen Cache, rolls Rolls, game Game) Wins {
-	if wins, ok := seen[game]; ok {
-		return wins
-	}
-
 	for i := range PLAYERS {
 		if game.score[i] >= GAME_LIMIT {
 			wins := Wins{}
@@ -118,7 +114,10 @@ func recursQuantumDice(seen Cache, rolls Rolls, game Game) Wins {
 		}
 		nextGame.score[game.player] += nextGame.pos[game.player]
 		nextGame.player = (game.player + 1) % PLAYERS
-		nextWins := recursQuantumDice(seen, rolls, nextGame)
+		nextWins, ok := seen[nextGame]
+		if !ok {
+			nextWins = recursQuantumDice(seen, rolls, nextGame)
+		}
 		wins[0] += nextWins[0] * count
 		wins[1] += nextWins[1] * count
 	}
