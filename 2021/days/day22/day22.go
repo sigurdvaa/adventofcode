@@ -59,50 +59,30 @@ func parseInput(str string) []Cuboid {
 }
 
 func simplifyCuboid(c *Cuboid) {
-	if c.xStart < -50 {
-		c.xStart = -50
-	}
-	if c.xEnd > 50 {
-		c.xEnd = 50
-	}
-	if c.yStart < -50 {
-		c.yStart = -50
-	}
-	if c.yEnd > 50 {
-		c.yEnd = 50
-	}
-	if c.zStart < -50 {
-		c.zStart = -50
-	}
-	if c.zEnd > 50 {
-		c.zEnd = 50
-	}
+	c.xStart = max(c.xStart, -50)
+	c.xEnd = min(c.xEnd, 50)
+	c.yStart = max(c.yStart, -50)
+	c.yEnd = min(c.yEnd, 50)
+	c.zStart = max(c.zStart, -50)
+	c.zEnd = min(c.zEnd, 50)
+}
+
+func intersectingCubes(a Cuboid, b Cuboid) int {
+	count := 0
+	return count
 }
 
 func runProcedure(procedure []Cuboid, simple bool) int {
-	reactor := map[Coord]bool{}
+	cuboids := []Cuboid{}
 
 	for _, proc := range procedure {
-		if simple {
-			simplifyCuboid(&proc)
-		}
-		for x := proc.xStart; x <= proc.xEnd; x++ {
-			for y := proc.yStart; y <= proc.yEnd; y++ {
-				for z := proc.zStart; z <= proc.zEnd; z++ {
-					coord := Coord{x, y, z}
-					reactor[coord] = proc.value
-				}
-			}
-		}
+		// for each cuboids, check for intersections
+		// if "on", add, split cuboids on any intersects
+		// if "off", remove, split cuboids on any intersect
 	}
 
-	count := 0
-	for _, v := range reactor {
-		if v {
-			count += 1
-		}
-	}
-	return count
+	// TODO count cubes
+	return 0
 }
 
 func Run() {
@@ -110,7 +90,8 @@ func Run() {
 
 	inputString := input.ReadDay("day22")
 	procedure := parseInput(inputString)
+
 	fmt.Printf("Part One: %d\n", runProcedure(procedure, true))
-	procedure = parseInput(inputString)
-	fmt.Printf("Part Two: %d\n", runProcedure(procedure, false))
+	// procedure = parseInput(inputString)
+	// fmt.Printf("Part Two: %d\n", runProcedure(procedure, false))
 }
