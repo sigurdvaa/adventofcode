@@ -34,6 +34,9 @@ func parseInput(str string) []Cuboid {
 	procedure := []Cuboid{}
 
 	for line := range strings.SplitSeq(str, "\n") {
+		if line == "" {
+			continue
+		}
 		valueSplit := strings.Split(line, " ")
 		value := false
 		if valueSplit[0] == "on" {
