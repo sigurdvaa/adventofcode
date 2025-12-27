@@ -67,21 +67,48 @@ func simplifyCuboid(c *Cuboid) {
 	c.zEnd = min(c.zEnd, 50)
 }
 
-func intersectingCubes(a Cuboid, b Cuboid) int {
-	count := 0
-	return count
+func cuboidsIntersect(a Cuboid, b Cuboid) bool {
+	return a.xStart >= b.xStart && a.xStart <= b.xEnd &&
+		a.yStart >= b.yStart && a.yStart <= b.yEnd &&
+		a.zStart >= b.zStart && a.zStart <= b.zEnd
 }
 
 func runProcedure(procedure []Cuboid, simple bool) int {
 	cuboids := []Cuboid{}
 
 	for _, proc := range procedure {
+		nextCuboids := make([]Cuboid, 0, len(cuboids)*2)
+		noIntersects := true
+
 		// for each cuboids, check for intersections
-		// if "on", add, split cuboids on any intersects
-		// if "off", remove, split cuboids on any intersect
+		for _, c := range cuboids {
+			if cuboidsIntersect(proc, c) {
+			}
+			splits := cuboidsIntersectSplit(proc, c)
+			if len(splits) > 0 {
+				noIntersects = false
+
+				// if "on", add, split cuboids on any intersects
+				if proc.value {
+					// intCuboid.value = proc.value
+					// nextCuboids = append(nextCuboids, intCuboid)
+				}
+
+				// split cuboid based in intersect and add all non-intersecting parts
+			}
+		}
+
+		if noIntersects && proc.value {
+			nextCuboids = append(nextCuboids, proc)
+		}
+
+		cuboids = nextCuboids
 	}
 
-	// TODO count cubes
+	count := 0
+	for _, c := range cuboids {
+		count += (c.xEnd - c.xStart + 1) * (c.yEnd - c.yStart + 1) * (c.zEnd - c.zStart + 1)
+	}
 	return 0
 }
 
