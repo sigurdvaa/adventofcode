@@ -11,7 +11,8 @@ var inputString string = `#############
   #########`
 
 func TestPartOne(t *testing.T) {
-	_ = parseInput(inputString)
+	rooms := parseInput(inputString)
+	_ = rooms
 	got := 1
 	want := 2
 
