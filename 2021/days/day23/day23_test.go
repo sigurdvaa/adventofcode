@@ -12,9 +12,8 @@ var inputString string = `#############
 
 func TestPartOne(t *testing.T) {
 	rooms := parseInput(inputString)
-	_ = rooms
-	got := 1
-	want := 2
+	got := organizeByLeastEnergy(rooms)
+	want := 12521
 
 	if got != want {
 		t.Errorf("got %d, wanted %d", got, want)
